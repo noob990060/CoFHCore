@@ -7,6 +7,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.function.Supplier;
@@ -39,25 +41,30 @@ public class ElementBlock extends ElementBase {
     }
 
     @Override
-    public void drawForeground(GuiGraphics pGuiGraphics, int mouseX, int mouseY) {
+    public void drawForeground(GuiGraphics guiGraphics, int mouseX, int mouseY) {
 
         Block block = blockSup.get();
-        if (block != Blocks.AIR) {
-            if (block != renderBlock) {
-                if (block instanceof LiquidBlock) {
-                    renderFluid = new FluidStack(((LiquidBlock) block).getFluid(), BUCKET_VOLUME);
-                    renderStack = ItemStack.EMPTY;
-                } else {
-                    renderFluid = FluidStack.EMPTY;
-                    renderStack = new ItemStack(block);
-                }
-                renderBlock = block;
-            }
-            if (!renderStack.isEmpty()) {
-                pGuiGraphics.renderItem(renderStack, posX(), posY());
+        if (block == Blocks.AIR) {
+            return;
+        }
+
+        if (block != renderBlock) {
+            FluidState fluidState = block.defaultBlockState().getFluidState();
+
+            if (!fluidState.isEmpty()) {
+                renderFluid = new FluidStack(fluidState.getType(), BUCKET_VOLUME);
+                renderStack = ItemStack.EMPTY;
             } else {
-                RenderHelper.drawFluid(posX(), posY(), renderFluid, 16, 16);
+                renderFluid = FluidStack.EMPTY;
+                renderStack = new ItemStack(block);
             }
+            renderBlock = block;
+        }
+
+        if (!renderStack.isEmpty()) {
+            guiGraphics.renderItem(renderStack, posX(), posY());
+        } else {
+            RenderHelper.drawFluid(posX(), posY(), renderFluid, 16, 16);
         }
     }
 
