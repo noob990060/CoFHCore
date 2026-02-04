@@ -8,7 +8,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record ContainerConfigPayload(FriendlyByteBuf buf) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "container_config_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "container_config_packet");
 
     public ContainerConfigPayload(final FriendlyByteBuf buf) {
 

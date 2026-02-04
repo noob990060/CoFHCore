@@ -9,7 +9,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record TileConfigPayload(BlockPos pos, FriendlyByteBuf buf) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "tile_config_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "tile_config_packet");
 
     public TileConfigPayload(final FriendlyByteBuf buf) {
 

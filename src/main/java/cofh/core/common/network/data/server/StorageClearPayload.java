@@ -9,7 +9,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record StorageClearPayload(BlockPos pos, int type, int index) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "storage_clear_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "storage_clear_packet");
 
     public StorageClearPayload(final FriendlyByteBuf buf) {
 

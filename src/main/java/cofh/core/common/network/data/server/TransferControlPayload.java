@@ -10,7 +10,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 public record TransferControlPayload(BlockPos pos, boolean transferIn,
                                      boolean transferOut) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "transfer_control_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "transfer_control_packet");
 
     public TransferControlPayload(final FriendlyByteBuf buf) {
 

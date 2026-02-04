@@ -9,7 +9,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record ModelUpdatePayload(BlockPos pos) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "model_update_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "model_update_packet");
 
     public ModelUpdatePayload(final FriendlyByteBuf buf) {
 

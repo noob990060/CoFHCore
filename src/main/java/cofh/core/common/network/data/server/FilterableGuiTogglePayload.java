@@ -10,7 +10,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 public record FilterableGuiTogglePayload(int type, int entityId, BlockPos pos,
                                          byte mode) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "filterable_gui_toggle_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "filterable_gui_toggle_packet");
 
     public FilterableGuiTogglePayload(final FriendlyByteBuf buf) {
 

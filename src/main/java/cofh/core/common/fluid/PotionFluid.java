@@ -51,7 +51,9 @@ public class PotionFluid extends FluidCoFH {
         super(FLUIDS, ID_FLUID_POTION);
 
         // This is only used for testing.
-        // bucket = toolsTab(1000, ITEMS.register(bucket(key), () -> new BucketItem(stillFluid, properties().containerItem(Items.BUCKET).maxStackSize(1).group(ItemGroup.BREWING)));
+        // bucket = toolsTab(1000, ITEMS.register(bucket(key), () -> new
+        // BucketItem(stillFluid,
+        // properties().containerItem(Items.BUCKET).maxStackSize(1).group(ItemGroup.BREWING)));
     }
 
     @Override
@@ -66,57 +68,59 @@ public class PotionFluid extends FluidCoFH {
         return TYPE;
     }
 
-    public static final DeferredHolder<FluidType, FluidType> TYPE = FLUID_TYPES.register(ID_FLUID_POTION, () -> new FluidType(FluidType.Properties.create()
-            .density(1100)
-            .viscosity(1100)
-            .sound(SoundActions.BUCKET_FILL, SoundEvents.BOTTLE_FILL)
-            .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BOTTLE_EMPTY)) {
-
-        @Override
-        public Component getDescription(FluidStack stack) {
-
-            Potion potion = PotionUtils.getPotion(stack.getTag());
-            if (potion == Potions.EMPTY || potion == Potions.WATER) {
-                return super.getDescription(stack);
-            }
-            return Component.translatable(potion.getName(Items.POTION.getDescriptionId() + ".effect."));
-        }
-
-        @Override
-        public Rarity getRarity(FluidStack stack) {
-
-            return FluidHelper.getPotionFromFluidTag(stack.getTag()).getEffects().isEmpty() ? Rarity.COMMON : Rarity.UNCOMMON;
-        }
-
-        @Override
-        public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
-
-            consumer.accept(new IClientFluidTypeExtensions() {
-
-                private static final ResourceLocation
-                        STILL = new ResourceLocation("cofh_core:block/fluids/potion_still"),
-                        FLOW = new ResourceLocation("cofh_core:block/fluids/potion_flow");
+    public static final DeferredHolder<FluidType, FluidType> TYPE = FLUID_TYPES.register(ID_FLUID_POTION,
+            () -> new FluidType(FluidType.Properties.create()
+                    .density(1100)
+                    .viscosity(1100)
+                    .sound(SoundActions.BUCKET_FILL, SoundEvents.BOTTLE_FILL)
+                    .sound(SoundActions.BUCKET_EMPTY, SoundEvents.BOTTLE_EMPTY)) {
 
                 @Override
-                public int getTintColor(FluidStack stack) {
+                public Component getDescription(FluidStack stack) {
 
-                    return 0xFF000000 | getPotionColor(stack);
+                    Potion potion = PotionUtils.getPotion(stack.getTag());
+                    if (potion == Potions.EMPTY || potion == Potions.WATER) {
+                        return super.getDescription(stack);
+                    }
+                    return Component.translatable(potion.getName(Items.POTION.getDescriptionId() + ".effect."));
                 }
 
                 @Override
-                public ResourceLocation getStillTexture() {
+                public Rarity getRarity(FluidStack stack) {
 
-                    return STILL;
+                    return FluidHelper.getPotionFromFluidTag(stack.getTag()).getEffects().isEmpty() ? Rarity.COMMON
+                            : Rarity.UNCOMMON;
                 }
 
                 @Override
-                public ResourceLocation getFlowingTexture() {
+                public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
 
-                    return FLOW;
+                    consumer.accept(new IClientFluidTypeExtensions() {
+
+                        private static final ResourceLocation
+                                STILL = ResourceLocation.parse("cofh_core:block/fluids/potion_still"),
+                                FLOW = ResourceLocation.parse("cofh_core:block/fluids/potion_flow");
+
+                        @Override
+                        public int getTintColor(FluidStack stack) {
+
+                            return 0xFF000000 | getPotionColor(stack);
+                        }
+
+                        @Override
+                        public ResourceLocation getStillTexture() {
+
+                            return STILL;
+                        }
+
+                        @Override
+                        public ResourceLocation getFlowingTexture() {
+
+                            return FLOW;
+                        }
+                    });
                 }
             });
-        }
-    });
 
     // region HELPERS
     public static int DEFAULT_COLOR = 0xF800F8;
@@ -127,7 +131,8 @@ public class PotionFluid extends FluidCoFH {
         if (tag != null && tag.contains(PotionUtils.TAG_CUSTOM_POTION_COLOR, 99)) {
             return tag.getInt(PotionUtils.TAG_CUSTOM_POTION_COLOR);
         } else {
-            return FluidHelper.getPotionFromFluidTag(stack.getTag()) == Potions.EMPTY ? DEFAULT_COLOR : PotionUtils.getColor(PotionUtils.getAllEffects(stack.getTag()));
+            return FluidHelper.getPotionFromFluidTag(stack.getTag()) == Potions.EMPTY ? DEFAULT_COLOR
+                    : PotionUtils.getColor(PotionUtils.getAllEffects(stack.getTag()));
         }
     }
 
@@ -198,7 +203,8 @@ public class PotionFluid extends FluidCoFH {
 
         if (item.equals(Items.POTION)) {
             Collection<MobEffectInstance> custom = PotionUtils.getCustomEffects(stack);
-            FluidStack fluid = setCustomEffects(getPotionAsFluid(amount, PotionUtils.getPotion(stack), !custom.isEmpty()), custom);
+            FluidStack fluid = setCustomEffects(
+                    getPotionAsFluid(amount, PotionUtils.getPotion(stack), !custom.isEmpty()), custom);
             int color = PotionUtils.getColor(stack);
             if (color != PotionUtils.getColor(PotionUtils.getMobEffects(stack))) {
                 setCustomColor(fluid, color);
@@ -219,7 +225,9 @@ public class PotionFluid extends FluidCoFH {
 
     public static ItemStack getItemFromPotionFluid(FluidStack fluid) {
 
-        ItemStack stack = PotionUtils.setCustomEffects(PotionUtils.setPotion(new ItemStack(Items.POTION), FluidHelper.getPotionFromFluid(fluid)), getCustomEffects(fluid));
+        ItemStack stack = PotionUtils.setCustomEffects(
+                PotionUtils.setPotion(new ItemStack(Items.POTION), FluidHelper.getPotionFromFluid(fluid)),
+                getCustomEffects(fluid));
         int color = getPotionColor(fluid);
         if (color != PotionUtils.getColor(stack)) {
             setCustomColor(stack, color);
@@ -236,39 +244,45 @@ public class PotionFluid extends FluidCoFH {
     }
     // endregion
 
-    //    protected static class PotionFluidAttributes extends FluidAttributes {
+    // protected static class PotionFluidAttributes extends FluidAttributes {
     //
-    //        protected PotionFluidAttributes(Builder builder, Fluid fluid) {
+    // protected PotionFluidAttributes(Builder builder, Fluid fluid) {
     //
-    //            super(builder, fluid);
-    //        }
+    // super(builder, fluid);
+    // }
     //
-    //        @Override
-    //        public Component getDisplayName(FluidStack stack) {
+    // @Override
+    // public Component getDisplayName(FluidStack stack) {
     //
-    //            Potion potion = PotionUtils.getPotion(stack.getTag());
-    //            if (potion == Potions.EMPTY || potion == Potions.WATER) {
-    //                return super.getDisplayName(stack);
-    //            }
-    //            return new Component.translatable(potion.getName(Items.POTION.getDescriptionId() + ".effect."));
-    //        }
+    // Potion potion = PotionUtils.getPotion(stack.getTag());
+    // if (potion == Potions.EMPTY || potion == Potions.WATER) {
+    // return super.getDisplayName(stack);
+    // }
+    // return new
+    // Component.translatable(potion.getName(Items.POTION.getDescriptionId() +
+    // ".effect."));
+    // }
     //
-    //        public Rarity getRarity(FluidStack stack) {
+    // public Rarity getRarity(FluidStack stack) {
     //
-    //            return FluidHelper.getPotionFromFluidTag(stack.getTag()).getEffects().isEmpty() ? Rarity.COMMON : Rarity.UNCOMMON;
-    //        }
+    // return
+    // FluidHelper.getPotionFromFluidTag(stack.getTag()).getEffects().isEmpty() ?
+    // Rarity.COMMON : Rarity.UNCOMMON;
+    // }
     //
-    //        @Override
-    //        public int getColor(FluidStack stack) {
+    // @Override
+    // public int getColor(FluidStack stack) {
     //
-    //            return 0xFF000000 | getPotionColor(stack);
-    //        }
+    // return 0xFF000000 | getPotionColor(stack);
+    // }
     //
-    //        public static Builder builder(ResourceLocation stillTexture, ResourceLocation flowingTexture) {
+    // public static Builder builder(ResourceLocation stillTexture, ResourceLocation
+    // flowingTexture) {
     //
-    //            return new Builder(stillTexture, flowingTexture, PotionFluidAttributes::new) {};
-    //        }
+    // return new Builder(stillTexture, flowingTexture, PotionFluidAttributes::new)
+    // {};
+    // }
     //
-    //    }
+    // }
 
 }

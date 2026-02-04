@@ -32,7 +32,7 @@ public class TileNBTSync extends LootItemConditionalFunction {
         if (INSTANCE != null) {
             return;
         }
-        INSTANCE = Registry.register(BuiltInRegistries.LOOT_FUNCTION_TYPE, new ResourceLocation(ID_COFH_CORE + ":nbt_sync"), new LootItemFunctionType(CODEC));
+        INSTANCE = Registry.register(BuiltInRegistries.LOOT_FUNCTION_TYPE, ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "nbt_sync"), new LootItemFunctionType(CODEC));
     }
 
     protected TileNBTSync(List<LootItemCondition> conditionsIn) {

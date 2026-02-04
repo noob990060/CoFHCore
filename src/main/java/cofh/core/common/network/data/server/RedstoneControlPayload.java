@@ -9,7 +9,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record RedstoneControlPayload(BlockPos pos, int threshold, byte mode) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "redstone_control_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "redstone_control_packet");
 
     public RedstoneControlPayload(final FriendlyByteBuf buf) {
 

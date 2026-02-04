@@ -8,7 +8,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record OverlayMessagePayload(String message) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "overlay_message_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "overlay_message_packet");
 
     public OverlayMessagePayload(final FriendlyByteBuf buf) {
 

@@ -9,7 +9,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record GhostItemPayload(int slotNumber, ItemStack stack, int count) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "ghost_item_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "ghost_item_packet");
 
     public GhostItemPayload(final FriendlyByteBuf buf) {
 

@@ -11,7 +11,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 public record ItemRayTraceEntityPayload(InteractionHand hand, Vec3 origin, int targetId, Vec3 offset,
                                         float power) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "item_ray_trace_entity_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "item_ray_trace_entity_packet");
 
     public ItemRayTraceEntityPayload(final FriendlyByteBuf buf) {
 

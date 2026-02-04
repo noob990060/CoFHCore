@@ -8,7 +8,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record EffectRemovedPayload(int entityId, ResourceLocation effect) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "effect_removed_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "effect_removed_packet");
 
     public EffectRemovedPayload(final FriendlyByteBuf buf) {
 

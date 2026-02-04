@@ -8,7 +8,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record EffectAddedPayload(int entityId, ResourceLocation effect, int duration) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(ID_COFH_CORE, "effect_added_packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "effect_added_packet");
 
     public EffectAddedPayload(final FriendlyByteBuf buf) {
 

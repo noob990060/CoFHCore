@@ -32,7 +32,8 @@ public class GrenadeItem extends ItemCoFH {
         super(builder);
         this.factory = factory;
 
-        ProxyUtils.registerItemModelProperty(this, new ResourceLocation("thrown"), (stack, world, living, seed) -> (stack.getDamageValue() > 0 ? 1.0F : 0.0F));
+        ProxyUtils.registerItemModelProperty(this, ResourceLocation.parse("thrown"),
+                (stack, world, living, seed) -> (stack.getDamageValue() > 0 ? 1.0F : 0.0F));
         DispenserBlock.registerBehavior(this, DISPENSER_BEHAVIOR);
     }
 
@@ -40,7 +41,8 @@ public class GrenadeItem extends ItemCoFH {
     public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
 
         ItemStack stack = playerIn.getItemInHand(handIn);
-        worldIn.playSound(null, playerIn.getX(), playerIn.getY(), playerIn.getZ(), SoundEvents.SNOWBALL_THROW, SoundSource.NEUTRAL, 0.5F, 0.4F / (MathHelper.RANDOM.nextFloat() * 0.4F + 0.8F));
+        worldIn.playSound(null, playerIn.getX(), playerIn.getY(), playerIn.getZ(), SoundEvents.SNOWBALL_THROW,
+                SoundSource.NEUTRAL, 0.5F, 0.4F / (MathHelper.RANDOM.nextFloat() * 0.4F + 0.8F));
         playerIn.getCooldowns().addCooldown(this, cooldown);
         if (!worldIn.isClientSide) {
             createGrenade(stack, worldIn, playerIn);
@@ -80,7 +82,8 @@ public class GrenadeItem extends ItemCoFH {
         public Projectile getProjectile(Level worldIn, Position position, ItemStack stackIn) {
 
             GrenadeItem grenadeItem = ((GrenadeItem) stackIn.getItem());
-            AbstractGrenade grenade = grenadeItem.factory.createGrenade(worldIn, position.x(), position.y(), position.z());
+            AbstractGrenade grenade = grenadeItem.factory.createGrenade(worldIn, position.x(), position.y(),
+                    position.z());
             ItemStack throwStack = cloneStack(stackIn, 1);
             throwStack.setDamageValue(1);
             grenade.setItem(throwStack);
