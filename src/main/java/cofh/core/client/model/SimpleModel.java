@@ -28,15 +28,24 @@ public class SimpleModel extends SimpleUnbakedGeometry<SimpleModel> {
     }
 
     @Override
-    public BakedModel bake(IGeometryBakingContext owner, ModelBaker bakery, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, ItemOverrides overrides, ResourceLocation modelLocation) {
-
-        return factory.create(model.bake(owner, bakery, spriteGetter, modelTransform, overrides, modelLocation));
+    public BakedModel bake(
+            IGeometryBakingContext owner,
+            ModelBaker bakery,
+            Function<Material, TextureAtlasSprite> spriteGetter,
+            ModelState modelTransform,
+            ItemOverrides overrides) {
+        return factory.create(
+                model.bake(owner, bakery, spriteGetter, modelTransform, overrides));
     }
 
     @Override
-    public void addQuads(IGeometryBakingContext owner, IModelBuilder<?> modelBuilder, ModelBaker bakery, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, ResourceLocation modelLocation) {
-
-        model.addQuads(owner, modelBuilder, bakery, spriteGetter, modelTransform, modelLocation);
+    public void addQuads(
+            IGeometryBakingContext owner,
+            IModelBuilder<?> modelBuilder,
+            ModelBaker bakery,
+            Function<Material, TextureAtlasSprite> spriteGetter,
+            ModelState modelTransform) {
+        model.addQuads(owner, modelBuilder, bakery, spriteGetter, modelTransform);
     }
 
     public interface IFactory<T extends BakedModel> {
@@ -58,7 +67,8 @@ public class SimpleModel extends SimpleUnbakedGeometry<SimpleModel> {
         @Override
         public SimpleModel read(JsonObject jsonObject, JsonDeserializationContext deserializationContext) {
 
-            return new SimpleModel(ElementsModelWrapped.Loader.INSTANCE.read(jsonObject, deserializationContext), factory);
+            return new SimpleModel(ElementsModelWrapped.Loader.INSTANCE.read(jsonObject, deserializationContext),
+                    factory);
         }
 
     }
