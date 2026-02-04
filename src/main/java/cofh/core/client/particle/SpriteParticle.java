@@ -10,20 +10,24 @@ import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.util.Mth;
+import net.minecraft.client.Camera;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector4f;
 
 /**
  * Reimplementation of {@link TextureSheetParticle} in a CoFH flavor.
- * Should theoretically be much more configurable and performant compared to vanilla.
+ * Should theoretically be much more configurable and performant compared to
+ * vanilla.
  */
 public abstract class SpriteParticle extends ColorParticle {
 
     protected final SpriteSet sprites;
     protected TextureAtlasSprite sprite;
 
-    protected SpriteParticle(ColorParticleOptions data, ClientLevel level, SpriteSet sprites, double x, double y, double z, double dx, double dy, double dz) {
+    protected SpriteParticle(ColorParticleOptions data, ClientLevel level, SpriteSet sprites, double x, double y,
+            double z, double dx, double dy, double dz) {
 
         super(data, level, x, y, z, dx, dy, dz);
         this.sprites = sprites;
@@ -88,15 +92,15 @@ public abstract class SpriteParticle extends ColorParticle {
     }
 
     @Override
-    public void render(PoseStack stack, MultiBufferSource buffer, VertexConsumer consumer, int packedLight, float time, float pTicks) {
+    public void render(VertexConsumer consumer, Camera camera, float partialTicks) {
 
-        Vector4f center = new Vector4f(0, 0, 0, 1).mul(stack.last().pose());
+        Vec3 camPos = camera.getPosition();
 
-        float x = center.x();
-        float y = center.y();
-        float z = center.z() + 0.1F;
+        float x = (float) (Mth.lerp(partialTicks, xo, this.x) - camPos.x);
+        float y = (float) (Mth.lerp(partialTicks, yo, this.y) - camPos.y);
+        float z = (float) (Mth.lerp(partialTicks, zo, this.z) - camPos.z) + 0.1F;
 
-        float rot = MathHelper.interpolate(oRoll, roll, pTicks);
+        float rot = MathHelper.interpolate(oRoll, roll, partialTicks);
         float sin = MathHelper.sin(rot);
         float cos = MathHelper.cos(rot);
         float w = size * 0.5F;
@@ -108,10 +112,27 @@ public abstract class SpriteParticle extends ColorParticle {
         float v0 = sprite.getV0();
         float v1 = sprite.getV1();
 
-        consumer.vertex(x + a, y + b, z).uv(u1, v0).color(c0.r, c0.g, c0.b, c0.a).uv2(packedLight).endVertex();
-        consumer.vertex(x - b, y + a, z).uv(u0, v0).color(c0.r, c0.g, c0.b, c0.a).uv2(packedLight).endVertex();
-        consumer.vertex(x - a, y - b, z).uv(u0, v1).color(c0.r, c0.g, c0.b, c0.a).uv2(packedLight).endVertex();
-        consumer.vertex(x + b, y - a, z).uv(u1, v1).color(c0.r, c0.g, c0.b, c0.a).uv2(packedLight).endVertex();
+        int light = getLightColor(partialTicks);
+
+        consumer.addVertex(x + a, y + b, z);
+        consumer.setUv(u1, v0);
+        consumer.setColor(c0.r, c0.g, c0.b, c0.a);
+        consumer.setLight(light);
+
+        consumer.addVertex(x - b, y + a, z);
+        consumer.setUv(u0, v0);
+        consumer.setColor(c0.r, c0.g, c0.b, c0.a);
+        consumer.setLight(light);
+
+        consumer.addVertex(x - a, y - b, z);
+        consumer.setUv(u0, v1);
+        consumer.setColor(c0.r, c0.g, c0.b, c0.a);
+        consumer.setLight(light);
+
+        consumer.addVertex(x + b, y - a, z);
+        consumer.setUv(u1, v1);
+        consumer.setColor(c0.r, c0.g, c0.b, c0.a);
+        consumer.setLight(light);
     }
 
 }
