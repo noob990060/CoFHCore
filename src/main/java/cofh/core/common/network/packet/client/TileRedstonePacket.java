@@ -1,6 +1,7 @@
 package cofh.core.common.network.packet.client;
 
 import cofh.core.common.network.data.client.TileRedstonePayload;
+import cofh.core.common.network.data.client.TileRenderPayload;
 import cofh.core.util.ProxyUtils;
 import cofh.lib.api.block.entity.IPacketHandlerTile;
 import cofh.lib.util.Utils;
@@ -21,16 +22,33 @@ public class TileRedstonePacket {
         return INSTANCE;
     }
 
-    public void handle(final TileRedstonePayload payload, final IPayloadContext context) {
+    /*
+     * public void handle(final TileRedstonePayload payload, final IPayloadContext
+     * context) {
+     * 
+     * context.workHandler().submitAsync(() -> {
+     * Level world = ProxyUtils.getClientWorld();
+     * 
+     * BlockPos pos = payload.pos();
+     * 
+     * BlockEntity tile = world.getBlockEntity(pos);
+     * if (tile instanceof IPacketHandlerTile handlerTile) {
+     * handlerTile.handleRedstonePacket(payload.buf());
+     * }
+     * });
+     * }
+     */
 
-        context.workHandler().submitAsync(() -> {
-            Level world = ProxyUtils.getClientWorld();
+    public void handle(final TileRenderPayload payload, final IPayloadContext context) {
+
+        context.enqueueWork(() -> {
+            Level level = context.player().level();
 
             BlockPos pos = payload.pos();
+            BlockEntity tile = level.getBlockEntity(pos);
 
-            BlockEntity tile = world.getBlockEntity(pos);
             if (tile instanceof IPacketHandlerTile handlerTile) {
-                handlerTile.handleRedstonePacket(payload.buf());
+                handlerTile.handleRenderPacket(payload.buf());
             }
         });
     }
@@ -40,7 +58,8 @@ public class TileRedstonePacket {
         if (tile == null || tile.world() == null || tile.world().isClientSide) {
             return;
         }
-        PacketDistributor.NEAR.with(Utils.createTargetPoint(tile.world(), tile.pos())).send(new TileRedstonePayload(tile.pos(), tile.getRedstonePacket(new FriendlyByteBuf(Unpooled.buffer()))));
+        PacketDistributor.NEAR.with(Utils.createTargetPoint(tile.world(), tile.pos())).send(
+                new TileRedstonePayload(tile.pos(), tile.getRedstonePacket(new FriendlyByteBuf(Unpooled.buffer()))));
     }
 
 }

@@ -21,14 +21,31 @@ public class TileRenderPacket {
         return INSTANCE;
     }
 
+    /*
+     * public void handle(final TileRenderPayload payload, final IPayloadContext
+     * context) {
+     * 
+     * context.workHandler().submitAsync(() -> {
+     * Level world = ProxyUtils.getClientWorld();
+     * 
+     * BlockPos pos = payload.pos();
+     * 
+     * BlockEntity tile = world.getBlockEntity(pos);
+     * if (tile instanceof IPacketHandlerTile handlerTile) {
+     * handlerTile.handleRenderPacket(payload.buf());
+     * }
+     * });
+     * }
+     */
+
     public void handle(final TileRenderPayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> {
-            Level world = ProxyUtils.getClientWorld();
+        context.enqueueWork(() -> {
+            Level level = context.player().level();
 
             BlockPos pos = payload.pos();
+            BlockEntity tile = level.getBlockEntity(pos);
 
-            BlockEntity tile = world.getBlockEntity(pos);
             if (tile instanceof IPacketHandlerTile handlerTile) {
                 handlerTile.handleRenderPacket(payload.buf());
             }
@@ -40,7 +57,8 @@ public class TileRenderPacket {
         if (tile == null || tile.world() == null || tile.world().isClientSide) {
             return;
         }
-        PacketDistributor.NEAR.with(Utils.createTargetPoint(tile.world(), tile.pos())).send(new TileRenderPayload(tile.pos(), tile.getRenderPacket(new FriendlyByteBuf(Unpooled.buffer()))));
+        PacketDistributor.NEAR.with(Utils.createTargetPoint(tile.world(), tile.pos()))
+                .send(new TileRenderPayload(tile.pos(), tile.getRenderPacket(new FriendlyByteBuf(Unpooled.buffer()))));
     }
 
 }

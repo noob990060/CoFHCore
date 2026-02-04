@@ -1,6 +1,7 @@
 package cofh.core.common.network.packet.client;
 
 import cofh.core.common.network.data.client.TileGuiPayload;
+import cofh.core.common.network.data.client.TileRenderPayload;
 import cofh.core.util.ProxyUtils;
 import cofh.lib.api.block.entity.IPacketHandlerTile;
 import io.netty.buffer.Unpooled;
@@ -22,16 +23,33 @@ public class TileGuiPacket {
         return INSTANCE;
     }
 
-    public void handle(final TileGuiPayload payload, final IPayloadContext context) {
+    /*
+     * public void handle(final TileGuiPayload payload, final IPayloadContext
+     * context) {
+     * 
+     * context.workHandler().submitAsync(() -> {
+     * Level world = ProxyUtils.getClientWorld();
+     * 
+     * BlockPos pos = payload.pos();
+     * 
+     * BlockEntity tile = world.getBlockEntity(pos);
+     * if (tile instanceof IPacketHandlerTile handlerTile) {
+     * handlerTile.handleGuiPacket(payload.buf());
+     * }
+     * });
+     * }
+     */
 
-        context.workHandler().submitAsync(() -> {
-            Level world = ProxyUtils.getClientWorld();
+    public void handle(final TileRenderPayload payload, final IPayloadContext context) {
+
+        context.enqueueWork(() -> {
+            Level level = context.player().level();
 
             BlockPos pos = payload.pos();
+            BlockEntity tile = level.getBlockEntity(pos);
 
-            BlockEntity tile = world.getBlockEntity(pos);
             if (tile instanceof IPacketHandlerTile handlerTile) {
-                handlerTile.handleGuiPacket(payload.buf());
+                handlerTile.handleRenderPacket(payload.buf());
             }
         });
     }
@@ -42,7 +60,8 @@ public class TileGuiPacket {
             return;
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            PacketDistributor.PLAYER.with(serverPlayer).send(new TileGuiPayload(tile.pos(), tile.getGuiPacket(new FriendlyByteBuf(Unpooled.buffer()))));
+            PacketDistributor.PLAYER.with(serverPlayer)
+                    .send(new TileGuiPayload(tile.pos(), tile.getGuiPacket(new FriendlyByteBuf(Unpooled.buffer()))));
         }
     }
 
