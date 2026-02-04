@@ -7,7 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.Optional;
 
@@ -22,7 +22,7 @@ public class GhostItemPacket {
         return INSTANCE;
     }
 
-    public void handle(final GhostItemPayload payload, final PlayPayloadContext context) {
+    public void handle(final GhostItemPayload payload, final IPayloadContext context) {
 
         context.workHandler().submitAsync(() -> {
             Optional<Player> senderOptional = context.player();

@@ -12,7 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import static cofh.lib.util.Utils.getRegistryName;
 
@@ -25,7 +25,7 @@ public class EffectAddedPacket {
         return INSTANCE;
     }
 
-    public void handle(final EffectAddedPayload payload, final PlayPayloadContext context) {
+    public void handle(final EffectAddedPayload payload, final IPayloadContext context) {
 
         context.workHandler().submitAsync(() -> {
             int id = payload.entityId();

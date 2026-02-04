@@ -28,7 +28,7 @@ import static net.minecraft.tags.DamageTypeTags.*;
 import static net.minecraft.world.effect.MobEffects.POISON;
 import static net.minecraft.world.effect.MobEffects.WITHER;
 
-@Mod.EventBusSubscriber (modid = ID_COFH_CORE)
+@Mod.EventBusSubscriber(modid = ID_COFH_CORE)
 public class ArmorEvents {
 
     private ArmorEvents() {

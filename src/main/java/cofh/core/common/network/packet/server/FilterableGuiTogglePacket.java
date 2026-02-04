@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.Optional;
 
@@ -31,7 +31,7 @@ public class FilterableGuiTogglePacket {
     public static byte FILTER_GUI = 0;
     public static byte GUI = 1;
 
-    public void handle(final FilterableGuiTogglePayload payload, final PlayPayloadContext context) {
+    public void handle(final FilterableGuiTogglePayload payload, final IPayloadContext context) {
 
         context.workHandler().submitAsync(() -> {
             Optional<Player> senderOptional = context.player();

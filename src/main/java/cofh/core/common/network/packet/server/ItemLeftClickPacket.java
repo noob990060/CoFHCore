@@ -4,7 +4,7 @@ import cofh.core.common.network.data.server.ItemLeftClickPayload;
 import cofh.core.util.helpers.ItemHelper;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.Optional;
 
@@ -18,7 +18,7 @@ public class ItemLeftClickPacket {
     }
 
     // TODO: Make this a multi-click packet of some sort, or cover more potential options
-    public void handle(final ItemLeftClickPayload payload, final PlayPayloadContext context) {
+    public void handle(final ItemLeftClickPayload payload, final IPayloadContext context) {
 
         context.workHandler().submitAsync(() -> {
             Optional<Player> senderOptional = context.player();

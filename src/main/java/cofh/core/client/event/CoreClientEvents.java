@@ -61,7 +61,7 @@ import static net.minecraft.ChatFormatting.DARK_GRAY;
 import static net.minecraft.ChatFormatting.GRAY;
 import static net.minecraft.nbt.Tag.TAG_COMPOUND;
 
-@Mod.EventBusSubscriber (value = Dist.CLIENT, modid = ModIds.ID_COFH_CORE)
+@Mod.EventBusSubscriber(modid = ModIds.ID_COFH_CORE, value = Dist.CLIENT)
 public class CoreClientEvents {
 
     public static int renderTime;

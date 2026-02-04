@@ -10,7 +10,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class TileRedstonePacket {
 
@@ -21,7 +21,7 @@ public class TileRedstonePacket {
         return INSTANCE;
     }
 
-    public void handle(final TileRedstonePayload payload, final PlayPayloadContext context) {
+    public void handle(final TileRedstonePayload payload, final IPayloadContext context) {
 
         context.workHandler().submitAsync(() -> {
             Level world = ProxyUtils.getClientWorld();

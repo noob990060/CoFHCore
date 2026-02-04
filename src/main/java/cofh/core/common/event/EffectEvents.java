@@ -26,7 +26,7 @@ import java.util.function.Predicate;
 import static cofh.core.init.CoreMobEffects.*;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
-@Mod.EventBusSubscriber (modid = ID_COFH_CORE)
+@Mod.EventBusSubscriber(modid = ID_COFH_CORE)
 public class EffectEvents {
 
     private EffectEvents() {

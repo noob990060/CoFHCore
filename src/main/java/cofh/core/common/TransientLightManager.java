@@ -18,7 +18,7 @@ import net.neoforged.neoforge.event.TickEvent;
  * Class that allows for the placement of temporary light sources.
  * You should only call the methods in this class from the client side.
  */
-@Mod.EventBusSubscriber (modid = ModIds.ID_COFH_CORE)
+@Mod.EventBusSubscriber(modid = ModIds.ID_COFH_CORE)
 public class TransientLightManager {
 
     protected static final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();

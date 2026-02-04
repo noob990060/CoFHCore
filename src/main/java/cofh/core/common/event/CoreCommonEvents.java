@@ -32,7 +32,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 import static net.minecraft.world.item.enchantment.Enchantments.FALL_PROTECTION;
 import static net.minecraft.world.item.enchantment.Enchantments.MENDING;
 
-@Mod.EventBusSubscriber (modid = ID_COFH_CORE)
+@Mod.EventBusSubscriber(modid = ID_COFH_CORE)
 public class CoreCommonEvents {
 
     private CoreCommonEvents() {

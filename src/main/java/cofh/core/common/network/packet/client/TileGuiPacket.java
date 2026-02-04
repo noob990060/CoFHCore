@@ -11,7 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class TileGuiPacket {
 
@@ -22,7 +22,7 @@ public class TileGuiPacket {
         return INSTANCE;
     }
 
-    public void handle(final TileGuiPayload payload, final PlayPayloadContext context) {
+    public void handle(final TileGuiPayload payload, final IPayloadContext context) {
 
         context.workHandler().submitAsync(() -> {
             Level world = ProxyUtils.getClientWorld();

@@ -31,7 +31,7 @@ import static cofh.core.util.helpers.AreaEffectHelper.validAreaEffectItem;
 import static cofh.core.util.helpers.AreaEffectHelper.validAreaEffectMiningItem;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
-@Mod.EventBusSubscriber (value = Dist.CLIENT, modid = ID_COFH_CORE)
+@Mod.EventBusSubscriber(modid = ID_COFH_CORE, value = Dist.CLIENT)
 public class AreaEffectClientEvents {
 
     private AreaEffectClientEvents() {

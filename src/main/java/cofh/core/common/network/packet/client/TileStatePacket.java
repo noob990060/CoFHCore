@@ -11,7 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class TileStatePacket {
 
@@ -22,7 +22,7 @@ public class TileStatePacket {
         return INSTANCE;
     }
 
-    public void handle(final TileStatePayload payload, final PlayPayloadContext context) {
+    public void handle(final TileStatePayload payload, final IPayloadContext context) {
 
         context.workHandler().submitAsync(() -> {
             Level world = ProxyUtils.getClientWorld();

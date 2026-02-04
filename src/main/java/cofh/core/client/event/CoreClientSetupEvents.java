@@ -23,7 +23,7 @@ import static cofh.core.client.CoreKeys.MULTIMODE_INCREMENT;
 import static cofh.core.init.CoreParticles.*;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
-@Mod.EventBusSubscriber (value = Dist.CLIENT, modid = ID_COFH_CORE, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = ID_COFH_CORE, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class CoreClientSetupEvents {
 
     private static final List<Item> COLORABLE_ITEMS = new ArrayList<>();

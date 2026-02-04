@@ -9,7 +9,7 @@ import net.neoforged.neoforge.event.entity.living.ShieldBlockEvent;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 import static net.neoforged.bus.api.EventPriority.HIGH;
 
-@Mod.EventBusSubscriber (modid = ID_COFH_CORE)
+@Mod.EventBusSubscriber(modid = ID_COFH_CORE)
 public class ShieldEvents {
 
     private ShieldEvents() {

@@ -8,7 +8,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import static cofh.lib.util.Utils.getRegistryName;
 
@@ -21,7 +21,7 @@ public class EffectRemovedPacket {
         return INSTANCE;
     }
 
-    public void handle(final EffectRemovedPayload payload, final PlayPayloadContext context) {
+    public void handle(final EffectRemovedPayload payload, final IPayloadContext context) {
 
         context.workHandler().submitAsync(() -> {
             int id = payload.entityId();

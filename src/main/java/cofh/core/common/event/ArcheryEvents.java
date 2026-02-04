@@ -28,7 +28,7 @@ import static cofh.lib.util.Utils.*;
 import static cofh.lib.util.constants.ModIds.ID_ENSORCELLATION;
 import static net.minecraft.world.item.enchantment.Enchantments.INFINITY_ARROWS;
 
-@Mod.EventBusSubscriber (modid = ModIds.ID_COFH_CORE)
+@Mod.EventBusSubscriber(modid = ModIds.ID_COFH_CORE)
 public class ArcheryEvents {
 
     private ArcheryEvents() {

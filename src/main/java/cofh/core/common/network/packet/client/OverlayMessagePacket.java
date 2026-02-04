@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class OverlayMessagePacket {
 
@@ -18,7 +18,7 @@ public class OverlayMessagePacket {
         return INSTANCE;
     }
 
-    public void handle(final OverlayMessagePayload payload, final PlayPayloadContext context) {
+    public void handle(final OverlayMessagePayload payload, final IPayloadContext context) {
 
         context.workHandler().submitAsync(() -> ProxyUtils.setOverlayMessage(StringHelper.fromJSON(payload.message())));
     }

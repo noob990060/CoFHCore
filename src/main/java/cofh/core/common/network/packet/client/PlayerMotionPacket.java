@@ -5,7 +5,7 @@ import cofh.core.util.ProxyUtils;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class PlayerMotionPacket {
 
@@ -16,7 +16,7 @@ public class PlayerMotionPacket {
         return INSTANCE;
     }
 
-    public void handle(final PlayerMotionPayload payload, final PlayPayloadContext context) {
+    public void handle(final PlayerMotionPayload payload, final IPayloadContext context) {
 
         context.workHandler().submitAsync(() -> ProxyUtils.getClientPlayer().setDeltaMovement(ProxyUtils.getClientPlayer().getDeltaMovement().add(payload.motionX(), payload.motionY(), payload.motionZ())));
     }
