@@ -1,11 +1,15 @@
 package cofh.core.client;
 
 import cofh.core.util.helpers.RenderHelper;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.Window;
+// import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
@@ -13,8 +17,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 
 public abstract class PostBuffer extends PostEffect {
 
-    protected final MultiBufferSource.BufferSource bufferSource =
-            MultiBufferSource.immediate(new com.mojang.blaze3d.vertex.BufferBuilder(256));
+    protected final BufferSource bufferSource = MultiBufferSource.immediate(new ByteBufferBuilder(256));
 
     protected final String targetName;
     protected final String outputName;
@@ -89,8 +92,6 @@ public abstract class PostBuffer extends PostEffect {
         output = new RenderStateShard.OutputStateShard(
                 outputName,
                 () -> target.bindWrite(false),
-                () -> Minecraft.getInstance().getMainRenderTarget().bindWrite(false)
-        );
+                () -> Minecraft.getInstance().getMainRenderTarget().bindWrite(false));
     }
 }
-

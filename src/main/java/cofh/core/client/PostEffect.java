@@ -23,8 +23,10 @@ public class PostEffect implements ResourceManagerReloadListener {
 
     public PostEffect(ResourceLocation shader) {
 
-        this.shader = new ResourceLocation(shader.getNamespace(), "shaders/post/" + shader.getPath() + ".json");
-        EFFECTS.add(this);
+        this.shader = ResourceLocation.fromNamespaceAndPath(
+                shader.getNamespace(),
+                "shaders/post/" + shader.getPath() + ".json");
+
     }
 
     public PostChain getPostChain() {
@@ -77,9 +79,9 @@ public class PostEffect implements ResourceManagerReloadListener {
             loaded = true;
             onChainLoad();
         } catch (IOException e) {
-            throw new RuntimeException(e); //CoFHCore.LOG.warn("Failed to load shader: {}", shader, e);
+            throw new RuntimeException(e); // CoFHCore.LOG.warn("Failed to load shader: {}", shader, e);
         } catch (JsonSyntaxException e) {
-            throw new RuntimeException(e); //CoFHCore.LOG.warn("Failed to parse shader: {}", shader, e);
+            throw new RuntimeException(e); // CoFHCore.LOG.warn("Failed to parse shader: {}", shader, e);
         }
     }
 
