@@ -11,9 +11,11 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 
-public abstract class PostBuffer extends PostEffect implements MultiBufferSource {
+public abstract class PostBuffer extends PostEffect {
 
-    protected final BasicBufferSource buffer = new BasicBufferSource(256);
+    protected final MultiBufferSource.BufferSource bufferSource =
+            MultiBufferSource.immediate(new com.mojang.blaze3d.vertex.BufferBuilder(256));
+
     protected final String targetName;
     protected final String outputName;
     protected final RenderStateShard.OutputStateShard fallback;
@@ -22,7 +24,6 @@ public abstract class PostBuffer extends PostEffect implements MultiBufferSource
     protected boolean active;
 
     public PostBuffer(ResourceLocation shader, String targetName, RenderStateShard.OutputStateShard fallback) {
-
         super(shader);
         this.targetName = targetName;
         this.outputName = shader.toString();
@@ -31,66 +32,52 @@ public abstract class PostBuffer extends PostEffect implements MultiBufferSource
     }
 
     public PostBuffer(ResourceLocation shader) {
-
         this(shader, "final", RenderType.MAIN_TARGET);
     }
 
-    @Override
     public VertexConsumer getBuffer(RenderType type) {
-
         if (isEnabled()) {
             active = true;
-            return buffer.getBuffer(type);
+            return bufferSource.getBuffer(type);
         }
         return RenderHelper.bufferSource().getBuffer(type);
     }
 
     public VertexConsumer getBuffer(ResourceLocation texture) {
-
         return getBuffer(getRenderType(texture));
     }
 
     public abstract RenderType getRenderType(ResourceLocation texture);
 
-    //public RenderTarget getRenderTarget() {
-    //
-    //    return target;
-    //}
-
     public RenderStateShard.OutputStateShard getOutputShard() {
-
         return isEnabled() ? output : fallback;
     }
 
     @Override
     public void begin(float partialTick) {
-
-        if (active) {
+        if (active && target != null) {
             target.clear(Minecraft.ON_OSX);
-            active = false;
         }
     }
 
     @Override
     public void end(float partialTick) {
-
         if (active) {
-            buffer.endBatch();
+            bufferSource.endBatch();
             super.end(partialTick);
+            active = false;
         }
     }
 
     @Override
     public void apply(Window window) {
-
-        if (active) {
+        if (active && target != null) {
             target.blitToScreen(window.getWidth(), window.getHeight(), false);
         }
     }
 
     @Override
     public void onResourceManagerReload(ResourceManager manager) {
-
         target = null;
         output = RenderType.MAIN_TARGET;
         super.onResourceManagerReload(manager);
@@ -98,11 +85,12 @@ public abstract class PostBuffer extends PostEffect implements MultiBufferSource
 
     @Override
     protected void onChainLoad() {
-
         target = chain.getTempTarget(targetName);
-        output = new RenderStateShard.OutputStateShard(outputName,
+        output = new RenderStateShard.OutputStateShard(
+                outputName,
                 () -> target.bindWrite(false),
-                () -> Minecraft.getInstance().getMainRenderTarget().bindWrite(false));
+                () -> Minecraft.getInstance().getMainRenderTarget().bindWrite(false)
+        );
     }
-
 }
+
