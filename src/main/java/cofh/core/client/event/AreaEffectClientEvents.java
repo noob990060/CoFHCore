@@ -4,7 +4,6 @@ import cofh.core.common.capability.CoreCapabilities;
 import cofh.core.common.capability.templates.AreaEffectItemWrapper;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -22,7 +21,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderHighlightEvent;
 
 import java.util.List;
@@ -31,14 +30,14 @@ import static cofh.core.util.helpers.AreaEffectHelper.validAreaEffectItem;
 import static cofh.core.util.helpers.AreaEffectHelper.validAreaEffectMiningItem;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
-@Mod.EventBusSubscriber(modid = ID_COFH_CORE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ID_COFH_CORE, value = Dist.CLIENT)
 public class AreaEffectClientEvents {
 
     private AreaEffectClientEvents() {
 
     }
 
-    @SubscribeEvent (priority = EventPriority.LOW)
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void renderBlockHighlights(RenderHighlightEvent.Block event) {
 
         if (event.isCanceled()) {
@@ -73,7 +72,8 @@ public class AreaEffectClientEvents {
         matrix.pushPose();
         for (BlockPos pos : areaBlocks) {
             if (world.getWorldBorder().isWithinBounds(pos)) {
-                levelRenderer.renderHitOutline(matrix, vertexBuilder, viewEntity, d0, d1, d2, pos, world.getBlockState(pos));
+                levelRenderer.renderHitOutline(matrix, vertexBuilder, viewEntity, d0, d1, d2, pos,
+                        world.getBlockState(pos));
             }
         }
         matrix.popPose();
@@ -85,11 +85,18 @@ public class AreaEffectClientEvents {
         if (!validAreaEffectMiningItem(stack)) {
             return;
         }
-        drawBlockDamageTexture(gamemode, event.getLevelRenderer(), event.getPoseStack(), Minecraft.getInstance().gameRenderer.getMainCamera(), player.getCommandSenderWorld(), areaBlocks);
+        drawBlockDamageTexture(gamemode, event.getLevelRenderer(), event.getPoseStack(),
+                Minecraft.getInstance().gameRenderer.getMainCamera(), player.getCommandSenderWorld(), areaBlocks);
     }
 
     // region HELPERS
-    private static void drawBlockDamageTexture(MultiPlayerGameMode gameMode, LevelRenderer levelRenderer, PoseStack posestack, Camera camera, Level level, List<BlockPos> areaBlocks) {
+    private static void drawBlockDamageTexture(
+            MultiPlayerGameMode gameMode,
+            LevelRenderer levelRenderer,
+            PoseStack posestack,
+            Camera camera,
+            Level level,
+            List<BlockPos> areaBlocks) {
 
         double d0 = camera.getPosition().x;
         double d1 = camera.getPosition().y;
@@ -99,19 +106,31 @@ public class AreaEffectClientEvents {
         if (progress < 0 || progress > 10) {
             return;
         }
-        progress = Math.min(progress + 1, 9); // Ensure that for whatever reason the progress level doesn't go OOB.
+
+        progress = Math.min(progress, 9);
 
         BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-        VertexConsumer vertexBuilder = levelRenderer.renderBuffers.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(progress));
+
+        VertexConsumer consumer = levelRenderer.renderBuffers.crumblingBufferSource()
+                .getBuffer(ModelBakery.DESTROY_TYPES.get(progress));
 
         for (BlockPos pos : areaBlocks) {
             posestack.pushPose();
-            posestack.translate((double) pos.getX() - d0, (double) pos.getY() - d1, (double) pos.getZ() - d2);
-            PoseStack.Pose matrixEntry = posestack.last();
-            VertexConsumer matrixBuilder = new SheetedDecalTextureGenerator(vertexBuilder, matrixEntry.pose(), matrixEntry.normal(), 1.0F);
-            dispatcher.renderBreakingTexture(level.getBlockState(pos), pos, level, posestack, matrixBuilder);
+            posestack.translate(
+                    pos.getX() - d0,
+                    pos.getY() - d1,
+                    pos.getZ() - d2);
+
+            dispatcher.renderBreakingTexture(
+                    level.getBlockState(pos),
+                    pos,
+                    level,
+                    posestack,
+                    consumer);
+
             posestack.popPose();
         }
     }
+
     // endregion
 }
