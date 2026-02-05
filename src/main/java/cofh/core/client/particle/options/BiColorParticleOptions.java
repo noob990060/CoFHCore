@@ -1,5 +1,7 @@
 package cofh.core.client.particle.options;
 
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.particles.ParticleType;
@@ -31,6 +33,12 @@ public class BiColorParticleOptions extends ColorParticleOptions {
         this(type, 1.0F, 1.0F, 0.0F);
     }
 
+    protected BiColorParticleOptions(ParticleType<? extends BiColorParticleOptions> type, StringReader reader) throws CommandSyntaxException {
+
+        this(type, 1.0F, 1.0F, 0.0F, 0xFFFFFFFF, 0xFFFFFFFF);
+        // TODO: Implement command parsing if needed
+    }
+
     public static final Function<ParticleType<BiColorParticleOptions>, Codec<BiColorParticleOptions>> CODEC = type -> RecordCodecBuilder
             .create(builder -> builder.group(
                     Codec.FLOAT.fieldOf("size").forGetter(o -> o.size),
@@ -41,19 +49,21 @@ public class BiColorParticleOptions extends ColorParticleOptions {
                             (size, duration, delay, rgba0, rgba1) -> new BiColorParticleOptions(type, size, duration,
                                     delay, rgba0, rgba1)));
 
-    public static final StreamCodec<FriendlyByteBuf, BiColorParticleOptions> STREAM_CODEC = StreamCodec.of(
-            (buf, o) -> {
-                buf.writeFloat(o.size);
-                buf.writeFloat(o.duration);
-                buf.writeFloat(o.delay);
-                buf.writeInt(o.rgba0);
-                buf.writeInt(o.rgba1);
-            },
-            buf -> new BiColorParticleOptions(
-                    ModParticles.BICOLOR.get(),
-                    buf.readFloat(),
-                    buf.readFloat(),
-                    buf.readFloat(),
-                    buf.readInt(),
-                    buf.readInt()));
+    public static StreamCodec<FriendlyByteBuf, BiColorParticleOptions> biColorStreamCodec(ParticleType<? extends BiColorParticleOptions> type) {
+        return StreamCodec.<FriendlyByteBuf, BiColorParticleOptions>of(
+                (buf, o) -> {
+                    buf.writeFloat(o.size);
+                    buf.writeFloat(o.duration);
+                    buf.writeFloat(o.delay);
+                    buf.writeInt(o.rgba0);
+                    buf.writeInt(o.rgba1);
+                },
+                buf -> new BiColorParticleOptions(
+                        type,
+                        buf.readFloat(),
+                        buf.readFloat(),
+                        buf.readFloat(),
+                        buf.readInt(),
+                        buf.readInt()));
+    }
 }

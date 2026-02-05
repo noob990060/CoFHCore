@@ -54,7 +54,7 @@ public class CoFHParticleOptions implements ParticleOptions {
                 buf.writeFloat(o.delay);
             },
             buf -> new CoFHParticleOptions(
-                    ModParticles.COFH.get(), // registry object
+                    null, // Will be set by the particle type
                     buf.readFloat(),
                     buf.readFloat(),
                     buf.readFloat()));

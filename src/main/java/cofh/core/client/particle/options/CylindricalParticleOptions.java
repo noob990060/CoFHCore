@@ -6,8 +6,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
-import javax.annotation.Nonnull;
 import java.util.function.Function;
 
 public class CylindricalParticleOptions extends ColorParticleOptions {
@@ -37,22 +37,8 @@ public class CylindricalParticleOptions extends ColorParticleOptions {
 
     protected CylindricalParticleOptions(ParticleType<? extends CylindricalParticleOptions> type, StringReader reader) throws CommandSyntaxException {
 
-        super(type, reader);
-        reader.expect(' ');
-        this.height = (float) reader.readDouble();
-    }
-
-    @Override
-    public void writeToNetwork(FriendlyByteBuf buf) {
-
-        super.writeToNetwork(buf);
-        buf.writeFloat(height);
-    }
-
-    @Override
-    public String writeToString() {
-
-        return super.writeToString() + ", " + height;
+        this(type, 1.0F, 1.0F, 1.0F);
+        // TODO: Implement command parsing if needed
     }
 
     public static final Function<ParticleType<CylindricalParticleOptions>, Codec<CylindricalParticleOptions>> CODEC = (type) -> RecordCodecBuilder.create(
@@ -64,21 +50,23 @@ public class CylindricalParticleOptions extends ColorParticleOptions {
                     Codec.FLOAT.fieldOf("height").forGetter((options) -> options.height)
             ).apply(builder, (size, duration, delay, rgba, height) -> new CylindricalParticleOptions(type, size, duration, delay, rgba, height))
     );
-    public static final Deserializer<CylindricalParticleOptions> DESERIALIZER = new Deserializer<>() {
 
-        @Override
-        @Nonnull
-        public CylindricalParticleOptions fromCommand(ParticleType<CylindricalParticleOptions> type, StringReader reader) throws CommandSyntaxException {
-
-            return new CylindricalParticleOptions(type, reader);
-        }
-
-        @Override
-        @Nonnull
-        public CylindricalParticleOptions fromNetwork(ParticleType<CylindricalParticleOptions> type, FriendlyByteBuf buf) {
-
-            return new CylindricalParticleOptions(type, buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readInt(), buf.readFloat());
-        }
-    };
+    public static StreamCodec<FriendlyByteBuf, CylindricalParticleOptions> cylindricalStreamCodec(ParticleType<? extends CylindricalParticleOptions> type) {
+        return StreamCodec.<FriendlyByteBuf, CylindricalParticleOptions>of(
+                (buf, o) -> {
+                    buf.writeFloat(o.size);
+                    buf.writeFloat(o.duration);
+                    buf.writeFloat(o.delay);
+                    buf.writeInt(o.rgba0);
+                    buf.writeFloat(o.height);
+                },
+                buf -> new CylindricalParticleOptions(
+                        type,
+                        buf.readFloat(),
+                        buf.readFloat(),
+                        buf.readFloat(),
+                        buf.readInt(),
+                        buf.readFloat()));
+    }
 
 }
