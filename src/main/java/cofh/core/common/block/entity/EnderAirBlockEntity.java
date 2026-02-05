@@ -1,43 +1,37 @@
 package cofh.core.common.block.entity;
 
-import cofh.lib.api.block.entity.ITickableTile;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import static cofh.core.init.CoreBlockEntities.ENDER_AIR_TILE;
 
-public class EnderAirBlockEntity extends BlockEntity implements ITickableTile {
+public class EnderAirBlockEntity extends BlockEntity {
 
     protected int duration = 200;
 
     public EnderAirBlockEntity(BlockPos pos, BlockState state) {
-
         super(ENDER_AIR_TILE.get(), pos, state);
     }
 
-    @Override
-    public void tick() {
+    public static void tick(Level level, BlockPos pos, BlockState state, EnderAirBlockEntity be) {
 
-        if (level == null) {
+        if (level.isClientSide) {
             return;
         }
-        if (--duration <= 0) {
-            this.level.setBlockAndUpdate(worldPosition, Blocks.AIR.defaultBlockState());
-            this.level.removeBlockEntity(this.worldPosition);
-            this.setRemoved();
+        if (--be.duration <= 0) {
+            level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+            level.removeBlockEntity(pos);
         }
     }
 
     public int getDuration() {
-
         return duration;
     }
 
     public void setDuration(int duration) {
-
         this.duration = duration;
     }
-
 }

@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -58,10 +57,10 @@ public class ElectricFieldRenderer extends EntityRenderer<ElectricField> impleme
         float ny = normal.y();
         float nz = normal.z();
 
-        consumer.vertex(x + a, y + b, z).color(0xFF, 0xFF, 0xFF, 0xFF).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(nx, ny, nz).endVertex();
-        consumer.vertex(x - b, y + a, z).color(0xFF, 0xFF, 0xFF, 0xFF).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(nx, ny, nz).endVertex();
-        consumer.vertex(x - a, y - b, z).color(0xFF, 0xFF, 0xFF, 0xFF).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(nx, ny, nz).endVertex();
-        consumer.vertex(x + b, y - a, z).color(0xFF, 0xFF, 0xFF, 0xFF).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(nx, ny, nz).endVertex();
+        consumer.addVertex(x + a, y + b, z).setColor(0xFF, 0xFF, 0xFF, 0xFF).setUv(1, 0).setNormal(nx, ny, nz);
+        consumer.addVertex(x - b, y + a, z).setColor(0xFF, 0xFF, 0xFF, 0xFF).setUv(0, 0).setNormal(nx, ny, nz);
+        consumer.addVertex(x - a, y - b, z).setColor(0xFF, 0xFF, 0xFF, 0xFF).setUv(0, 1).setNormal(nx, ny, nz);
+        consumer.addVertex(x + b, y - a, z).setColor(0xFF, 0xFF, 0xFF, 0xFF).setUv(1, 1).setNormal(nx, ny, nz);
 
         stack.popPose();
 

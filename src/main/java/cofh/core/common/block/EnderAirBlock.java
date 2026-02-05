@@ -1,12 +1,13 @@
 package cofh.core.common.block;
 
 import cofh.core.common.block.entity.EnderAirBlockEntity;
-import cofh.lib.api.block.entity.ITickableTile;
 import cofh.lib.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.RandomSource;
+import net.minecraft.util.RandomSource; 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -29,53 +30,63 @@ public class EnderAirBlock extends AirBlock implements EntityBlock {
     protected static boolean teleport = true;
     protected static int duration = 40;
 
-    public EnderAirBlock(Properties builder) {
-
-        super(builder);
+    public EnderAirBlock(Properties properties) {
+        super(properties);
     }
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-
         return new EnderAirBlockEntity(pos, state);
     }
 
+    @Override
     @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> actualType) {
-
-        return ITickableTile.createTicker(level, actualType, ENDER_AIR_TILE.get(), EnderAirBlockEntity.class);
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
+            Level level,
+            BlockState state,
+            BlockEntityType<T> type) {
+        return level.isClientSide ? null
+                : type == ENDER_AIR_TILE.get()
+                        ? (lvl, pos, st, be) -> EnderAirBlockEntity.tick(lvl, pos, st, (EnderAirBlockEntity) be)
+                        : null;
     }
 
     @Override
-    public void animateTick(BlockState stateIn, Level worldIn, BlockPos pos, RandomSource rand) {
-
-        if (rand.nextInt(8) == 0) {
-            Utils.spawnBlockParticlesClient(worldIn, ParticleTypes.PORTAL, pos, rand, 2);
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (random.nextInt(8) == 0) {
+            Utils.spawnBlockParticlesClient(level, ParticleTypes.PORTAL, pos, random, 2);
         }
     }
 
     @Override
-    public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn) {
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
 
-        if (!teleport || Utils.isClientWorld(worldIn)) {
+        if (!teleport || level.isClientSide) {
             return;
         }
-        if (entityIn instanceof ItemEntity || entityIn instanceof ExperienceOrb) {
+        if (entity instanceof ItemEntity || entity instanceof ExperienceOrb) {
             return;
         }
-        BlockPos randPos = pos.offset(-128 + worldIn.random.nextInt(257), worldIn.random.nextInt(8), -128 + worldIn.random.nextInt(257));
 
-        if (!worldIn.getBlockState(randPos).isSolid()) {
-            if (entityIn instanceof LivingEntity) {
-                if (Utils.teleportEntityTo(entityIn, randPos)) {
-                    ((LivingEntity) entityIn).addEffect(new MobEffectInstance(ENDERFERENCE.get(), duration, 0, false, false));
-                }
-            } else if (worldIn.getGameTime() % duration == 0) {
-                entityIn.setPos(randPos.getX(), randPos.getY(), randPos.getZ());
-                entityIn.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0F, 1.0F);
+        BlockPos randPos = pos.offset(
+                -128 + level.random.nextInt(257),
+                level.random.nextInt(8),
+                -128 + level.random.nextInt(257));
+
+        if (!level.getBlockState(randPos).getCollisionShape(level, randPos).isEmpty()) {
+            return;
+        }
+
+        if (entity instanceof LivingEntity living) {
+            if (Utils.teleportEntityTo(entity, randPos)) {
+
+                Holder<MobEffect> eff = level.registryAccess()
+                        .lookupOrThrow(Registries.MOB_EFFECT)
+                        .getOrThrow(ENDERFERENCE.getKey());
+
+                living.addEffect(new MobEffectInstance(eff, duration, 0));
             }
         }
-    }
 
+    }
 }
