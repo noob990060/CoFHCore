@@ -56,7 +56,11 @@ public class AreaEffectClientEvents {
         if (aeCap == null) {
             aeCap = new AreaEffectItemWrapper(stack);
         }
-        ImmutableList<BlockPos> areaBlocks = aeCap.getAreaEffectBlocks(event.getTarget().getBlockPos(), player);
+        Level level = Minecraft.getInstance().level;
+        if (level == null) {
+            return;
+        }
+        ImmutableList<BlockPos> areaBlocks = aeCap.getAreaEffectBlocks(event.getTarget().getBlockPos(), player, level);
 
         LevelRenderer levelRenderer = event.getLevelRenderer();
         PoseStack matrix = event.getPoseStack();

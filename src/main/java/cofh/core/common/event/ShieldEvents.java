@@ -1,30 +1,36 @@
 package cofh.core.common.event;
 
-// TODO: Fix ShieldBlockEvent for NeoForge 1.21.1
-
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-
+import net.neoforged.neoforge.event.entity.living.LivingShieldBlockEvent;
+import net.minecraft.world.entity.LivingEntity;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 @EventBusSubscriber(modid = ID_COFH_CORE)
 public class ShieldEvents {
 
     private ShieldEvents() {
-
     }
 
-    // TODO: Fix ShieldBlockEvent for NeoForge 1.21.1
-    // @SubscribeEvent (priority = HIGH)
-    // public static void handleShieldBlock(ShieldBlockEvent event) {
-    //
-    //     if (event.isCanceled()) {
-    //         return;
-    //     }
-    //     LivingEntity entity = event.getEntity();
-    //     var shield = entity.getUseItem().getCapability(CoreCapabilities.ShieldHandler.ITEM);
-    //     if (shield != null) {
-    //         event.setBlockedDamage(shield.onBlock(entity, event.getDamageSource(), event.getBlockedDamage()));
-    //     }
-    // }
+    @SubscribeEvent
+    public static void handleShieldBlock(LivingShieldBlockEvent event) {
+        if (event.isCanceled()) {
+            return;
+        }
 
+        LivingEntity entity = event.getEntity();
+        if (entity == null) {
+            return;
+        }
+
+        // use entity.getUseItem() to get the shield stack
+        // adjust blocked damage or shield durability
+        float originalBlocked = event.getOriginalBlockedDamage();
+        float customBlocked = /* your logic here */ originalBlocked;
+
+        event.setBlockedDamage(customBlocked);
+
+        // optionally set how much durability is lost
+        // event.setShieldDamage(customArmorDamage);
+    }
 }

@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 public class AreaEffectItemWrapper implements IAreaEffectHandler {
 
@@ -17,9 +18,9 @@ public class AreaEffectItemWrapper implements IAreaEffectHandler {
     }
 
     @Override
-    public ImmutableList<BlockPos> getAreaEffectBlocks(BlockPos pos, Player player) {
+    public ImmutableList<BlockPos> getAreaEffectBlocks(BlockPos pos, Player player, Level level) {
 
-        return AreaEffectHelper.getAreaEffectBlocks(areaEffectItem, pos, player);
+        return AreaEffectHelper.getAreaEffectBlocks(areaEffectItem, pos, player, level);
     }
 
 }

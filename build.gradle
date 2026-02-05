@@ -67,8 +67,9 @@ if (System.getenv('MODRINTH_TOKEN') || project.hasProperty('modrinthToken')) {
 }
 
 processResources {
-    filesMatching('META-INF/mods.toml') {
+    filesMatching('META-INF/neoforge.mods.toml') {
         expand 'file': ['jarVersion': mod_version],
+                'mod_version': mod_version,
                 'mc_version': mc_version,
                 'neo_version': neo_version,
                 'lang_version': neo_version.split('\\.')[0]

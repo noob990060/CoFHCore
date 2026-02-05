@@ -11,6 +11,7 @@ import cofh.core.common.config.*;
 import cofh.core.common.enchantment.HoldingEnchantment;
 import cofh.core.common.event.ArmorEvents;
 import cofh.core.common.network.PacketHandler;
+import cofh.core.common.registry.CoreDataComponents;
 import cofh.core.compat.curios.CuriosProxy;
 import cofh.core.init.*;
 import cofh.core.util.Proxy;
@@ -145,6 +146,7 @@ public class CoFHCore {
         CONDITION_CODECS.register(modEventBus);
         ENTITY_DATA_SERIALIZERS.register(modEventBus);
         FLUID_TYPES.register(modEventBus);
+        CoreDataComponents.COMPONENTS.register(modEventBus);
 
         CONFIG_MANAGER.register(modEventBus)
                 .addClientConfig(new CoreClientConfig())

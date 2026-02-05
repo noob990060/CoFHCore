@@ -3,6 +3,7 @@ package cofh.lib.api.capability;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 
 /**
  * Implement this interface as a capability for an Item which should be compatible with CoFH's AOE overlay rendering/handling.
@@ -12,6 +13,6 @@ import net.minecraft.world.entity.player.Player;
  */
 public interface IAreaEffectHandler {
 
-    ImmutableList<BlockPos> getAreaEffectBlocks(BlockPos pos, Player player);
+    ImmutableList<BlockPos> getAreaEffectBlocks(BlockPos pos, Player player, Level level);
 
 }

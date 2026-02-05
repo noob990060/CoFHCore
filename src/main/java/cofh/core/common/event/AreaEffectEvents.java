@@ -57,7 +57,7 @@ public class AreaEffectEvents {
         if (aeCap == null) {
             aeCap = new AreaEffectItemWrapper(stack);
         }
-        ImmutableList<BlockPos> areaBlocks = aeCap.getAreaEffectBlocks(origin, player);
+        ImmutableList<BlockPos> areaBlocks = aeCap.getAreaEffectBlocks(origin, player, player.level());
         // TODO: Revisit if performance issues show. This is the most *proper* way to handle this, but is not particularly friendly.
         for (BlockPos pos : areaBlocks) {
             if (stack.isEmpty()) {
@@ -86,7 +86,7 @@ public class AreaEffectEvents {
             if (aeCap == null) {
                 aeCap = new AreaEffectItemWrapper(stack);
             }
-            ImmutableList<BlockPos> areaBlocks = aeCap.getAreaEffectBlocks(pos, player);
+            ImmutableList<BlockPos> areaBlocks = aeCap.getAreaEffectBlocks(pos, player, player.level());
 
             float curHardness = event.getState().getDestroySpeed(player.level, pos);
             if (curHardness <= 0 || areaBlocks.size() <= 1) {
@@ -102,7 +102,7 @@ public class AreaEffectEvents {
         });
     }
 
-    @SubscribeEvent (priority = EventPriority.LOWEST)
+    //@SubscribeEvent (priority = EventPriority.LOWEST)
     // TODO: Replace with alternative tick handling mechanism when available
     // public static void handleTickEndEvent(TickEvent.ServerTickEvent event) {
     //     if (event.phase == TickEvent.Phase.END) {

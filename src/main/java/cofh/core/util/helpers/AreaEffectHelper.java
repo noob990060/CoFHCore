@@ -54,9 +54,11 @@ public final class AreaEffectHelper {
     /**
      * Basically the "default" AOE behavior.
      */
-    public static ImmutableList<BlockPos> getAreaEffectBlocks(ItemStack stack, BlockPos pos, Player player) {
+    public static ImmutableList<BlockPos> getAreaEffectBlocks(ItemStack stack, BlockPos pos, Player player, Level level) {
 
-        int encExcavating = getItemEnchantmentLevel(getEnchantment(ID_ENSORCELLATION, ID_EXCAVATING), stack);
+        int encExcavating = 0; // TODO: Fix Excavating enchantment lookup for NeoForge 1.21.1
+        // int encExcavating = getItemEnchantmentLevel(level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+        //         .getOrThrow(net.minecraft.core.registries.Enchantments.FORTUNE), stack);
         if (!stack.isEmpty()) {
             CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
             if (customData != null) {

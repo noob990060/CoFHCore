@@ -1,11 +1,11 @@
-modLoader = "neoforge"
-loaderVersion = "[1,)"
-issueTrackerURL = "https://github.com/cofh/feedback"
+modLoader = "javafml"
+loaderVersion = "[4,)"
 license = "CoFH - Don't Be A Jerk (Learn, Don't Steal)"
+issueTrackerURL = "https://github.com/cofh/feedback"
 
 [[mods]]
 modId = "cofh_core"
-version = "${file.jarVersion}"
+version = "${mod_version}"
 displayName = "CoFH Core"
 updateJSONURL = "https://raw.github.com/cofh/version/main/cofh_core/update.json"
 displayURL = "https://teamcofh.com/"

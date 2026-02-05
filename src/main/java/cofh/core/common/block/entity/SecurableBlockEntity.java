@@ -23,11 +23,9 @@ public class SecurableBlockEntity extends BlockEntityCoFH implements ISecurableT
 
     @Override
     public ItemStack createItemStackTag(ItemStack stack) {
-
-        // TODO: Fix ItemStack tag system for NeoForge 1.21.1
-        // The ItemStack tag API has changed significantly in NeoForge 1.21.1
-        // For now, skip tag functionality to avoid compilation errors
-        return super.createItemStackTag(stack);
+        // ItemStack NBT no longer exists in 1.21+
+        // Data Components are copied automatically
+        return stack;
     }
 
     // region NBT

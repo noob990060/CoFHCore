@@ -18,6 +18,11 @@ import java.util.Objects;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 import static net.minecraft.world.InteractionHand.MAIN_HAND;
 import static net.minecraft.world.InteractionHand.OFF_HAND;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+
 
 @EventBusSubscriber(modid = ID_COFH_CORE)
 public class ItemTracker {
@@ -77,7 +82,7 @@ public class ItemTracker {
     // }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void serverTick(ServerTickEvent event) {
+    public static void serverTick(ServerTickEvent.Post event) {
         // Update all players on the server
         for (Player player : event.getServer().getPlayerList().getPlayers()) {
             updateData(player, MAIN_HAND);

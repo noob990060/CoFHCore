@@ -3,11 +3,13 @@ package cofh.lib.common.block;
 import cofh.lib.util.Utils;
 import cofh.lib.util.helpers.MathHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -17,6 +19,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.enchantment.Enchantments;
 
 import java.util.List;
 
@@ -25,7 +29,7 @@ import static cofh.lib.util.constants.BlockStatePropertiesCoFH.TOP;
 
 public class CropBlockTall extends CropBlockCoFH {
 
-    public static final VoxelShape[] TALL_CROPS_BY_AGE = new VoxelShape[]{
+    public static final VoxelShape[] TALL_CROPS_BY_AGE = new VoxelShape[] {
             box(0.0D, 0.0D, 0.0D, 16.0D, 4.0D, 16.0D),
             box(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D),
             box(0.0D, 0.0D, 0.0D, 16.0D, 12.0D, 16.0D),
@@ -33,7 +37,7 @@ public class CropBlockTall extends CropBlockCoFH {
             box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
             box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
             box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
-            box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D)};
+            box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D) };
 
     public CropBlockTall(Properties builder, int growLight, float growMod) {
 
@@ -112,7 +116,8 @@ public class CropBlockTall extends CropBlockCoFH {
         if (getAge(state) >= getTallAge()) {
             return worldIn.getBlockState(pos.above()).getBlock() == this && super.canSurvive(state, worldIn, pos);
         }
-        return pos.getY() < worldIn.getMaxBuildHeight() && super.canSurvive(state, worldIn, pos) && (worldIn.isEmptyBlock(pos.above()));
+        return pos.getY() < worldIn.getMaxBuildHeight() && super.canSurvive(state, worldIn, pos)
+                && (worldIn.isEmptyBlock(pos.above()));
     }
 
     // region BonemealableBlock
@@ -142,6 +147,24 @@ public class CropBlockTall extends CropBlockCoFH {
     // endregion
 
     // region IHarvestable
+
+    private static int getFortuneLevel(Level level, ItemStack tool) {
+        if (!(level instanceof ServerLevel serverLevel) || tool.isEmpty()) {
+            return 0;
+        }
+
+        ItemEnchantments ench = tool.get(DataComponents.ENCHANTMENTS);
+        if (ench == null || ench.isEmpty()) {
+            return 0;
+        }
+
+        var fortuneHolder = serverLevel.registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.FORTUNE);
+
+        return ench.getLevel(fortuneHolder);
+    }
+
     @Override
     public boolean harvest(Level world, BlockPos pos, BlockState state, Player player, boolean replant) {
 
@@ -152,25 +175,31 @@ public class CropBlockTall extends CropBlockCoFH {
             return true;
         }
         if (getPostHarvestAge() >= 0) {
-            // TODO: BLOCK_FORTUNE is no longer available in NeoForge 1.21.1
-            // Block fortune enchantments have been removed or changed significantly
-            int fortune = 0; // Utils.getItemEnchantmentLevel(EnchantmentEffectComponents.BLOCK_FORTUNE, player.getMainHandItem());
-            Utils.dropItemStackIntoWorldWithRandomness(new ItemStack(getCropItem(), 2 + MathHelper.binomialDist(fortune, 0.5D)), world, pos);
+            int fortune = getFortuneLevel(world, player.getMainHandItem());
+
+            Utils.dropItemStackIntoWorldWithRandomness(
+                    new ItemStack(getCropItem(), 2 + MathHelper.binomialDist(fortune, 0.5D)),
+                    world,
+                    pos);
+
             if (isTop(state)) {
                 world.setBlock(pos, this.getStateForAge(getPostHarvestAge() + getTallAge()), 2);
                 world.setBlock(pos.below(), this.getStateForAge(getPostHarvestAge()), 2);
-                Utils.dropItemStackIntoWorldWithRandomness(new ItemStack(getCropItem(), 2 + MathHelper.binomialDist(fortune, 0.5D)), world, pos.below());
+                Utils.dropItemStackIntoWorldWithRandomness(
+                        new ItemStack(getCropItem(), 2 + MathHelper.binomialDist(fortune, 0.5D)), world, pos.below());
             } else {
                 world.setBlock(pos, this.getStateForAge(getPostHarvestAge()), 2);
                 world.setBlock(pos.above(), this.getStateForAge(getPostHarvestAge() + getTallAge()), 2);
-                Utils.dropItemStackIntoWorldWithRandomness(new ItemStack(getCropItem(), 2 + MathHelper.binomialDist(fortune, 0.5D)), world, pos.above());
+                Utils.dropItemStackIntoWorldWithRandomness(
+                        new ItemStack(getCropItem(), 2 + MathHelper.binomialDist(fortune, 0.5D)), world, pos.above());
             }
         } else {
             if (replant) {
                 boolean seedDrop = false;
                 Item seedItem = seed.get();
 
-                List<ItemStack> drops = getDrops(state, (ServerLevel) world, pos, null, player, player.getMainHandItem());
+                List<ItemStack> drops = getDrops(state, (ServerLevel) world, pos, null, player,
+                        player.getMainHandItem());
                 for (ItemStack drop : drops) {
                     drop.setCount(drop.getCount() * 2);
 

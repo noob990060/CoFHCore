@@ -490,6 +490,13 @@ public class Utils {
         return enchantmentRegistry;
     }
     
+    public static net.minecraft.core.HolderLookup.RegistryLookup<Enchantment> getEnchantmentRegistry(Level level) {
+        if (level == null) {
+            throw new IllegalStateException("No level available for registry access.");
+        }
+        return level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+    }
+    
     private static Registry<Enchantment> enchantmentRegistry;
 
     public static void setEnchantmentRegistry(Registry<Enchantment> registry) {
