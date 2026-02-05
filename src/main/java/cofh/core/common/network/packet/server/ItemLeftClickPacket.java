@@ -6,26 +6,21 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.Optional;
-
 public class ItemLeftClickPacket {
 
     public static final ItemLeftClickPacket INSTANCE = new ItemLeftClickPacket();
 
     public static ItemLeftClickPacket get() {
-
         return INSTANCE;
     }
 
-    // TODO: Make this a multi-click packet of some sort, or cover more potential options
     public void handle(final ItemLeftClickPayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player == null) {
                 return;
             }
-            Player player = senderOptional.get();
 
             if (!ItemHelper.isPlayerHoldingLeftClickItem(player)) {
                 return;
@@ -35,8 +30,6 @@ public class ItemLeftClickPacket {
     }
 
     public static void sendToServer() {
-
-        PacketDistributor.SERVER.noArg().send(new ItemLeftClickPayload());
+        PacketDistributor.sendToServer(new ItemLeftClickPayload());
     }
-
 }

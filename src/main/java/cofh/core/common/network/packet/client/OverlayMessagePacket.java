@@ -20,7 +20,7 @@ public class OverlayMessagePacket {
 
     public void handle(final OverlayMessagePayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> ProxyUtils.setOverlayMessage(StringHelper.fromJSON(payload.message())));
+        context.enqueueWork(() -> ProxyUtils.setOverlayMessage(StringHelper.fromJSON(payload.message())));
     }
 
     public static void sendToClient(Component message, Player player) {
@@ -29,7 +29,7 @@ public class OverlayMessagePacket {
             return;
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            PacketDistributor.PLAYER.with(serverPlayer).send(new OverlayMessagePayload(StringHelper.toJSON(message)));
+            PacketDistributor.sendToPlayer(serverPlayer, new OverlayMessagePayload(StringHelper.toJSON(message)));
         }
     }
 

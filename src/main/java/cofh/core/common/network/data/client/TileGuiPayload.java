@@ -1,32 +1,40 @@
 package cofh.core.common.network.data.client;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
-public record TileGuiPayload(BlockPos pos, FriendlyByteBuf buf) implements CustomPacketPayload {
+public record TileGuiPayload(BlockPos pos, byte[] data) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "tile_gui_packet");
+    public static final Type<TileGuiPayload> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "tile_gui_packet"));
 
-    public TileGuiPayload(final FriendlyByteBuf buf) {
+    public static final StreamCodec<RegistryFriendlyByteBuf, TileGuiPayload> STREAM_CODEC = StreamCodec
+            .of(TileGuiPayload::encode, TileGuiPayload::decode);
 
-        this(buf.readBlockPos(), buf);
+    private static TileGuiPayload decode(RegistryFriendlyByteBuf buf) {
+        BlockPos pos = buf.readBlockPos();
+
+        int len = buf.readVarInt();
+        byte[] data = new byte[len];
+        buf.readBytes(data);
+
+        return new TileGuiPayload(pos, data);
+    }
+
+    private static void encode(RegistryFriendlyByteBuf buf, TileGuiPayload payload) {
+        buf.writeBlockPos(payload.pos);
+
+        buf.writeVarInt(payload.data.length);
+        buf.writeBytes(payload.data);
     }
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-
-        buf.writeBlockPos(pos);
-        buf.writeBytes(this.buf);
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
-
-    @Override
-    public ResourceLocation id() {
-
-        return ID;
-    }
-
 }

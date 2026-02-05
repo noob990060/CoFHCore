@@ -9,8 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.Optional;
-
 import static cofh.core.util.helpers.ItemHelper.cloneStack;
 
 public class GhostItemPacket {
@@ -18,18 +16,16 @@ public class GhostItemPacket {
     public static final GhostItemPacket INSTANCE = new GhostItemPacket();
 
     public static GhostItemPacket get() {
-
         return INSTANCE;
     }
 
     public void handle(final GhostItemPayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player == null) {
                 return;
             }
-            Player player = senderOptional.get();
 
             if (player.containerMenu instanceof ContainerMenuCoFH container) {
                 Slot slot = container.getSlot(payload.slotNumber());
@@ -45,7 +41,6 @@ public class GhostItemPacket {
         if (slotNumber < 0 || stack.isEmpty() || count < 0) {
             return;
         }
-        PacketDistributor.SERVER.noArg().send(new GhostItemPayload(slotNumber, stack, count));
+        PacketDistributor.sendToServer(new GhostItemPayload(slotNumber, stack, count));
     }
-
 }

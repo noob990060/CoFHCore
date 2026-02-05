@@ -21,7 +21,7 @@ public class ModelUpdatePacket {
 
     public void handle(final ModelUpdatePayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> {
+        context.enqueueWork(() -> {
             Level level = ProxyUtils.getClientWorld();
             if (level == null) {
                 return;
@@ -37,8 +37,14 @@ public class ModelUpdatePacket {
     }
 
     public static void sendToClient(Level level, BlockPos pos) {
-
-        PacketDistributor.NEAR.with(Utils.createTargetPoint(level, pos)).send(new ModelUpdatePayload(pos));
+        if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            // Send to all players tracking the chunk
+            serverLevel.getServer().getPlayerList().getPlayers().forEach(player -> {
+                if (player.level() == serverLevel && player.distanceToSqr(pos.getCenter()) <= 64.0 * 64.0) {
+                    PacketDistributor.sendToPlayer(player, new ModelUpdatePayload(pos));
+                }
+            });
+        }
     }
 
 }

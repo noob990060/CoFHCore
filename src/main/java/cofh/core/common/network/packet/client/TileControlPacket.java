@@ -24,14 +24,15 @@ public class TileControlPacket {
 
     public void handle(final TileControlPayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> {
+        context.enqueueWork(() -> {
             Level world = ProxyUtils.getClientWorld();
 
             BlockPos pos = payload.pos();
 
             BlockEntity tile = world.getBlockEntity(pos);
             if (tile instanceof IPacketHandlerTile handlerTile) {
-                handlerTile.handleControlPacket(payload.buf());
+                FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(payload.data()));
+                handlerTile.handleControlPacket(buf);
                 BlockState state = world.getBlockState(pos);
                 world.sendBlockUpdated(pos, state, state, 3);
             }
@@ -43,7 +44,20 @@ public class TileControlPacket {
         if (tile == null || tile.world() == null || tile.world().isClientSide) {
             return;
         }
-        PacketDistributor.NEAR.with(Utils.createTargetPoint(tile.world(), tile.pos())).send(new TileControlPayload(tile.pos(), tile.getControlPacket(new FriendlyByteBuf(Unpooled.buffer()))));
+        FriendlyByteBuf tmp = new FriendlyByteBuf(Unpooled.buffer());
+        FriendlyByteBuf filled = tile.getControlPacket(tmp);
+
+        byte[] data = new byte[filled.readableBytes()];
+        filled.getBytes(filled.readerIndex(), data);
+
+        if (tile.world() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            // Send to all players tracking the chunk
+            serverLevel.getServer().getPlayerList().getPlayers().forEach(player -> {
+                if (player.level() == serverLevel && player.distanceToSqr(tile.pos().getCenter()) <= 64.0 * 64.0) {
+                    PacketDistributor.sendToPlayer(player, new TileControlPayload(tile.pos(), data));
+                }
+            });
+        }
     }
 
 }

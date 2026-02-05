@@ -17,48 +17,39 @@ public class TileRenderPacket {
     public static final TileRenderPacket INSTANCE = new TileRenderPacket();
 
     public static TileRenderPacket get() {
-
         return INSTANCE;
     }
 
-    /*
-     * public void handle(final TileRenderPayload payload, final IPayloadContext
-     * context) {
-     * 
-     * context.workHandler().submitAsync(() -> {
-     * Level world = ProxyUtils.getClientWorld();
-     * 
-     * BlockPos pos = payload.pos();
-     * 
-     * BlockEntity tile = world.getBlockEntity(pos);
-     * if (tile instanceof IPacketHandlerTile handlerTile) {
-     * handlerTile.handleRenderPacket(payload.buf());
-     * }
-     * });
-     * }
-     */
-
     public void handle(final TileRenderPayload payload, final IPayloadContext context) {
-
         context.enqueueWork(() -> {
-            Level level = context.player().level();
-
+            Level level = ProxyUtils.getClientWorld();
             BlockPos pos = payload.pos();
             BlockEntity tile = level.getBlockEntity(pos);
-
+            
             if (tile instanceof IPacketHandlerTile handlerTile) {
-                handlerTile.handleRenderPacket(payload.buf());
+                FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(payload.data()));
+                handlerTile.handleRenderPacket(buf);
             }
         });
     }
 
     public static void sendToClient(IPacketHandlerTile tile) {
-
         if (tile == null || tile.world() == null || tile.world().isClientSide) {
             return;
         }
-        PacketDistributor.NEAR.with(Utils.createTargetPoint(tile.world(), tile.pos()))
-                .send(new TileRenderPayload(tile.pos(), tile.getRenderPacket(new FriendlyByteBuf(Unpooled.buffer()))));
-    }
+        FriendlyByteBuf tmp = new FriendlyByteBuf(Unpooled.buffer());
+        FriendlyByteBuf filled = tile.getRenderPacket(tmp);
 
+        byte[] data = new byte[filled.readableBytes()];
+        filled.getBytes(filled.readerIndex(), data);
+
+        if (tile.world() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            // Send to all players tracking the chunk
+            serverLevel.getServer().getPlayerList().getPlayers().forEach(player -> {
+                if (player.level() == serverLevel && player.distanceToSqr(tile.pos().getCenter()) <= 64.0 * 64.0) {
+                    PacketDistributor.sendToPlayer(player, new TileRenderPayload(tile.pos(), data));
+                }
+            });
+        }
+    }
 }

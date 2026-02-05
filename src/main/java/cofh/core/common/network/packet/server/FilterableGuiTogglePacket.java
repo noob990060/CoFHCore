@@ -15,8 +15,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.Optional;
-
 import static cofh.core.util.filter.FilterHolderType.*;
 
 public class FilterableGuiTogglePacket {
@@ -24,82 +22,68 @@ public class FilterableGuiTogglePacket {
     public static final FilterableGuiTogglePacket INSTANCE = new FilterableGuiTogglePacket();
 
     public static FilterableGuiTogglePacket get() {
-
         return INSTANCE;
     }
 
-    public static byte FILTER_GUI = 0;
-    public static byte GUI = 1;
+    public static final byte FILTER_GUI = 0;
+    public static final byte GUI = 1;
 
     public void handle(final FilterableGuiTogglePayload payload, final IPayloadContext context) {
-
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
+        context.enqueueWork(() -> {
+            Player sender = context.player(); // <-- non-Optional
+            if (!(sender instanceof ServerPlayer player)) {
                 return;
             }
-            ServerPlayer player = (ServerPlayer) senderOptional.get();
 
-            Level world = player.level;
+            Level level = player.level(); // <-- method, not field
 
-            FilterHolderType type = FilterHolderType.from(payload.type());
+            FilterHolderType type = FilterHolderType.from(payload.holderType());
             int entityId = payload.entityId();
             BlockPos pos = payload.pos();
-            int mode = payload.mode();
+            byte mode = payload.mode();
 
             switch (type) {
                 case ITEM -> {
                     ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
                     if (held.getItem() instanceof IFilterableItem filterable) {
-                        if (mode == GUI) {
+                        if (mode == GUI)
                             filterable.openGui(player, held);
-                        } else if (mode == FILTER_GUI) {
+                        else if (mode == FILTER_GUI)
                             filterable.openFilterGui(player, held);
-                        }
                     }
                 }
                 case ENTITY -> {
-                    Entity entity = world.getEntity(entityId);
-                    if (entity == null || entity.isRemoved()) {
+                    Entity entity = level.getEntity(entityId);
+                    if (entity == null || entity.isRemoved())
                         return;
-                    }
+
                     if (entity instanceof IFilterable filterable) {
-                        if (mode == GUI) {
+                        if (mode == GUI)
                             filterable.openGui(player);
-                        } else if (mode == FILTER_GUI) {
+                        else if (mode == FILTER_GUI)
                             filterable.openFilterGui(player);
-                        }
                     }
                 }
                 case TILE -> {
-                    if (!world.isLoaded(pos)) {
+                    if (!level.isLoaded(pos))
                         return;
-                    }
-                    BlockEntity tile = world.getBlockEntity(pos);
-                    if (tile instanceof IFilterable filterable) {
-                        if (mode == GUI) {
+
+                    BlockEntity be = level.getBlockEntity(pos);
+                    if (be instanceof IFilterable filterable) {
+                        if (mode == GUI)
                             filterable.openGui(player);
-                        } else if (mode == FILTER_GUI) {
+                        else if (mode == FILTER_GUI)
                             filterable.openFilterGui(player);
-                        }
                     }
+                }
+                case SELF -> {
+                    return;
                 }
             }
         });
     }
 
-    // Unused as ambiguous call not required.
-    //    public static void openFilterGui(IFilterable filterable) {
-    //
-    //        if (filterable instanceof BlockEntity tile) {
-    //            openFilterGui(tile);
-    //        } else if (filterable instanceof Entity entity) {
-    //            openFilterGui(entity);
-    //        }
-    //    }
-
     public static void openGui(IFilterable filterable) {
-
         if (filterable instanceof BlockEntity tile) {
             openGui(tile);
         } else if (filterable instanceof Entity entity) {
@@ -109,52 +93,43 @@ public class FilterableGuiTogglePacket {
 
     // region ITEMS
     public static void openFilterGui(ItemStack stack) {
-
         sendToServer(FILTER_GUI);
     }
 
     public static void openGui(ItemStack stack) {
-
         sendToServer(GUI);
     }
 
     protected static void sendToServer(byte mode) {
-
-        PacketDistributor.SERVER.noArg().send(new FilterableGuiTogglePayload(ITEM.ordinal(), -1, BlockPos.ZERO, mode));
+        PacketDistributor.sendToServer(new FilterableGuiTogglePayload(ITEM.ordinal(), -1, BlockPos.ZERO, mode));
     }
     // endregion
 
     // region TILES
     public static void openFilterGui(BlockEntity tile) {
-
         sendToServer(tile.getBlockPos(), FILTER_GUI);
     }
 
     public static void openGui(BlockEntity tile) {
-
         sendToServer(tile.getBlockPos(), GUI);
     }
 
     protected static void sendToServer(BlockPos pos, byte mode) {
-
-        PacketDistributor.SERVER.noArg().send(new FilterableGuiTogglePayload(TILE.ordinal(), -1, pos, mode));
+        PacketDistributor.sendToServer(new FilterableGuiTogglePayload(TILE.ordinal(), -1, pos, mode));
     }
     // endregion
 
     // region ENTITIES
     public static void openFilterGui(Entity entity) {
-
         sendToServer(entity.getId(), FILTER_GUI);
     }
 
     public static void openGui(Entity entity) {
-
         sendToServer(entity.getId(), GUI);
     }
 
     protected static void sendToServer(int entityId, byte mode) {
-
-        PacketDistributor.SERVER.noArg().send(new FilterableGuiTogglePayload(ENTITY.ordinal(), entityId, BlockPos.ZERO, mode));
+        PacketDistributor.sendToServer(new FilterableGuiTogglePayload(ENTITY.ordinal(), entityId, BlockPos.ZERO, mode));
     }
     // endregion
 }

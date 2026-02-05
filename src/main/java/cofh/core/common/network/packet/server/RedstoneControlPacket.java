@@ -7,45 +7,50 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
-
-import java.util.Optional;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class RedstoneControlPacket {
 
     public static final RedstoneControlPacket INSTANCE = new RedstoneControlPacket();
 
     public static RedstoneControlPacket get() {
-
         return INSTANCE;
     }
 
-    public void handle(final RedstoneControlPayload payload, final PlayPayloadContext context) {
-
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
+    public void handle(final RedstoneControlPayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player == null) {
                 return;
             }
-            Player player = senderOptional.get();
 
-            Level world = player.level;
-            if (!world.isLoaded(payload.pos())) {
+            Level level = player.level();
+            if (!level.isLoaded(payload.pos())) {
                 return;
             }
-            BlockEntity tile = world.getBlockEntity(payload.pos());
-            if (tile instanceof IRedstoneControllableTile redstoneControllableTile) {
-                redstoneControllableTile.setControl(payload.threshold(), ControlMode.VALUES[payload.mode()]);
+
+            BlockEntity be = level.getBlockEntity(payload.pos());
+            if (!(be instanceof IRedstoneControllableTile tile)) {
+                return;
             }
+
+            int idx = payload.mode() & 0xFF; // avoid negative byte indexing
+            if (idx < 0 || idx >= ControlMode.VALUES.length) {
+                return;
+            }
+
+            tile.setControl(payload.threshold(), ControlMode.VALUES[idx]);
         });
     }
 
     public static void sendToServer(IRedstoneControllableTile tile) {
-
         if (tile == null) {
             return;
         }
-        PacketDistributor.SERVER.noArg().send(new RedstoneControlPayload(tile.pos(), tile.redstoneControl().getThreshold(), (byte) tile.redstoneControl().getMode().ordinal()));
-    }
 
+        PacketDistributor.sendToServer(new RedstoneControlPayload(
+                tile.pos(),
+                tile.redstoneControl().getThreshold(),
+                (byte) tile.redstoneControl().getMode().ordinal()));
+    }
 }

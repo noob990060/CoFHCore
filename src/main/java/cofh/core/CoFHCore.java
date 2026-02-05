@@ -22,8 +22,11 @@ import cofh.lib.common.loot.TileNBTSync;
 import cofh.lib.util.DeferredRegisterCoFH;
 import cofh.lib.util.Utils;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.effect.MobEffect;
@@ -54,6 +57,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -64,7 +68,7 @@ import static cofh.core.init.CoreMenus.ITEM_FILTER_CONTAINER;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 import static cofh.lib.util.constants.ModIds.ID_CURIOS;
 
-@Mod (ID_COFH_CORE)
+@Mod(ID_COFH_CORE)
 public class CoFHCore {
 
     public static final Logger LOG = LogManager.getLogger(ID_COFH_CORE);
@@ -72,22 +76,36 @@ public class CoFHCore {
     public static final ConfigManager CONFIG_MANAGER = new ConfigManager();
     public static final Proxy PROXY = FMLEnvironment.dist.isClient() ? new ProxyClient() : new Proxy();
 
-    public static final DeferredRegisterCoFH<Block> BLOCKS = DeferredRegisterCoFH.create(BuiltInRegistries.BLOCK, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<Item> ITEMS = DeferredRegisterCoFH.create(BuiltInRegistries.ITEM, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<Fluid> FLUIDS = DeferredRegisterCoFH.create(BuiltInRegistries.FLUID, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<Block> BLOCKS = DeferredRegisterCoFH.create(BuiltInRegistries.BLOCK,
+            ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<Item> ITEMS = DeferredRegisterCoFH.create(BuiltInRegistries.ITEM,
+            ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<Fluid> FLUIDS = DeferredRegisterCoFH.create(BuiltInRegistries.FLUID,
+            ID_COFH_CORE);
 
-    public static final DeferredRegisterCoFH<MenuType<?>> CONTAINERS = DeferredRegisterCoFH.create(BuiltInRegistries.MENU, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<Enchantment> ENCHANTMENTS = DeferredRegisterCoFH.create(BuiltInRegistries.ENCHANTMENT, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<EntityType<?>> ENTITIES = DeferredRegisterCoFH.create(BuiltInRegistries.ENTITY_TYPE, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<MobEffect> MOB_EFFECTS = DeferredRegisterCoFH.create(BuiltInRegistries.MOB_EFFECT, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<ParticleType<?>> PARTICLES = DeferredRegisterCoFH.create(BuiltInRegistries.PARTICLE_TYPE, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegisterCoFH.create(BuiltInRegistries.RECIPE_SERIALIZER, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<SoundEvent> SOUND_EVENTS = DeferredRegisterCoFH.create(BuiltInRegistries.SOUND_EVENT, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<BlockEntityType<?>> TILE_ENTITIES = DeferredRegisterCoFH.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<MenuType<?>> CONTAINERS = DeferredRegisterCoFH
+            .create(BuiltInRegistries.MENU, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<Enchantment> ENCHANTMENTS = DeferredRegisterCoFH
+            .create(Registries.ENCHANTMENT, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<EntityType<?>> ENTITIES = DeferredRegisterCoFH
+            .create(BuiltInRegistries.ENTITY_TYPE, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<MobEffect> MOB_EFFECTS = DeferredRegisterCoFH
+            .create(BuiltInRegistries.MOB_EFFECT, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<ParticleType<?>> PARTICLES = DeferredRegisterCoFH
+            .create(BuiltInRegistries.PARTICLE_TYPE, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegisterCoFH
+            .create(BuiltInRegistries.RECIPE_SERIALIZER, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<SoundEvent> SOUND_EVENTS = DeferredRegisterCoFH
+            .create(BuiltInRegistries.SOUND_EVENT, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<BlockEntityType<?>> TILE_ENTITIES = DeferredRegisterCoFH
+            .create(BuiltInRegistries.BLOCK_ENTITY_TYPE, ID_COFH_CORE);
 
-    public static final DeferredRegister<Codec<? extends ICondition>> CONDITION_CODECS = DeferredRegister.create(NeoForgeRegistries.Keys.CONDITION_CODECS, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<EntityDataSerializer<?>> ENTITY_DATA_SERIALIZERS = DeferredRegisterCoFH.create(NeoForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS, ID_COFH_CORE);
-    public static final DeferredRegisterCoFH<FluidType> FLUID_TYPES = DeferredRegisterCoFH.create(NeoForgeRegistries.Keys.FLUID_TYPES, ID_COFH_CORE);
+    public static final DeferredRegister<MapCodec<? extends ICondition>> CONDITION_CODECS = DeferredRegister
+            .create(NeoForgeRegistries.Keys.CONDITION_CODECS, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<EntityDataSerializer<?>> ENTITY_DATA_SERIALIZERS = DeferredRegisterCoFH
+            .create(NeoForgeRegistries.Keys.ENTITY_DATA_SERIALIZERS, ID_COFH_CORE);
+    public static final DeferredRegisterCoFH<FluidType> FLUID_TYPES = DeferredRegisterCoFH
+            .create(NeoForgeRegistries.Keys.FLUID_TYPES, ID_COFH_CORE);
 
     public static boolean curiosLoaded = false;
 
@@ -201,13 +219,14 @@ public class CoFHCore {
 
         event.getIMCStream().forEach(
                 (msg) -> {
-                    if (msg.method().equalsIgnoreCase(IMCMethods.ADD_BOW_COMPATIBILITY) && msg.messageSupplier().get() instanceof Item bow) {
+                    if (msg.method().equalsIgnoreCase(IMCMethods.ADD_BOW_COMPATIBILITY)
+                            && msg.messageSupplier().get() instanceof Item bow) {
                         ArcheryHelper.addValidBow(bow);
-                    } else if (msg.method().equalsIgnoreCase(IMCMethods.ADD_HOLDING_COMPATIBILITY) && msg.messageSupplier().get() instanceof Item container) {
+                    } else if (msg.method().equalsIgnoreCase(IMCMethods.ADD_HOLDING_COMPATIBILITY)
+                            && msg.messageSupplier().get() instanceof Item container) {
                         HoldingEnchantment.addValidItem(container);
                     }
-                }
-        );
+                });
     }
 
     private void registerCommands(final RegisterCommandsEvent event) {

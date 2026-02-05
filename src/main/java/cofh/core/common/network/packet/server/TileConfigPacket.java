@@ -8,9 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
-
-import java.util.Optional;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class TileConfigPacket {
 
@@ -21,22 +19,23 @@ public class TileConfigPacket {
         return INSTANCE;
     }
 
-    public void handle(final TileConfigPayload payload, final PlayPayloadContext context) {
+    public void handle(final TileConfigPayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player == null) {
                 return;
             }
-            Player player = senderOptional.get();
 
-            Level world = player.level;
-            if (!world.isLoaded(payload.pos())) {
+            Level level = player.level();
+            if (!level.isLoaded(payload.pos())) {
                 return;
             }
-            BlockEntity tile = world.getBlockEntity(payload.pos());
-            if (tile instanceof IPacketHandlerTile handlerTile) {
-                handlerTile.handleConfigPacket(payload.buf());
+
+            BlockEntity be = level.getBlockEntity(payload.pos());
+            if (be instanceof IPacketHandlerTile handlerTile) {
+                FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(payload.data()));
+                handlerTile.handleConfigPacket(buf);
             }
         });
     }
@@ -46,7 +45,14 @@ public class TileConfigPacket {
         if (tile == null) {
             return;
         }
-        PacketDistributor.SERVER.noArg().send(new TileConfigPayload(tile.pos(), tile.getConfigPacket(new FriendlyByteBuf(Unpooled.buffer()))));
+
+        FriendlyByteBuf tmp = new FriendlyByteBuf(Unpooled.buffer());
+        FriendlyByteBuf filled = tile.getConfigPacket(tmp);
+
+        byte[] data = new byte[filled.readableBytes()];
+        filled.getBytes(filled.readerIndex(), data);
+
+        PacketDistributor.sendToServer(new TileConfigPayload(tile.pos(), data));
     }
 
 }

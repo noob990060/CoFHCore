@@ -1,7 +1,6 @@
 package cofh.core.common.network.packet.client;
 
 import cofh.core.common.network.data.client.TileGuiPayload;
-import cofh.core.common.network.data.client.TileRenderPayload;
 import cofh.core.util.ProxyUtils;
 import cofh.lib.api.block.entity.IPacketHandlerTile;
 import io.netty.buffer.Unpooled;
@@ -19,50 +18,34 @@ public class TileGuiPacket {
     public static final TileGuiPacket INSTANCE = new TileGuiPacket();
 
     public static TileGuiPacket get() {
-
         return INSTANCE;
     }
 
-    /*
-     * public void handle(final TileGuiPayload payload, final IPayloadContext
-     * context) {
-     * 
-     * context.workHandler().submitAsync(() -> {
-     * Level world = ProxyUtils.getClientWorld();
-     * 
-     * BlockPos pos = payload.pos();
-     * 
-     * BlockEntity tile = world.getBlockEntity(pos);
-     * if (tile instanceof IPacketHandlerTile handlerTile) {
-     * handlerTile.handleGuiPacket(payload.buf());
-     * }
-     * });
-     * }
-     */
-
-    public void handle(final TileRenderPayload payload, final IPayloadContext context) {
-
+    public void handle(final TileGuiPayload payload, final IPayloadContext context) {
         context.enqueueWork(() -> {
-            Level level = context.player().level();
-
+            Level level = ProxyUtils.getClientWorld();
             BlockPos pos = payload.pos();
             BlockEntity tile = level.getBlockEntity(pos);
-
+            
             if (tile instanceof IPacketHandlerTile handlerTile) {
-                handlerTile.handleRenderPacket(payload.buf());
+                FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(payload.data()));
+                handlerTile.handleGuiPacket(buf);
             }
         });
     }
 
     public static void sendToClient(IPacketHandlerTile tile, Player player) {
-
         if (tile == null || tile.world() == null || tile.world().isClientSide) {
             return;
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            PacketDistributor.PLAYER.with(serverPlayer)
-                    .send(new TileGuiPayload(tile.pos(), tile.getGuiPacket(new FriendlyByteBuf(Unpooled.buffer()))));
+            FriendlyByteBuf tmp = new FriendlyByteBuf(Unpooled.buffer());
+            FriendlyByteBuf filled = tile.getGuiPacket(tmp);
+
+            byte[] data = new byte[filled.readableBytes()];
+            filled.getBytes(filled.readerIndex(), data);
+
+            PacketDistributor.sendToPlayer(serverPlayer, new TileGuiPayload(tile.pos(), data));
         }
     }
-
 }

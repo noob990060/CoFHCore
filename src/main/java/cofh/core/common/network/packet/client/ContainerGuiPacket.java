@@ -21,10 +21,11 @@ public class ContainerGuiPacket {
 
     public void handle(final ContainerGuiPayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> {
+        context.enqueueWork(() -> {
             Player player = ProxyUtils.getClientPlayer();
             if (player.containerMenu instanceof ContainerMenuCoFH container) {
-                container.handleGuiPacket(payload.buf());
+                FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(payload.data()));
+                container.handleGuiPacket(buf);
             }
         });
     }
@@ -35,7 +36,13 @@ public class ContainerGuiPacket {
             return;
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            PacketDistributor.PLAYER.with(serverPlayer).send(new ContainerGuiPayload(container.getGuiPacket(new FriendlyByteBuf(Unpooled.buffer()))));
+            FriendlyByteBuf tmp = new FriendlyByteBuf(Unpooled.buffer());
+            FriendlyByteBuf filled = container.getGuiPacket(tmp);
+
+            byte[] data = new byte[filled.readableBytes()];
+            filled.getBytes(filled.readerIndex(), data);
+
+            PacketDistributor.sendToPlayer(serverPlayer, new ContainerGuiPayload(data));
         }
     }
 

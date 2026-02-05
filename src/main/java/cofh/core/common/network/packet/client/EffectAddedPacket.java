@@ -3,7 +3,9 @@ package cofh.core.common.network.packet.client;
 import cofh.core.common.network.data.client.EffectAddedPayload;
 import cofh.core.util.ProxyUtils;
 import cofh.lib.util.Utils;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -14,25 +16,21 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import static cofh.lib.util.Utils.getRegistryName;
-
 public class EffectAddedPacket {
 
     public static final EffectAddedPacket INSTANCE = new EffectAddedPacket();
 
     public static EffectAddedPacket get() {
-
         return INSTANCE;
     }
 
     public void handle(final EffectAddedPayload payload, final IPayloadContext context) {
-
-        context.workHandler().submitAsync(() -> {
+        context.enqueueWork(() -> {
             int id = payload.entityId();
-            MobEffect effectType = BuiltInRegistries.MOB_EFFECT.get(payload.effect());
+            Holder<MobEffect> effectHolder = BuiltInRegistries.MOB_EFFECT.getHolder(payload.effect()).orElse(null);
             int effectDur = payload.duration();
 
-            MobEffectInstance effect = effectType != null ? new MobEffectInstance(effectType, effectDur) : null;
+            MobEffectInstance effect = effectHolder != null ? new MobEffectInstance(effectHolder, effectDur) : null;
 
             if (effect == null) {
                 return;
@@ -49,22 +47,24 @@ public class EffectAddedPacket {
     }
 
     public static void sendToClient(LivingEntity entity, MobEffectInstance effect) {
-
         if (entity == null || effect == null) {
             return;
         }
-        PacketDistributor.NEAR.with(Utils.createTargetPoint(entity)).send(new EffectAddedPayload(entity.getId(), getRegistryName(effect.getEffect()), effect.getDuration()));
-
+        Holder<MobEffect> effectHolder = effect.getEffect();
+        ResourceLocation effectId = effectHolder.unwrapKey().orElseThrow().location();
+        if (entity.level() instanceof net.minecraft.server.level.ServerLevel serverLevel && entity instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            PacketDistributor.sendToPlayersNear(serverLevel, serverPlayer, entity.getX(), entity.getY(), entity.getZ(), 64.0, new EffectAddedPayload(entity.getId(), effectId, effect.getDuration()));
+        }
     }
 
     public static void sendToClient(LivingEntity entity, MobEffectInstance effect, Player player) {
-
         if (entity == null || effect == null) {
             return;
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            PacketDistributor.PLAYER.with(serverPlayer).send(new EffectAddedPayload(entity.getId(), getRegistryName(effect.getEffect()), effect.getDuration()));
+            Holder<MobEffect> effectHolder = effect.getEffect();
+            ResourceLocation effectId = effectHolder.unwrapKey().orElseThrow().location();
+            PacketDistributor.sendToPlayer(serverPlayer, new EffectAddedPayload(entity.getId(), effectId, effect.getDuration()));
         }
     }
-
 }

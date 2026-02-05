@@ -1,6 +1,8 @@
 package cofh.core.common.network.data.server;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -8,30 +10,36 @@ import net.minecraft.world.phys.Vec3;
 
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
-public record ItemRayTraceEntityPayload(InteractionHand hand, Vec3 origin, int targetId, Vec3 offset,
-                                        float power) implements CustomPacketPayload {
+public record ItemRayTraceEntityPayload(
+        InteractionHand hand,
+        Vec3 origin,
+        int targetId,
+        Vec3 offset,
+        float power) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "item_ray_trace_entity_packet");
+    public static final Type<ItemRayTraceEntityPayload> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "item_ray_trace_entity_packet"));
 
-    public ItemRayTraceEntityPayload(final FriendlyByteBuf buf) {
+    private static final StreamCodec<RegistryFriendlyByteBuf, Vec3> VEC3_CODEC = StreamCodec.of(
+            (buf, v) -> {
+                buf.writeDouble(v.x);
+                buf.writeDouble(v.y);
+                buf.writeDouble(v.z);
+            },
+            buf -> new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble()));
 
-        this(buf.readEnum(InteractionHand.class), buf.readVec3(), buf.readVarInt(), buf.readVec3(), buf.readFloat());
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, ItemRayTraceEntityPayload> STREAM_CODEC = StreamCodec
+            .composite(
+                    ByteBufCodecs.VAR_INT, p -> p.hand().ordinal(),
+                    VEC3_CODEC, ItemRayTraceEntityPayload::origin,
+                    ByteBufCodecs.VAR_INT, ItemRayTraceEntityPayload::targetId,
+                    VEC3_CODEC, ItemRayTraceEntityPayload::offset,
+                    ByteBufCodecs.FLOAT, ItemRayTraceEntityPayload::power,
+                    (handOrd, origin, targetId, offset, power) -> new ItemRayTraceEntityPayload(
+                            InteractionHand.values()[handOrd], origin, targetId, offset, power));
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-
-        buf.writeEnum(hand);
-        buf.writeVec3(origin);
-        buf.writeVarInt(targetId);
-        buf.writeVec3(offset);
-        buf.writeFloat(power);
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
-
-    @Override
-    public ResourceLocation id() {
-
-        return ID;
-    }
-
 }

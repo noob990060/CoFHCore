@@ -18,20 +18,18 @@ public class TileStatePacket {
     public static final TileStatePacket INSTANCE = new TileStatePacket();
 
     public static TileStatePacket get() {
-
         return INSTANCE;
     }
 
     public void handle(final TileStatePayload payload, final IPayloadContext context) {
-
-        context.workHandler().submitAsync(() -> {
+        context.enqueueWork(() -> {
             Level world = ProxyUtils.getClientWorld();
-
             BlockPos pos = payload.pos();
-
             BlockEntity tile = world.getBlockEntity(pos);
+            
             if (tile instanceof IPacketHandlerTile handlerTile) {
-                handlerTile.handleStatePacket(payload.buf());
+                FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(payload.data()));
+                handlerTile.handleStatePacket(buf);
                 BlockState state = world.getBlockState(pos);
                 world.sendBlockUpdated(pos, state, state, 3);
             }
@@ -39,11 +37,22 @@ public class TileStatePacket {
     }
 
     public static void sendToClient(IPacketHandlerTile tile) {
-
         if (tile == null || tile.world() == null || tile.world().isClientSide) {
             return;
         }
-        PacketDistributor.NEAR.with(Utils.createTargetPoint(tile.world(), tile.pos())).send(new TileStatePayload(tile.pos(), tile.getStatePacket(new FriendlyByteBuf(Unpooled.buffer()))));
-    }
+        FriendlyByteBuf tmp = new FriendlyByteBuf(Unpooled.buffer());
+        FriendlyByteBuf filled = tile.getStatePacket(tmp);
 
+        byte[] data = new byte[filled.readableBytes()];
+        filled.getBytes(filled.readerIndex(), data);
+
+        if (tile.world() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            // Send to all players tracking the chunk
+            serverLevel.getServer().getPlayerList().getPlayers().forEach(player -> {
+                if (player.level() == serverLevel && player.distanceToSqr(tile.pos().getCenter()) <= 64.0 * 64.0) {
+                    PacketDistributor.sendToPlayer(player, new TileStatePayload(tile.pos(), data));
+                }
+            });
+        }
+    }
 }

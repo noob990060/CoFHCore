@@ -8,28 +8,23 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.Optional;
-
 public class ContainerConfigPacket {
 
     public static final ContainerConfigPacket INSTANCE = new ContainerConfigPacket();
 
     public static ContainerConfigPacket get() {
-
         return INSTANCE;
     }
 
     public void handle(final ContainerConfigPayload payload, final IPayloadContext context) {
-
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player == null) {
                 return;
             }
-            Player player = senderOptional.get();
-
             if (player.containerMenu instanceof ContainerMenuCoFH container) {
-                container.handleConfigPacket(payload.buf());
+                FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(payload.data()));
+                container.handleConfigPacket(buf);
             }
         });
     }
@@ -39,7 +34,13 @@ public class ContainerConfigPacket {
         if (container == null) {
             return;
         }
-        PacketDistributor.SERVER.noArg().send(new ContainerConfigPayload(container.getConfigPacket(new FriendlyByteBuf(Unpooled.buffer()))));
-    }
 
+        FriendlyByteBuf tmp = new FriendlyByteBuf(Unpooled.buffer());
+        FriendlyByteBuf filled = container.getConfigPacket(tmp);
+
+        byte[] data = new byte[filled.readableBytes()];
+        filled.getBytes(filled.readerIndex(), data);
+
+        PacketDistributor.sendToServer(new ContainerConfigPayload(data));
+    }
 }

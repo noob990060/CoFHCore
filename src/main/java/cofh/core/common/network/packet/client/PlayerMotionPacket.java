@@ -17,14 +17,13 @@ public class PlayerMotionPacket {
     }
 
     public void handle(final PlayerMotionPayload payload, final IPayloadContext context) {
-
-        context.workHandler().submitAsync(() -> ProxyUtils.getClientPlayer().setDeltaMovement(ProxyUtils.getClientPlayer().getDeltaMovement().add(payload.motionX(), payload.motionY(), payload.motionZ())));
+        context.enqueueWork(() -> ProxyUtils.getClientPlayer().setDeltaMovement(ProxyUtils.getClientPlayer().getDeltaMovement().add(payload.motionX(), payload.motionY(), payload.motionZ())));
     }
 
     public static void sendToClient(double x, double y, double z, Player player) {
 
         if (player instanceof ServerPlayer serverPlayer) {
-            PacketDistributor.PLAYER.with(serverPlayer).send(new PlayerMotionPayload(x, y, z));
+            PacketDistributor.sendToPlayer(serverPlayer, new PlayerMotionPayload(x, y, z));
         }
     }
 

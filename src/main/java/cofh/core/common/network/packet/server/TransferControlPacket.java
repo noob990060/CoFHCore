@@ -6,9 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
-
-import java.util.Optional;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class TransferControlPacket {
 
@@ -19,16 +17,15 @@ public class TransferControlPacket {
         return INSTANCE;
     }
 
-    public void handle(final TransferControlPayload payload, final PlayPayloadContext context) {
+    public void handle(final TransferControlPayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player == null) {
                 return;
             }
-            Player player = senderOptional.get();
 
-            Level world = player.level;
+            Level world = player.level();
             if (!world.isLoaded(payload.pos())) {
                 return;
             }
@@ -44,7 +41,7 @@ public class TransferControlPacket {
         if (tile == null) {
             return;
         }
-        PacketDistributor.SERVER.noArg().send(new TransferControlPayload(tile.pos(), tile.transferControl().getTransferIn(), tile.transferControl().getTransferOut()));
+        PacketDistributor.sendToServer(new TransferControlPayload(tile.pos(), tile.transferControl().getTransferIn(), tile.transferControl().getTransferOut()));
     }
 
 }

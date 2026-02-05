@@ -7,45 +7,49 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
-
-import java.util.Optional;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class SecurityControlPacket {
 
     public static final SecurityControlPacket INSTANCE = new SecurityControlPacket();
 
     public static SecurityControlPacket get() {
-
         return INSTANCE;
     }
 
-    public void handle(final SecurityControlPayload payload, final PlayPayloadContext context) {
-
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
+    public void handle(final SecurityControlPayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player == null) {
                 return;
             }
-            Player player = senderOptional.get();
 
-            Level world = player.level;
-            if (!world.isLoaded(payload.pos())) {
+            Level level = player.level();
+            if (!level.isLoaded(payload.pos())) {
                 return;
             }
-            BlockEntity tile = world.getBlockEntity(payload.pos());
-            if (tile instanceof ISecurableTile securableTile) {
-                securableTile.setAccess(AccessMode.VALUES[payload.mode()]);
+
+            BlockEntity be = level.getBlockEntity(payload.pos());
+            if (!(be instanceof ISecurableTile tile)) {
+                return;
             }
+
+            int idx = payload.mode() & 0xFF; // avoid negative byte indexing
+            if (idx < 0 || idx >= AccessMode.VALUES.length) {
+                return;
+            }
+
+            tile.setAccess(AccessMode.VALUES[idx]);
         });
     }
 
     public static void sendToServer(ISecurableTile tile) {
-
         if (tile == null) {
             return;
         }
-        PacketDistributor.SERVER.noArg().send(new SecurityControlPayload(tile.pos(), (byte) tile.securityControl().getAccess().ordinal()));
-    }
 
+        PacketDistributor.sendToServer(new SecurityControlPayload(
+                tile.pos(),
+                (byte) tile.securityControl().getAccess().ordinal()));
+    }
 }

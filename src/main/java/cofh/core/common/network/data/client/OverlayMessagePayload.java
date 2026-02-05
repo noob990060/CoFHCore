@@ -1,6 +1,7 @@
 package cofh.core.common.network.data.client;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
@@ -8,23 +9,22 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record OverlayMessagePayload(String message) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "overlay_message_packet");
+    public static final Type<OverlayMessagePayload> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "overlay_message_packet"));
 
-    public OverlayMessagePayload(final FriendlyByteBuf buf) {
+    public static final StreamCodec<RegistryFriendlyByteBuf, OverlayMessagePayload> STREAM_CODEC = StreamCodec
+            .of(OverlayMessagePayload::encode, OverlayMessagePayload::decode);
 
-        this(buf.readUtf());
+    private static OverlayMessagePayload decode(RegistryFriendlyByteBuf buf) {
+        return new OverlayMessagePayload(buf.readUtf());
+    }
+
+    private static void encode(RegistryFriendlyByteBuf buf, OverlayMessagePayload payload) {
+        buf.writeUtf(payload.message);
     }
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-
-        buf.writeUtf(message);
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
-
-    @Override
-    public ResourceLocation id() {
-
-        return ID;
-    }
-
 }

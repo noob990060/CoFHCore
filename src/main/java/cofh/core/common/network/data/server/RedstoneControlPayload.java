@@ -1,7 +1,9 @@
 package cofh.core.common.network.data.server;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
@@ -9,25 +11,18 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record RedstoneControlPayload(BlockPos pos, int threshold, byte mode) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "redstone_control_packet");
+    public static final Type<RedstoneControlPayload> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "redstone_control_packet"));
 
-    public RedstoneControlPayload(final FriendlyByteBuf buf) {
-
-        this(buf.readBlockPos(), buf.readInt(), buf.readByte());
-    }
-
-    @Override
-    public void write(FriendlyByteBuf buf) {
-
-        buf.writeBlockPos(pos);
-        buf.writeInt(threshold);
-        buf.writeByte(mode);
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, RedstoneControlPayload> STREAM_CODEC = StreamCodec
+            .composite(
+                    BlockPos.STREAM_CODEC, RedstoneControlPayload::pos,
+                    ByteBufCodecs.VAR_INT, RedstoneControlPayload::threshold,
+                    ByteBufCodecs.BYTE, RedstoneControlPayload::mode,
+                    RedstoneControlPayload::new);
 
     @Override
-    public ResourceLocation id() {
-
-        return ID;
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
-
 }

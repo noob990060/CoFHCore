@@ -1,7 +1,9 @@
 package cofh.core.common.network.data.server;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
@@ -9,24 +11,17 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public record SecurityControlPayload(BlockPos pos, byte mode) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "security_control_packet");
+    public static final Type<SecurityControlPayload> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "security_control_packet"));
 
-    public SecurityControlPayload(final FriendlyByteBuf buf) {
-
-        this(buf.readBlockPos(), buf.readByte());
-    }
-
-    @Override
-    public void write(FriendlyByteBuf buf) {
-
-        buf.writeBlockPos(pos);
-        buf.writeByte(mode);
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, SecurityControlPayload> STREAM_CODEC = StreamCodec
+            .composite(
+                    BlockPos.STREAM_CODEC, SecurityControlPayload::pos,
+                    ByteBufCodecs.BYTE, SecurityControlPayload::mode,
+                    SecurityControlPayload::new);
 
     @Override
-    public ResourceLocation id() {
-
-        return ID;
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
-
 }

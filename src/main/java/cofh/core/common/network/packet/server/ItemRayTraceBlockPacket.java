@@ -10,42 +10,44 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
-
-import java.util.Optional;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class ItemRayTraceBlockPacket {
 
     public static final ItemRayTraceBlockPacket INSTANCE = new ItemRayTraceBlockPacket();
 
     public static ItemRayTraceBlockPacket get() {
-
         return INSTANCE;
     }
 
-    public void handle(final ItemRayTraceBlockPayload payload, final PlayPayloadContext context) {
+    public void handle(final ItemRayTraceBlockPayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
-                return;
-            }
-            Player player = senderOptional.get();
-            if (player instanceof ServerPlayer serverPlayer) {
-                ItemStack stack = player.getItemInHand(payload.hand());
-                if (stack.getItem() instanceof IBlockRayTraceItem item) {
-                    item.handleBlockRayTrace(serverPlayer.serverLevel(), serverPlayer, payload.hand(), stack, payload.origin(), payload.result());
-                }
-            }
-        });
-    }
+    context.enqueueWork(() -> {
+        Player player = context.player();
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        ItemStack stack = serverPlayer.getItemInHand(payload.hand());
+        if (stack.getItem() instanceof IBlockRayTraceItem item) {
+            item.handleBlockRayTrace(
+                    serverPlayer.serverLevel(),
+                    serverPlayer,
+                    payload.hand(),
+                    stack,
+                    payload.origin(),
+                    payload.result()
+            );
+        }
+    });
+}
+
 
     public static void sendToServer(Player player, InteractionHand hand, Vec3 origin, BlockHitResult result) {
 
         Player client = ProxyUtils.getClientPlayer();
         if (client != null && client.equals(player)) {
-            PacketDistributor.SERVER.noArg().send(new ItemRayTraceBlockPayload(hand, origin, result));
+            PacketDistributor.sendToServer(new ItemRayTraceBlockPayload(hand, origin, result));
         }
     }
-
 }

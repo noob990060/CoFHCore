@@ -7,9 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
-
-import java.util.Optional;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import static cofh.lib.api.control.IReconfigurable.SideConfig.SIDE_NONE;
 
@@ -18,50 +16,54 @@ public class SideConfigPacket {
     public static final SideConfigPacket INSTANCE = new SideConfigPacket();
 
     public static SideConfigPacket get() {
-
         return INSTANCE;
     }
 
-    public void handle(final SideConfigPayload payload, final PlayPayloadContext context) {
-
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
+    public void handle(final SideConfigPayload payload, final IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player == null) {
                 return;
             }
-            Player player = senderOptional.get();
 
-            Level world = player.level;
-            if (!world.isLoaded(payload.pos())) {
+            Level level = player.level();
+            if (!level.isLoaded(payload.pos())) {
                 return;
             }
-            BlockEntity tile = world.getBlockEntity(payload.pos());
-            if (tile instanceof IReconfigurableTile reconfigurableTile) {
-                byte[] bSides = payload.sides();
-                SideConfig[] sides = {SIDE_NONE, SIDE_NONE, SIDE_NONE, SIDE_NONE, SIDE_NONE, SIDE_NONE};
-                if (bSides.length == 6) {
-                    for (int i = 0; i < 6; ++i) {
-                        if (bSides[i] > SideConfig.VALUES.length) {
-                            bSides[i] = 0;
-                        }
-                        sides[i] = SideConfig.VALUES[bSides[i]];
+
+            BlockEntity be = level.getBlockEntity(payload.pos());
+            if (!(be instanceof IReconfigurableTile tile)) {
+                return;
+            }
+
+            byte[] bSides = payload.sides();
+            SideConfig[] sides = { SIDE_NONE, SIDE_NONE, SIDE_NONE, SIDE_NONE, SIDE_NONE, SIDE_NONE };
+
+            if (bSides.length == 6) {
+                for (int i = 0; i < 6; i++) {
+                    int idx = bSides[i] & 0xFF; // avoid negative byte indexing
+                    if (idx >= SideConfig.VALUES.length) {
+                        idx = 0;
                     }
+                    sides[i] = SideConfig.VALUES[idx];
                 }
-                reconfigurableTile.reconfigControl().setSideConfig(sides);
             }
+
+            tile.reconfigControl().setSideConfig(sides);
         });
     }
 
     public static void sendToServer(IReconfigurableTile tile) {
-
         if (tile == null) {
             return;
         }
-        byte[] bSides = new byte[6];
-        for (int i = 0; i < 6; ++i) {
-            bSides[i] = (byte) tile.reconfigControl().getSideConfig()[i].ordinal();
-        }
-        PacketDistributor.SERVER.noArg().send(new SideConfigPayload(tile.pos(), bSides));
-    }
 
+        byte[] bSides = new byte[6];
+        SideConfig[] current = tile.reconfigControl().getSideConfig();
+        for (int i = 0; i < 6; i++) {
+            bSides[i] = (byte) current[i].ordinal();
+        }
+
+        PacketDistributor.sendToServer(new SideConfigPayload(tile.pos(), bSides));
+    }
 }
