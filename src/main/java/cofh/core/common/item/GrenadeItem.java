@@ -3,8 +3,6 @@ package cofh.core.common.item;
 import cofh.core.common.entity.AbstractGrenade;
 import cofh.core.util.ProxyUtils;
 import cofh.lib.util.helpers.MathHelper;
-import net.minecraft.core.Position;
-import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -13,10 +11,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.DispenserBlock;
 
 import static cofh.core.util.helpers.ItemHelper.cloneStack;
 
@@ -34,7 +30,8 @@ public class GrenadeItem extends ItemCoFH {
 
         ProxyUtils.registerItemModelProperty(this, ResourceLocation.parse("thrown"),
                 (stack, world, living, seed) -> (stack.getDamageValue() > 0 ? 1.0F : 0.0F));
-        DispenserBlock.registerBehavior(this, DISPENSER_BEHAVIOR);
+        // TODO: Fix dispenser behavior registration for NeoForge 1.21.1
+        // DispenserBlock.registerBehavior(this, DISPENSER_BEHAVIOR);
     }
 
     @Override
@@ -76,26 +73,27 @@ public class GrenadeItem extends ItemCoFH {
     // endregion
 
     // region DISPENSER BEHAVIOR
-    private static final AbstractProjectileDispenseBehavior DISPENSER_BEHAVIOR = new AbstractProjectileDispenseBehavior() {
-
-        @Override
-        public Projectile getProjectile(Level worldIn, Position position, ItemStack stackIn) {
-
-            GrenadeItem grenadeItem = ((GrenadeItem) stackIn.getItem());
-            AbstractGrenade grenade = grenadeItem.factory.createGrenade(worldIn, position.x(), position.y(),
-                    position.z());
-            ItemStack throwStack = cloneStack(stackIn, 1);
-            throwStack.setDamageValue(1);
-            grenade.setItem(throwStack);
-            grenade.setRadius(1 + grenadeItem.radius);
-            return grenade;
-        }
-
-        @Override
-        protected float getUncertainty() {
-
-            return 3.0F;
-        }
-    };
+    // TODO: Fix AbstractProjectileDispenseBehavior for NeoForge 1.21.1
+    // private static final AbstractProjectileDispenseBehavior DISPENSER_BEHAVIOR = new AbstractProjectileDispenseBehavior() {
+    //
+    //     @Override
+    //     public Projectile getProjectile(Level worldIn, Position position, ItemStack stackIn) {
+    //
+    //         GrenadeItem grenadeItem = ((GrenadeItem) stackIn.getItem());
+    //         AbstractGrenade grenade = grenadeItem.factory.createGrenade(worldIn, position.x(), position.y(),
+    //                 position.z());
+    //         ItemStack throwStack = cloneStack(stackIn, 1);
+    //         throwStack.setDamageValue(1);
+    //         grenade.setItem(throwStack);
+    //         grenade.setRadius(1 + grenadeItem.radius);
+    //         return grenade;
+    //     }
+    //
+    //     @Override
+    //     protected float getUncertainty() {
+    //
+    //         return 3.0F;
+    //     }
+    // };
     // endregion
 }

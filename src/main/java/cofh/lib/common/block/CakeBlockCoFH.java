@@ -1,11 +1,10 @@
 package cofh.lib.common.block;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
@@ -47,18 +46,19 @@ public class CakeBlockCoFH extends CakeBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
 
-        if (worldIn.isClientSide) {
-            ItemStack stack = player.getItemInHand(handIn);
-            if (this.eatPiece(worldIn, pos, state, player).consumesAction()) {
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+        if (world.isClientSide) {
+            if (this.eatPiece(world, pos, state, player).consumesAction()) {
                 return InteractionResult.SUCCESS;
             }
-            if (stack.isEmpty()) {
-                return InteractionResult.CONSUME;
-            }
+            return InteractionResult.CONSUME;
         }
-        return this.eatPiece(worldIn, pos, state, player);
+        return this.eatPiece(world, pos, state, player);
     }
 
     protected InteractionResult eatPiece(Level world, BlockPos pos, BlockState state, Player player) {
@@ -67,11 +67,11 @@ public class CakeBlockCoFH extends CakeBlock {
             return InteractionResult.PASS;
         } else {
             player.awardStat(Stats.EAT_CAKE_SLICE);
-            player.getFoodData().eat(food.getNutrition(), food.getSaturationModifier());
+            player.getFoodData().eat(food.nutrition(), food.saturation());
 
-            for (Pair<MobEffectInstance, Float> pair : this.food.getEffects()) {
-                if (!world.isClientSide && pair.getFirst() != null && world.random.nextFloat() < pair.getSecond()) {
-                    player.addEffect(new MobEffectInstance(pair.getFirst()));
+            for (FoodProperties.PossibleEffect possibleEffect : this.food.effects()) {
+                if (!world.isClientSide && possibleEffect.effect() != null && world.random.nextFloat() < possibleEffect.probability()) {
+                    player.addEffect(possibleEffect.effect());
                 }
             }
             int i = state.getValue(BITES);

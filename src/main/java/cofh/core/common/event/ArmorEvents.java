@@ -6,16 +6,15 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.Event;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.event.entity.living.LivingAttackEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
@@ -28,7 +27,7 @@ import static net.minecraft.tags.DamageTypeTags.*;
 import static net.minecraft.world.effect.MobEffects.POISON;
 import static net.minecraft.world.effect.MobEffects.WITHER;
 
-@Mod.EventBusSubscriber(modid = ID_COFH_CORE)
+@EventBusSubscriber(modid = ID_COFH_CORE)
 public class ArmorEvents {
 
     private ArmorEvents() {
@@ -36,14 +35,11 @@ public class ArmorEvents {
     }
 
     @SubscribeEvent (priority = EventPriority.HIGH)
-    public static void handleLivingAttackEvent(LivingAttackEvent event) {
+    public static void handleLivingAttackEvent(LivingDamageEvent.Pre event) {
 
-        if (event.isCanceled()) {
-            return;
-        }
         LivingEntity entity = event.getEntity();
         DamageSource source = event.getSource();
-        float amount = event.getAmount();
+        float amount = event.getNewDamage();
 
         double hazRes = getHazardResistance(entity);
         if (hazRes > 0.0D) {
@@ -51,7 +47,7 @@ public class ArmorEvents {
                 if (entity.getRandom().nextDouble() < hazRes) {
                     entity.clearFire();
                     attemptDamagePlayerArmor(entity, amount);
-                    event.setCanceled(true);
+                    event.setNewDamage(0.0F);
                 }
             }
         }
@@ -60,7 +56,7 @@ public class ArmorEvents {
             if (STING_DAMAGE_TYPES.contains(source.getMsgId())) {
                 if (entity.getRandom().nextDouble() < stingRes) {
                     attemptDamagePlayerArmor(entity, amount);
-                    event.setCanceled(true);
+                    event.setNewDamage(0.0F);
                 }
             }
         }
@@ -88,10 +84,9 @@ public class ArmorEvents {
 
         double hazRes = getHazardResistance(entity);
         if (hazRes > 0.0D) {
-            if (HAZARD_EFFECTS.contains(effect.getEffect())) {
+            if (HAZARD_EFFECTS.contains(effect.getEffect().value())) {
                 if (entity.getRandom().nextDouble() < hazRes) {
                     attemptDamagePlayerArmor(entity, (1 + effect.getAmplifier()) * effect.getDuration() / 40F);
-                    event.setResult(Event.Result.DENY);
                 }
             }
         }
@@ -121,7 +116,14 @@ public class ArmorEvents {
 
         if (entity instanceof Player player) {
             if (100 * entity.level.random.nextFloat() < amount) {
-                player.getInventory().hurtArmor(entity.level.damageSources().generic(), Math.min(20.0F, amount), Inventory.ALL_ARMOR_SLOTS);
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    if (slot.name().contains("FEET") || slot.name().contains("LEGS") || slot.name().contains("CHEST") || slot.name().contains("HEAD")) {
+                        ItemStack armor = player.getItemBySlot(slot);
+                        if (!armor.isEmpty()) {
+                            armor.hurtAndBreak((int) Math.min(20.0F, amount), player, slot);
+                        }
+                    }
+                }
             }
         }
     }
@@ -129,8 +131,15 @@ public class ArmorEvents {
     private static double getFallResistance(Entity entity) {
 
         double ret = 0.0D;
-        for (ItemStack armor : entity.getArmorSlots()) {
-            ret += FALL_RESISTANCE_MAP.getOrDefault(armor.getItem(), 0.0D);
+        if (entity instanceof LivingEntity living) {
+            for (EquipmentSlot slot : EquipmentSlot.values()) {
+                if (slot.name().contains("FEET") || slot.name().contains("LEGS") || slot.name().contains("CHEST") || slot.name().contains("HEAD")) {
+                    ItemStack armor = living.getItemBySlot(slot);
+                    if (!armor.isEmpty()) {
+                        ret += FALL_RESISTANCE_MAP.getOrDefault(armor.getItem(), 0.0D);
+                    }
+                }
+            }
         }
         return ret;
     }
@@ -138,8 +147,15 @@ public class ArmorEvents {
     private static double getHazardResistance(Entity entity) {
 
         double ret = 0.0D;
-        for (ItemStack armor : entity.getArmorSlots()) {
-            ret += HAZARD_RESISTANCE_MAP.getOrDefault(armor.getItem(), 0.0D);
+        if (entity instanceof LivingEntity living) {
+            for (EquipmentSlot slot : EquipmentSlot.values()) {
+                if (slot.name().contains("FEET") || slot.name().contains("LEGS") || slot.name().contains("CHEST") || slot.name().contains("HEAD")) {
+                    ItemStack armor = living.getItemBySlot(slot);
+                    if (!armor.isEmpty()) {
+                        ret += HAZARD_RESISTANCE_MAP.getOrDefault(armor.getItem(), 0.0D);
+                    }
+                }
+            }
         }
         return ret;
     }
@@ -147,8 +163,15 @@ public class ArmorEvents {
     private static double getStingResistance(Entity entity) {
 
         double ret = 0.0D;
-        for (ItemStack armor : entity.getArmorSlots()) {
-            ret += STING_RESISTANCE_MAP.getOrDefault(armor.getItem(), 0.0D);
+        if (entity instanceof LivingEntity living) {
+            for (EquipmentSlot slot : EquipmentSlot.values()) {
+                if (slot.name().contains("FEET") || slot.name().contains("LEGS") || slot.name().contains("CHEST") || slot.name().contains("HEAD")) {
+                    ItemStack armor = living.getItemBySlot(slot);
+                    if (!armor.isEmpty()) {
+                        ret += STING_RESISTANCE_MAP.getOrDefault(armor.getItem(), 0.0D);
+                    }
+                }
+            }
         }
         return ret;
     }
@@ -172,7 +195,6 @@ public class ArmorEvents {
     private static final Object2ObjectOpenHashMap<Item, Double> FALL_RESISTANCE_MAP = new Object2ObjectOpenHashMap<>();
 
     private static final Object2ObjectOpenHashMap<Item, Double> HAZARD_RESISTANCE_MAP = new Object2ObjectOpenHashMap<>();
-    private static final Set<String> HAZARD_DAMAGE_TYPES = new ObjectOpenHashSet<>();
     private static final Set<MobEffect> HAZARD_EFFECTS = new ObjectOpenHashSet<>();
 
     private static final Object2ObjectOpenHashMap<Item, Double> STING_RESISTANCE_MAP = new Object2ObjectOpenHashMap<>();
@@ -185,8 +207,8 @@ public class ArmorEvents {
         STING_DAMAGE_TYPES.add("sweetBerryBush");
         STING_DAMAGE_TYPES.add("sadiroot");
 
-        HAZARD_EFFECTS.add(POISON);
-        HAZARD_EFFECTS.add(WITHER);
+        HAZARD_EFFECTS.add(POISON.value());
+        HAZARD_EFFECTS.add(WITHER.value());
 
         HAZARD_EFFECTS.add(CHILLED.get());
         HAZARD_EFFECTS.add(SHOCKED.get());

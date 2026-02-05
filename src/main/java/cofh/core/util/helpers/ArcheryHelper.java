@@ -16,7 +16,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -77,10 +82,13 @@ public final class ArcheryHelper {
         if (ammoCap == null) {
             ammoCap = new ArcheryAmmoItemWrapper(ammo);
         }
+        @SuppressWarnings("unchecked")
+        Registry<Enchantment> registry = (Registry<Enchantment>) shooter.level().registryAccess().registryOrThrow(Registries.ENCHANTMENT);
+        Enchantment infinity = registry.get(Enchantments.INFINITY.location());
         boolean infinite = shooter.getAbilities().instabuild
                 || ammoCap.isInfinite(bow, shooter)
                 || (isArrow(ammo) && ((ArrowItem) ammo.getItem()).isInfinite(ammo, bow, shooter))
-                || ammo.isEmpty() && getItemEnchantmentLevel(INFINITY_ARROWS, bow) > 0;
+                || ammo.isEmpty() && getItemEnchantmentLevel(infinity, bow) > 0;
 
         if (!ammo.isEmpty() || infinite) {
             if (ammo.isEmpty()) {
@@ -96,9 +104,9 @@ public final class ArcheryHelper {
 
                     int encVolley = getItemEnchantmentLevel(getEnchantment(ID_ENSORCELLATION, ID_VOLLEY), bow);
                     int encTrueshot = getItemEnchantmentLevel(getEnchantment(ID_ENSORCELLATION, ID_TRUESHOT), bow);
-                    int encPunch = getItemEnchantmentLevel(PUNCH_ARROWS, bow);
-                    int encPower = getItemEnchantmentLevel(POWER_ARROWS, bow);
-                    int encFlame = getItemEnchantmentLevel(FLAMING_ARROWS, bow);
+                    int encPunch = getItemEnchantmentLevel(registry.get(Enchantments.PUNCH.location()), bow);
+                    int encPower = getItemEnchantmentLevel(registry.get(Enchantments.POWER.location()), bow);
+                    int encFlame = getItemEnchantmentLevel(registry.get(Enchantments.FLAME.location()), bow);
 
                     if (encTrueshot > 0) {
                         accuracyMod *= (1.5F / (1 + encTrueshot));
@@ -112,27 +120,25 @@ public final class ArcheryHelper {
                     BowItem bowItem = bow.getItem() instanceof BowItem ? (BowItem) bow.getItem() : null;
 
                     for (int shot = 0; shot < numArrows; ++shot) {
-                        AbstractArrow arrow = createArrow(world, ammo, shooter);
+                        AbstractArrow arrow = createArrow(world, ammo, shooter, bow);
                         if (bowItem != null) {
-                            arrow = bowItem.customArrow(arrow, ammo);
+                            arrow = bowItem.customArrow(arrow, ammo, bow);
                         }
                         arrow.shootFromRotation(shooter, shooter.getXRot() - volleyPitch * shot, shooter.getYRot(), 0.0F, arrowVelocity * 3.0F * velocityMod, accuracyMod);// * (1 + shot * 2));
                         arrow.setBaseDamage(arrow.getBaseDamage() * damageMod);
+                        arrow.firedFromWeapon = bow;
 
                         if (arrowVelocity >= 1.0F) {
                             arrow.setCritArrow(true);
                         }
                         if (encTrueshot > 0) {
-                            arrow.setPierceLevel((byte) encTrueshot);
+                            arrow.getEntityData().set(AbstractArrow.PIERCE_LEVEL, (byte) encTrueshot);
                         }
                         if (encPower > 0 && arrow.getBaseDamage() > 0) {
                             arrow.setBaseDamage(arrow.getBaseDamage() + (double) encPower * 0.5D + 0.5D);
                         }
-                        if (encPunch > 0) {
-                            arrow.setKnockback(encPunch);
-                        }
-                        if (encFlame > 0) {
-                            arrow.setSecondsOnFire(100);
+                                                if (encFlame > 0) {
+                            arrow.setRemainingFireTicks(100 * 20);
                         }
                         if (infinite || shot > 0) {
                             arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
@@ -156,18 +162,18 @@ public final class ArcheryHelper {
         return false;
     }
 
-    public static AbstractArrow createArrow(Level world, ItemStack ammo, Player shooter) {
+    public static AbstractArrow createArrow(Level world, ItemStack ammo, Player shooter, ItemStack weapon) {
 
         IArcheryAmmoItem ammoCap = ammo.getCapability(CoreCapabilities.ArcheryHandler.AMMO);
         if (ammoCap == null) {
             ammoCap = new ArcheryAmmoItemWrapper(ammo);
         }
-        return ammoCap.createArrowEntity(world, shooter);
+        return ammoCap.createArrowEntity(world, shooter, weapon);
     }
 
-    public static AbstractArrow createDefaultArrow(Level world, ItemStack ammo, Player shooter) {
+    public static AbstractArrow createDefaultArrow(Level world, ItemStack ammo, Player shooter, ItemStack weapon) {
 
-        return isArrow(ammo) ? ((ArrowItem) ammo.getItem()).createArrow(world, ammo, shooter) : ((ArrowItem) Items.ARROW).createArrow(world, ammo, shooter);
+        return isArrow(ammo) ? ((ArrowItem) ammo.getItem()).createArrow(world, ammo, shooter, weapon) : ((ArrowItem) Items.ARROW).createArrow(world, ammo, shooter, weapon);
     }
 
     public static ItemStack findAmmo(Player shooter, ItemStack weapon) {

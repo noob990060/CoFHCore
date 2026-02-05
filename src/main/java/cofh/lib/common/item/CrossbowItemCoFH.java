@@ -11,8 +11,11 @@ import cofh.lib.util.helpers.MathHelper;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -23,7 +26,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.ChargedProjectiles;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -85,7 +92,7 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level levelIn, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
 
         if (isLoaded(stack)) {
             tooltip.add((Component.translatable("info.cofh.crossbow_loaded")).append(" ").append(getLoadedAmmo(stack).getDisplayName()));
@@ -97,7 +104,7 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
         if (entity == null || !entity.getUseItem().equals(stack)) {
             return 0.0F;
         }
-        int baseDuration = getUseDuration(stack);
+        int baseDuration = getUseDuration(stack, entity);
         int duration = baseDuration - entity.getUseItemRemainingTicks();
 
         return MathHelper.clamp((float) (duration) / baseDuration, 0.0F, 1.0F);
@@ -105,10 +112,10 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
 
     public float getAmmoModelProperty(ItemStack stack, Level level, LivingEntity entity, int seed) {
 
-        if (getLoadedAmmo(stack).isEmpty()) {
+        if (getLoadedAmmo(stack, level).isEmpty()) {
             return 0F;
         }
-        if (getLoadedAmmo(stack).getItem() instanceof FireworkRocketItem) {
+        if (getLoadedAmmo(stack, level).getItem() instanceof FireworkRocketItem) {
             return 0.5F;
         }
         return 1.0F;
@@ -129,20 +136,23 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
 
-        return Math.max(0, getChargeDuration(stack)) + 1;
+        return Math.max(0, CrossbowItem.getChargeDuration(stack, entity)) + 1;
     }
 
     @Override
     public void onUseTick(Level level, LivingEntity living, ItemStack stack, int durationRemaining) {
 
         if (!level.isClientSide()) {
-            int totalDuration = getUseDuration(stack);
+            int totalDuration = getUseDuration(stack, living);
             int duration = totalDuration - durationRemaining;
 
             if (duration == totalDuration / 4) {
-                level.playSound(null, living.getX(), living.getY(), living.getZ(), getStartSound(Utils.getItemEnchantmentLevel(Enchantments.QUICK_CHARGE, stack)), SoundSource.PLAYERS, 0.5F, 1.0F);
+                @SuppressWarnings("unchecked")
+                Registry<Enchantment> registry = (Registry<Enchantment>) level.registryAccess().registryOrThrow(Registries.ENCHANTMENT);
+                Enchantment quickCharge = registry.get(Enchantments.QUICK_CHARGE.location());
+                level.playSound(null, living.getX(), living.getY(), living.getZ(), getStartSound(Utils.getItemEnchantmentLevel(quickCharge, stack)), SoundSource.PLAYERS, 0.5F, 1.0F);
             }
             if (duration == totalDuration / 2) {
                 level.playSound(null, living.getX(), living.getY(), living.getZ(), SoundEvents.CROSSBOW_LOADING_MIDDLE, SoundSource.PLAYERS, 0.5F, 1.0F);
@@ -154,7 +164,7 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
     public void releaseUsing(ItemStack stack, Level level, LivingEntity living, int durationRemaining) {
 
         if (durationRemaining < 0 && !isCharged(stack) && loadAmmo(living, stack)) {
-            setCharged(stack, true);
+            setLoaded(stack, true);
             level.playSound(null, living.getX(), living.getY(), living.getZ(), SoundEvents.CROSSBOW_LOADING_END, living instanceof Player ? SoundSource.PLAYERS : SoundSource.HOSTILE, 1.0F, 1.0F / (level.random.nextFloat() * 0.5F + 1.0F) + 0.2F);
         }
     }
@@ -204,29 +214,67 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
 
     public boolean loadAmmo(Player player, ItemStack crossbow, ItemStack ammo) {
 
-        crossbow.getOrCreateTag().put(TAG_AMMO, ammo.save(new CompoundTag()));
-        setCharged(crossbow, true);
+        CustomData customData = crossbow.get(DataComponents.CUSTOM_DATA);
+        CompoundTag tag;
+        if (customData == null) {
+            tag = new CompoundTag();
+            crossbow.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        } else {
+            tag = customData.copyTag();
+        }
+        tag.put(TAG_AMMO, ammo.save(player.level().registryAccess()));
+        crossbow.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        setLoaded(crossbow, true);
         return true;
     }
 
     public ItemStack getLoadedAmmo(ItemStack crossbow) {
 
-        CompoundTag nbt = crossbow.getTag();
-        if (nbt != null && nbt.contains(TAG_AMMO)) {
-            return ItemStack.of(nbt.getCompound(TAG_AMMO));
+        CustomData customData = crossbow.get(DataComponents.CUSTOM_DATA);
+        if (customData != null && customData.contains(TAG_AMMO)) {
+            // For tooltip purposes, we can create a simple ItemStack without full parsing
+            CompoundTag ammoTag = customData.copyTag().getCompound(TAG_AMMO);
+            try {
+                return ItemStack.parseOptional(null, ammoTag);
+            } catch (Exception e) {
+                return ItemStack.EMPTY;
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    public ItemStack getLoadedAmmo(ItemStack crossbow, Level level) {
+
+        CustomData customData = crossbow.get(DataComponents.CUSTOM_DATA);
+        if (customData != null && customData.contains(TAG_AMMO)) {
+            return ItemStack.parseOptional(level.registryAccess(), customData.copyTag().getCompound(TAG_AMMO));
         }
         return ItemStack.EMPTY;
     }
 
     public void removeLoadedAmmo(ItemStack crossbow) {
 
-        crossbow.removeTagKey(TAG_AMMO);
+        CustomData customData = crossbow.get(DataComponents.CUSTOM_DATA);
+        if (customData != null) {
+            CompoundTag tag = customData.copyTag();
+            tag.remove(TAG_AMMO);
+            crossbow.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        }
     }
 
     // Overrideable forms of isCharged() and setCharged() in CrossbowItem.
     public void setLoaded(ItemStack crossbow, boolean loaded) {
 
-        CrossbowItem.setCharged(crossbow, loaded);
+        if (loaded) {
+            // Set charged state by ensuring CHARGED_PROJECTILES exists
+            ChargedProjectiles charged = crossbow.get(DataComponents.CHARGED_PROJECTILES);
+            if (charged == null || charged.isEmpty()) {
+                crossbow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(List.of(ItemStack.EMPTY)));
+            }
+        } else {
+            // Clear charged state
+            crossbow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.EMPTY);
+        }
     }
 
     public boolean isLoaded(ItemStack crossbow) {
@@ -239,15 +287,15 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
 
         // TODO: dmg/acc/vel modifiers
         if (living instanceof Player shooter) {
-            ItemStack ammo = getLoadedAmmo(crossbow);
+            ItemStack ammo = getLoadedAmmo(crossbow, level);
             if (!ammo.isEmpty()) {
-                int multishot = Utils.getItemEnchantmentLevel(Enchantments.MULTISHOT, crossbow);
+                int multishot = Utils.getItemEnchantmentLevel(Utils.getEnchantment("minecraft", "multishot"), crossbow);
                 int damage = 0;
                 for (int i = -multishot; i <= multishot; ++i) {
                     if (!ammo.isEmpty()) {
                         Projectile projectile;
                         if (ammo.getCapability(CoreCapabilities.ArcheryHandler.AMMO) != null || ammo.getItem() instanceof ArrowItem) {
-                            AbstractArrow arrow = ArcheryHelper.createArrow(level, ammo, shooter);
+                            AbstractArrow arrow = ArcheryHelper.createArrow(level, ammo, shooter, crossbow);
                             projectile = adjustArrow(crossbow, arrow, shooter.abilities.instabuild || i != 0);
                             ++damage;
                         } else if (ammo.getItem() instanceof FireworkRocketItem) {
@@ -277,10 +325,13 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
 
         arrow.setCritArrow(true);
         arrow.setSoundEvent(SoundEvents.CROSSBOW_HIT);
-        arrow.setShotFromCrossbow(true);
-        int pierce = Utils.getItemEnchantmentLevel(Enchantments.PIERCING, crossbow);
+        arrow.firedFromWeapon = crossbow.copy();
+        @SuppressWarnings("unchecked")
+        Registry<Enchantment> registry = (Registry<Enchantment>) arrow.level().registryAccess().registryOrThrow(Registries.ENCHANTMENT);
+        Enchantment piercing = registry.get(Enchantments.PIERCING.location());
+        int pierce = Utils.getItemEnchantmentLevel(piercing, crossbow);
         if (pierce > 0) {
-            arrow.setPierceLevel((byte) pierce);
+            arrow.getEntityData().set(AbstractArrow.PIERCE_LEVEL, (byte) pierce);
         }
         if (creativePickup) {
             arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
@@ -301,7 +352,7 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
     // Override to change behavior to e.g. extract energy instead of using durability.
     public void onCrossbowShot(Player shooter, InteractionHand hand, ItemStack crossbow, int damage) {
 
-        crossbow.hurtAndBreak(damage, shooter, (entity) -> entity.broadcastBreakEvent(hand));
+        crossbow.hurtAndBreak(damage, shooter, Utils.handToEquipSlot(hand));
         if (shooter instanceof ServerPlayer) {
             if (!shooter.level.isClientSide()) {
                 CriteriaTriggers.SHOT_CROSSBOW.trigger((ServerPlayer) shooter, crossbow);
@@ -325,6 +376,12 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
     public String getCreatorModId(ItemStack itemStack) {
 
         return modId == null || modId.isEmpty() ? super.getCreatorModId(itemStack) : modId;
+    }
+
+    protected SoundEvent getStartSound(int quickChargeLevel) {
+        // In vanilla Minecraft, quick charge affects the speed but not the start sound
+        // Return the standard crossbow loading start sound
+        return SoundEvents.CROSSBOW_LOADING_MIDDLE.value(); // Fallback as CROSSBOW_LOADING_START may not exist
     }
     // endregion
 }

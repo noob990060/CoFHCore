@@ -7,32 +7,22 @@ import net.minecraft.world.item.Tier;
 
 public class HammerItem extends PickaxeItemCoFH {
 
-    private static final float DEFAULT_ATTACK_DAMAGE = 4.0F;
-    private static final float DEFAULT_ATTACK_SPEED = -3.4F;
     private static final int DEFAULT_BASE_AREA = 1;
 
     public final int radius;
 
-    public HammerItem(Tier tier, float attackDamageIn, float attackSpeedIn, int radius, Properties builder) {
+    public HammerItem(Tier tier, int radius, Properties builder) {
 
-        super(tier, (int) attackDamageIn, attackSpeedIn, builder.durability(tier.getUses() * 4));
+        super(tier, builder.durability(tier.getUses() * 4));
         this.radius = radius;
-    }
-
-    public HammerItem(Tier tier, float attackDamageIn, float attackSpeedIn, Properties builder) {
-
-        this(tier, attackDamageIn, attackSpeedIn, DEFAULT_BASE_AREA, builder);
-    }
-
-    public HammerItem(Tier tier, float attackDamageIn, Properties builder) {
-
-        this(tier, attackDamageIn, DEFAULT_ATTACK_SPEED, DEFAULT_BASE_AREA, builder);
     }
 
     public HammerItem(Tier tier, Properties builder) {
 
-        this(tier, DEFAULT_ATTACK_DAMAGE, DEFAULT_ATTACK_SPEED, DEFAULT_BASE_AREA, builder);
+        this(tier, DEFAULT_BASE_AREA, builder);
     }
+
+
 
     @Override
     public boolean canDisableShield(ItemStack stack, ItemStack shield, LivingEntity entity, LivingEntity attacker) {

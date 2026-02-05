@@ -50,10 +50,9 @@ public interface IXpContainerItem extends IContainerItem {
         
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) {
-            customData = new CustomData();
+            customData = CustomData.of(new CompoundTag());
         }
-        CompoundTag tag = new CompoundTag();
-        customData.copyTag(tag);
+        CompoundTag tag = customData.copyTag();
         tag.putInt(TAG_XP, totalXP);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         

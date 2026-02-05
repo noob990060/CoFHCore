@@ -6,6 +6,7 @@ import cofh.lib.util.raytracer.RayTracer;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -14,6 +15,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
@@ -55,14 +57,17 @@ public final class AreaEffectHelper {
     public static ImmutableList<BlockPos> getAreaEffectBlocks(ItemStack stack, BlockPos pos, Player player) {
 
         int encExcavating = getItemEnchantmentLevel(getEnchantment(ID_ENSORCELLATION, ID_EXCAVATING), stack);
-        if (!stack.isEmpty() && stack.hasTag()) {
-            CompoundTag tag = stack.getTag();
-            if (tag.contains(TAG_INFUSION_ENCHANT, Tag.TAG_LIST)) {
-                ListTag list = tag.getList(TAG_INFUSION_ENCHANT, Tag.TAG_COMPOUND);
-                for (int i = 0; i < list.size(); ++i) {
-                    CompoundTag enchant = list.getCompound(i);
-                    if (enchant.getString(TAG_ID).equals("thaumcraft:destructive")) {
-                        encExcavating += enchant.getInt(TAG_LEVEL);
+        if (!stack.isEmpty()) {
+            CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+            if (customData != null) {
+                CompoundTag tag = customData.copyTag();
+                if (tag.contains(TAG_INFUSION_ENCHANT, Tag.TAG_LIST)) {
+                    ListTag list = tag.getList(TAG_INFUSION_ENCHANT, Tag.TAG_COMPOUND);
+                    for (int i = 0; i < list.size(); ++i) {
+                        CompoundTag enchant = list.getCompound(i);
+                        if (enchant.getString(TAG_ID).equals("thaumcraft:destructive")) {
+                            encExcavating += enchant.getInt(TAG_LEVEL);
+                        }
                     }
                 }
             }
@@ -249,6 +254,24 @@ public final class AreaEffectHelper {
             case EAST:
                 for (int i = x + 1; i < x + length + 1; ++i) {
                     query = new BlockPos(i, y, z);
+                    if (!canToolAffect(tool, stack, world, query)) {
+                        break;
+                    }
+                    area.add(query);
+                }
+                break;
+            case DOWN:
+                for (int j = y - 1; j > y - length - 1; --j) {
+                    query = new BlockPos(x, j, z);
+                    if (!canToolAffect(tool, stack, world, query)) {
+                        break;
+                    }
+                    area.add(query);
+                }
+                break;
+            case UP:
+                for (int j = y + 1; j < y + length + 1; ++j) {
+                    query = new BlockPos(x, j, z);
                     if (!canToolAffect(tool, stack, world, query)) {
                         break;
                     }

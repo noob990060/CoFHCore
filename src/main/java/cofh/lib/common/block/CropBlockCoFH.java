@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -26,13 +25,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.common.CommonHooks;
-import net.neoforged.neoforge.common.PlantType;
 
 import java.util.List;
 import java.util.function.Supplier;
 
 import static cofh.lib.util.constants.BlockStatePropertiesCoFH.AGE_0_7;
-import static net.minecraft.world.item.enchantment.Enchantments.BLOCK_FORTUNE;
 
 public class CropBlockCoFH extends CropBlock implements IHarvestable {
 
@@ -46,29 +43,29 @@ public class CropBlockCoFH extends CropBlock implements IHarvestable {
             box(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D),
             box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D)};
 
-    protected final PlantType type;
+    protected final boolean isCrop;
     protected int growLight;
     protected float growMod;
 
     protected Supplier<Item> crop = () -> Items.AIR;
     protected Supplier<Item> seed = () -> Items.AIR;
 
-    public CropBlockCoFH(Properties builder, PlantType type, int growLight, float growMod) {
+    public CropBlockCoFH(Properties builder, boolean isCrop, int growLight, float growMod) {
 
         super(builder);
-        this.type = type;
+        this.isCrop = isCrop;
         this.growLight = growLight;
         this.growMod = growMod;
     }
 
     public CropBlockCoFH(Properties builder, int growLight, float growMod) {
 
-        this(builder, PlantType.CROP, growLight, growMod);
+        this(builder, true, growLight, growMod);
     }
 
     public CropBlockCoFH(Properties builder) {
 
-        this(builder, PlantType.CROP, 9, 1.0F);
+        this(builder, true, 9, 1.0F);
     }
 
     public CropBlockCoFH growMod(float growMod) {
@@ -114,23 +111,23 @@ public class CropBlockCoFH extends CropBlock implements IHarvestable {
         if (worldIn.getRawBrightness(pos, 0) >= growLight) {
             if (!canHarvest(state)) {
                 int age = getAge(state);
-                float growthChance = Math.max(getGrowthSpeed(this, worldIn, pos) * growMod, 0.1F);
-                if (CommonHooks.onCropsGrowPre(worldIn, pos, state, rand.nextInt((int) (25.0F / growthChance) + 1) == 0)) {
+                float growthChance = Math.max(getGrowthSpeed(state, worldIn, pos) * growMod, 0.1F);
+                if (CommonHooks.canCropGrow(worldIn, pos, state, rand.nextInt((int) (25.0F / growthChance) + 1) == 0)) {
                     int newAge = age + 1 == getPostHarvestAge() ? getMaxAge() : age + 1;
                     worldIn.setBlock(pos, getStateForAge(newAge), 2);
-                    CommonHooks.onCropsGrowPost(worldIn, pos, state);
+                    CommonHooks.fireCropGrowPost(worldIn, pos, state);
                 }
             }
         }
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 
-        if (handIn == InteractionHand.MAIN_HAND && canHarvest(state)) {
+        if (canHarvest(state)) {
             return harvest(worldIn, pos, state, player, false) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         }
-        return super.use(state, worldIn, pos, player, handIn, hit);
+        return super.useWithoutItem(state, worldIn, pos, player, hit);
     }
 
     // TODO: Revisit; vanilla crop logic effectively overrides
@@ -148,7 +145,8 @@ public class CropBlockCoFH extends CropBlock implements IHarvestable {
 
     public static float getGrowthChanceProxy(Block blockIn, BlockGetter worldIn, BlockPos pos) {
 
-        return getGrowthSpeed(blockIn, worldIn, pos);
+        BlockState state = worldIn.getBlockState(pos);
+        return getGrowthSpeed(state, worldIn, pos);
     }
 
     // region AGE
@@ -192,7 +190,9 @@ public class CropBlockCoFH extends CropBlock implements IHarvestable {
             return true;
         }
         if (getPostHarvestAge() >= 0) {
-            int fortune = Utils.getItemEnchantmentLevel(BLOCK_FORTUNE, player.getMainHandItem());
+            // BLOCK_FORTUNE is no longer available in NeoForge 1.21.1
+            // Block fortune enchantments have been removed or changed significantly
+            int fortune = 0; // Utils.getItemEnchantmentLevel(BLOCK_FORTUNE, player.getMainHandItem());
             Utils.dropItemStackIntoWorldWithRandomness(new ItemStack(getCropItem(), 2 + MathHelper.binomialDist(fortune, 0.5D)), world, pos);
             world.setBlock(pos, getStateForAge(getPostHarvestAge()), 2);
         } else {
@@ -249,14 +249,6 @@ public class CropBlockCoFH extends CropBlock implements IHarvestable {
         } else {
             worldIn.setBlock(pos, getStateForAge(Math.min(newAge, getMaxAge())), 2);
         }
-    }
-    // endregion
-
-    // region IPlantable
-    @Override
-    public PlantType getPlantType(BlockGetter world, BlockPos pos) {
-
-        return type;
     }
     // endregion
 }

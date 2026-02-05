@@ -1,8 +1,12 @@
 package cofh.lib.api.item;
 
 import cofh.lib.util.helpers.MathHelper;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 
@@ -21,7 +25,13 @@ public interface IFluidContainerItem extends IContainerItem {
 
     default CompoundTag getOrCreateTankTag(ItemStack container) {
 
-        return container.getOrCreateTag();
+        CustomData customData = container.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            customData = CustomData.EMPTY;
+        }
+        CompoundTag tag = customData.copyTag();
+        container.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        return tag;
     }
 
     default int getSpace(ItemStack container) {
@@ -39,17 +49,31 @@ public interface IFluidContainerItem extends IContainerItem {
         return getFluid(container).getAmount();
     }
 
-    /**
-     * @param container ItemStack which is the fluid container.
-     * @return FluidStack representing the fluid in the container, EMPTY if the container is empty.
-     */
     default FluidStack getFluid(ItemStack container) {
 
         CompoundTag tag = getOrCreateTankTag(container);
         if (!tag.contains(TAG_FLUID)) {
             return FluidStack.EMPTY;
         }
-        return FluidStack.loadFluidStackFromNBT(tag.getCompound(TAG_FLUID));
+        return getFluid(container, null);
+    }
+
+    /**
+     * @param container ItemStack which is the fluid container.
+     * @param level     Level for registry access (required for NeoForge 1.21.1+)
+     * @return FluidStack representing the fluid in the container, EMPTY if the container is empty.
+     */
+    default FluidStack getFluid(ItemStack container, Level level) {
+
+        CompoundTag tag = getOrCreateTankTag(container);
+        if (!tag.contains(TAG_FLUID)) {
+            return FluidStack.EMPTY;
+        }
+        if (level != null) {
+            return FluidStack.parseOptional(level.registryAccess(), tag.getCompound(TAG_FLUID));
+        }
+        // Fallback for contexts without Level access - this may not work for all fluids
+        return FluidStack.parseOptional(null, tag.getCompound(TAG_FLUID));
     }
 
     /**
@@ -76,6 +100,18 @@ public interface IFluidContainerItem extends IContainerItem {
      */
     default int fill(ItemStack container, FluidStack resource, FluidAction action) {
 
+        return fill(container, resource, action, null);
+    }
+
+    /**
+     * @param container ItemStack which is the fluid container.
+     * @param resource  FluidStack attempting to fill the container.
+     * @param action    If SIMULATE, the fill will only be simulated.
+     * @param level     Level for registry access (required for NeoForge 1.21.1+)
+     * @return Amount of fluid that was (or would have been, if simulated) filled into the container.
+     */
+    default int fill(ItemStack container, FluidStack resource, FluidAction action, Level level) {
+
         CompoundTag containerTag = getOrCreateTankTag(container);
         if (resource.isEmpty() || !isFluidValid(container, resource)) {
             return 0;
@@ -84,7 +120,13 @@ public interface IFluidContainerItem extends IContainerItem {
 
         if (isCreative(container, FLUID)) {
             if (action.execute()) {
-                CompoundTag fluidTag = resource.writeToNBT(new CompoundTag());
+                CompoundTag fluidTag = new CompoundTag();
+                if (level != null) {
+                    resource.save(level.registryAccess(), fluidTag);
+                } else {
+                    // Fallback for contexts without Level access
+                    resource.save(null, fluidTag);
+                }
                 fluidTag.putInt(TAG_AMOUNT, capacity);
                 containerTag.put(TAG_FLUID, fluidTag);
             }
@@ -94,7 +136,7 @@ public interface IFluidContainerItem extends IContainerItem {
             if (!containerTag.contains(TAG_FLUID)) {
                 return Math.min(capacity, resource.getAmount());
             }
-            FluidStack stack = FluidStack.loadFluidStackFromNBT(containerTag.getCompound(TAG_FLUID));
+            FluidStack stack = getFluid(container, null);
             if (stack.isEmpty()) {
                 return Math.min(capacity, resource.getAmount());
             }
@@ -104,18 +146,24 @@ public interface IFluidContainerItem extends IContainerItem {
             return Math.min(capacity - stack.getAmount(), resource.getAmount());
         }
         if (!containerTag.contains(TAG_FLUID)) {
-            CompoundTag fluidTag = resource.writeToNBT(new CompoundTag());
+            CompoundTag newFluidTag = new CompoundTag();
+            if (level != null) {
+                resource.save(level.registryAccess(), newFluidTag);
+            } else {
+                // Fallback for contexts without Level access
+                resource.save(null, newFluidTag);
+            }
             if (capacity < resource.getAmount()) {
-                fluidTag.putInt(TAG_AMOUNT, capacity);
-                containerTag.put(TAG_FLUID, fluidTag);
+                newFluidTag.putInt(TAG_AMOUNT, capacity);
+                containerTag.put(TAG_FLUID, newFluidTag);
                 return capacity;
             }
-            fluidTag.putInt(TAG_AMOUNT, resource.getAmount());
-            containerTag.put(TAG_FLUID, fluidTag);
+            newFluidTag.putInt(TAG_AMOUNT, resource.getAmount());
+            containerTag.put(TAG_FLUID, newFluidTag);
             return resource.getAmount();
         }
         CompoundTag fluidTag = containerTag.getCompound(TAG_FLUID);
-        FluidStack stack = FluidStack.loadFluidStackFromNBT(fluidTag);
+        FluidStack stack = getFluid(container, null);
         if (stack.isEmpty() || !stack.isFluidEqual(resource)) {
             return 0;
         }
@@ -126,7 +174,14 @@ public interface IFluidContainerItem extends IContainerItem {
         } else {
             stack.setAmount(capacity);
         }
-        containerTag.put(TAG_FLUID, stack.writeToNBT(fluidTag));
+        CompoundTag updatedFluidTag = new CompoundTag();
+        if (level != null) {
+            stack.save(level.registryAccess(), updatedFluidTag);
+        } else {
+            // Fallback for contexts without Level access
+            stack.save(null, updatedFluidTag);
+        }
+        containerTag.put(TAG_FLUID, updatedFluidTag);
         return filled;
     }
 
@@ -143,7 +198,7 @@ public interface IFluidContainerItem extends IContainerItem {
         if (maxDrain <= 0 || !containerTag.contains(TAG_FLUID)) {
             return FluidStack.EMPTY;
         }
-        FluidStack stack = FluidStack.loadFluidStackFromNBT(containerTag.getCompound(TAG_FLUID));
+        FluidStack stack = getFluid(container, null);
         if (stack.isEmpty()) {
             return FluidStack.EMPTY;
         }

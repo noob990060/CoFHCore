@@ -1,6 +1,7 @@
 package cofh.lib.common.item;
 
 import cofh.lib.api.item.ICoFHItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
@@ -9,7 +10,7 @@ public class SwordItemCoFH extends SwordItem implements ICoFHItem {
 
     public SwordItemCoFH(Tier tier, int attackDamageIn, float attackSpeedIn, Properties builder) {
 
-        super(tier, attackDamageIn, attackSpeedIn, builder);
+        super(tier, builder.component(DataComponents.ATTRIBUTE_MODIFIERS, SwordItem.createAttributes(tier, attackDamageIn, attackSpeedIn)));
     }
 
     // region DISPLAY

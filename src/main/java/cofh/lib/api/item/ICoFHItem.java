@@ -7,6 +7,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.extensions.IItemExtension;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.component.CustomData;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -67,22 +70,38 @@ public interface ICoFHItem extends IItemExtension {
 
     default boolean isActive(ItemStack stack) {
 
-        return stack.getOrCreateTag().getBoolean(TAG_ACTIVE);
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData != null && customData.copyTag().getBoolean(TAG_ACTIVE);
     }
 
     default void setActive(ItemStack stack, boolean state) {
 
-        stack.getOrCreateTag().putBoolean(TAG_ACTIVE, state);
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null || customData.isEmpty()) {
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(new CompoundTag()));
+            customData = stack.get(DataComponents.CUSTOM_DATA);
+        }
+        var tag = customData.copyTag();
+        tag.putBoolean(TAG_ACTIVE, state);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     default boolean hasActiveTag(ItemStack stack) {
 
-        return stack.getOrCreateTag().contains(TAG_ACTIVE);
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData != null && customData.copyTag().contains(TAG_ACTIVE);
     }
 
     default void setActive(ItemStack stack, LivingEntity entity) {
 
-        stack.getOrCreateTag().putLong(TAG_ACTIVE, entity.level.getGameTime() + 20);
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null || customData.isEmpty()) {
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(new CompoundTag()));
+            customData = stack.get(DataComponents.CUSTOM_DATA);
+        }
+        var tag = customData.copyTag();
+        tag.putLong(TAG_ACTIVE, entity.level().getGameTime() + 20);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
 }

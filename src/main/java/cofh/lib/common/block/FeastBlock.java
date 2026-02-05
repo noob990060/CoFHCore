@@ -1,7 +1,6 @@
 package cofh.lib.common.block;
 
 import cofh.lib.util.helpers.MathHelper;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -12,6 +11,7 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -81,10 +81,10 @@ public class FeastBlock extends DirectionalBlock4Way {
             if (takeServing) {
                 player.addItem(servItem);
             } else {
-                player.getFoodData().eat(food.getNutrition(), food.getSaturationModifier());
-                for (Pair<MobEffectInstance, Float> pair : this.food.getEffects()) {
-                    if (!world.isClientSide && pair.getFirst() != null && world.random.nextFloat() < pair.getSecond()) {
-                        player.addEffect(new MobEffectInstance(pair.getFirst()));
+                player.getFoodData().eat(food.nutrition(), food.saturation());
+                for (FoodProperties.PossibleEffect possibleEffect : this.food.effects()) {
+                    if (!world.isClientSide && possibleEffect.effect() != null && world.random.nextFloat() < possibleEffect.probability()) {
+                        player.addEffect(possibleEffect.effect());
                     }
                 }
             }
@@ -99,18 +99,19 @@ public class FeastBlock extends DirectionalBlock4Way {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
 
-        if (worldIn.isClientSide) {
-            ItemStack stack = player.getItemInHand(handIn);
-            if (this.serve(worldIn, pos, state, player).consumesAction()) {
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+        if (world.isClientSide) {
+            if (this.serve(world, pos, state, player).consumesAction()) {
                 return InteractionResult.SUCCESS;
             }
-            if (stack.isEmpty()) {
-                return InteractionResult.CONSUME;
-            }
+            return InteractionResult.CONSUME;
         }
-        return this.serve(worldIn, pos, state, player);
+        return this.serve(world, pos, state, player);
     }
 
     @Override
@@ -150,7 +151,6 @@ public class FeastBlock extends DirectionalBlock4Way {
     //        return true;
     //    }
 
-    @Override
     public boolean isPathfindable(BlockState stateIn, BlockGetter worldIn, BlockPos pos, PathComputationType type) {
 
         return false;

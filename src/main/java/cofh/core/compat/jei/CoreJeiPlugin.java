@@ -19,6 +19,8 @@ public class CoreJeiPlugin implements IModPlugin {
     @Override
     public <T> void registerFluidSubtypes(ISubtypeRegistration registration, IPlatformFluidHelper<T> platformFluidHelper) {
 
+        // NeoForge 1.21.1: Register fluid subtype interpreter with updated JEI 19.9.0+ API
+        // Note: IIngredientSubtypeInterpreter is deprecated but still functional
         registration.registerSubtypeInterpreter(NeoForgeTypes.FLUID_STACK, POTION_FLUID.get(), FluidPotionSubtypeInterpreter.INSTANCE);
     }
 

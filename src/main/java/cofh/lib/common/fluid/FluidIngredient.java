@@ -63,11 +63,20 @@ public class FluidIngredient implements Predicate<FluidStack> {
 
         if (this.fluidStacks == null) {
             this.fluidStacks = Arrays.stream(this.values).flatMap((ingredientList) -> ingredientList.getFluids().stream()).distinct().toArray(FluidStack[]::new);
-            for (FluidStack stack : fluidStacks) {
-                if (stack.getRawFluid() != Fluids.EMPTY) {
-                    stack.setAmount(amount);
+            for (int i = 0; i < fluidStacks.length; i++) {
+                FluidStack stack = fluidStacks[i];
+                if (stack.getFluid() != Fluids.EMPTY) {
                     if (tag != null) {
-                        stack.setTag(tag);
+                        // Create new FluidStack with NBT data using parseOptional
+                        CompoundTag stackTag = new CompoundTag();
+                        stackTag.putString("FluidName", BuiltInRegistries.FLUID.getKey(stack.getFluid()).toString());
+                        stackTag.putInt("Amount", amount);
+                        if (tag != null) {
+                            stackTag.merge(tag);
+                        }
+                        fluidStacks[i] = FluidStack.parseOptional(null, stackTag);
+                    } else {
+                        fluidStacks[i] = stack.copyWithAmount(amount);
                     }
                 }
             }
@@ -100,7 +109,9 @@ public class FluidIngredient implements Predicate<FluidStack> {
         buffer.writeVarInt(this.fluidStacks.length);
         buffer.writeVarInt(this.amount);
         for (FluidStack matchingStack : this.fluidStacks) {
-            buffer.writeFluidStack(matchingStack);
+            // Write FluidStack using CODEC in NeoForge 1.21.1
+            CompoundTag tag = (CompoundTag) FluidStack.CODEC.encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, matchingStack).getOrThrow();
+            buffer.writeNbt(tag);
         }
     }
 
@@ -147,7 +158,11 @@ public class FluidIngredient implements Predicate<FluidStack> {
 
         int i = buffer.readVarInt();
         int amount = buffer.readVarInt();
-        return fromValues(Stream.generate(() -> new SingleFluidList(buffer.readFluidStack())).limit(i)).setAmount(amount);
+        return fromValues(Stream.generate(() -> {
+            // Read FluidStack using parseOptional in NeoForge 1.21.1
+            CompoundTag tag = buffer.readNbt();
+            return new SingleFluidList(FluidStack.parseOptional(null, tag));
+        }).limit(i)).setAmount(amount);
     }
 
     public static FluidIngredient fromJson(@Nullable JsonElement jsonElement) {

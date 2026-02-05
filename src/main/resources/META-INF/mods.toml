@@ -1,5 +1,5 @@
-modLoader = "javafml"
-loaderVersion = "[${lang_version},)"
+modLoader = "neoforge"
+loaderVersion = "[1,)"
 issueTrackerURL = "https://github.com/cofh/feedback"
 license = "CoFH - Don't Be A Jerk (Learn, Don't Steal)"
 
@@ -17,16 +17,17 @@ Core Library required for the functionality of all CoFH mods.
 
 Also contains a number of optional gameplay tweaks for convenience.
 '''
+
 [[dependencies.cofh_core]]
 modId = "minecraft"
 type = "required"
-versionRange = "1.21.1"
+versionRange = "[1.21.1,]"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.cofh_core]]
 modId = "neoforge"
 type = "required"
-versionRange = "[${neo_version},)"
+versionRange = "[21.1.218,)"
 ordering = "AFTER"
 side = "BOTH"

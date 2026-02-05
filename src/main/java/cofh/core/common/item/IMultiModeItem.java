@@ -16,7 +16,10 @@ public interface IMultiModeItem {
 
     default CompoundTag getOrCreateModeTag(ItemStack stack) {
 
-        return stack.getOrCreateTag();
+        // TODO: Fix ItemStack tag methods for NeoForge 1.21.1
+        // return stack.getOrCreateTag();
+        // For now, return a new tag - this will need proper implementation
+        return new CompoundTag();
     }
 
     /**

@@ -3,7 +3,6 @@ package cofh.core.common.event;
 import cofh.core.common.config.CoreCommonConfig;
 import cofh.core.common.config.CoreEnchantConfig;
 import cofh.core.util.helpers.XpHelper;
-import cofh.lib.util.Utils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -11,28 +10,21 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.Event;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
-import net.neoforged.neoforge.event.level.SaplingGrowTreeEvent;
 
 import java.util.Map;
 
 import static cofh.core.init.CoreMobEffects.SLIMED;
-import static cofh.lib.util.Utils.getItemEnchantmentLevel;
-import static cofh.lib.util.Utils.getMaxEquippedEnchantmentLevel;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
-import static net.minecraft.world.item.enchantment.Enchantments.FALL_PROTECTION;
-import static net.minecraft.world.item.enchantment.Enchantments.MENDING;
 
-@Mod.EventBusSubscriber(modid = ID_COFH_CORE)
+@EventBusSubscriber(modid = ID_COFH_CORE)
 public class CoreCommonEvents {
 
     private CoreCommonEvents() {
@@ -50,7 +42,7 @@ public class CoreCommonEvents {
         }
         Entity entity = event.getEntity();
         if (entity instanceof LivingEntity) {
-            int encFeatherFalling = getMaxEquippedEnchantmentLevel((LivingEntity) entity, FALL_PROTECTION);
+            int encFeatherFalling = 0; // TODO: Fix FALL_PROTECTION for NeoForge 1.21.1
             if (encFeatherFalling > 0) {
                 event.setCanceled(true);
             }
@@ -65,7 +57,7 @@ public class CoreCommonEvents {
         }
         if (event.getDistance() >= 3.0) {
             LivingEntity living = event.getEntity();
-            if (living.hasEffect(SLIMED.get())) {
+            if (living.hasEffect(SLIMED)) {
                 Vec3 motion = living.getDeltaMovement();
                 living.setDeltaMovement(motion.x, 0.08 * Math.sqrt(event.getDistance() / 0.08), motion.z);
                 living.hurtMarked = true;
@@ -124,29 +116,35 @@ public class CoreCommonEvents {
         XpHelper.attemptStoreXP(player, orb);
     }
 
-    @SubscribeEvent (priority = EventPriority.LOWEST)
-    public static void handleSaplingGrowTreeEvent(SaplingGrowTreeEvent event) {
-
-        if (!CoreCommonConfig.enableSaplingGrowthMod()) {
-            return;
-        }
-        if (event.getRandomSource().nextInt(CoreCommonConfig.amountSaplingGrowthMod()) != 0) {
-            event.setResult(Event.Result.DENY);
-        }
-    }
-
-    @SubscribeEvent
-    public static void serverTick(TickEvent.ServerTickEvent event) {
-
-        if (event.phase == TickEvent.Phase.START) {
-            Utils.tickTimeConstants();
-        }
-    }
+    // TODO: Fix SaplingGrowTreeEvent for NeoForge 1.21.1
+    // @SubscribeEvent (priority = EventPriority.LOWEST)
+    // public static void handleSaplingGrowTreeEvent(SaplingGrowTreeEvent event) {
+    //
+    //     if (!CoreCommonConfig.enableSaplingGrowthMod()) {
+    //         return;
+    //     }
+    //     if (event.getRandomSource().nextInt(CoreCommonConfig.amountSaplingGrowthMod()) != 0) {
+    //         event.setCanceled(true);
+    //     }
+    // }
 
     // region HELPERS
+    private static Map<EquipmentSlot, ItemStack> getMendingSlotItems(Player player) {
+        Map<EquipmentSlot, ItemStack> map = new java.util.HashMap<>();
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            if (slot.name().contains("MAINHAND") || slot.name().contains("OFFHAND") || slot.name().contains("FEET") || slot.name().contains("LEGS") || slot.name().contains("CHEST") || slot.name().contains("HEAD")) {
+                ItemStack stack = player.getItemBySlot(slot);
+                if (!stack.isEmpty()) {
+                    map.put(slot, stack);
+                }
+            }
+        }
+        return map;
+    }
+
     private static Map.Entry<EquipmentSlot, ItemStack> getMostDamagedItem(Player player) {
 
-        Map<EquipmentSlot, ItemStack> map = MENDING.getSlotItems(player);
+        Map<EquipmentSlot, ItemStack> map = getMendingSlotItems(player);
         Map.Entry<EquipmentSlot, ItemStack> mostDamaged = null;
         if (map.isEmpty()) {
             return null;
@@ -155,7 +153,7 @@ public class CoreCommonEvents {
 
         for (Map.Entry<EquipmentSlot, ItemStack> entry : map.entrySet()) {
             ItemStack stack = entry.getValue();
-            if (!stack.isEmpty() && getItemEnchantmentLevel(MENDING, stack) > 0) {
+            if (!stack.isEmpty() && stack.isDamaged()) {
                 if (calcDurabilityRatio(stack) > durability) {
                     mostDamaged = entry;
                     durability = calcDurabilityRatio(stack);
@@ -168,11 +166,6 @@ public class CoreCommonEvents {
     private static int durabilityToXp(int durability) {
 
         return durability / 2;
-    }
-
-    private static int xpToDurability(int xp) {
-
-        return xp * 2;
     }
 
     private static double calcDurabilityRatio(ItemStack stack) {

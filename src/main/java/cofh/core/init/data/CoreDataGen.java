@@ -32,7 +32,7 @@ public class CoreDataGen {
         gen.addProvider(event.includeServer(), new CoreTagsProvider.Fluid(output, event.getLookupProvider(), exFileHelper));
         gen.addProvider(event.includeServer(), new CoreTagsProvider.DamageType(output, event.getLookupProvider(), exFileHelper));
 
-        gen.addProvider(event.includeServer(), new CoreLootTableProvider(output));
+        gen.addProvider(event.includeServer(), new CoreLootTableProvider(output, event.getLookupProvider()));
         
         // Add enchantment data generation
         gen.addProvider(event.includeServer(), new CoreEnchantmentsProvider(output, event.getLookupProvider()));

@@ -18,8 +18,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.event.TickEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
@@ -30,7 +29,7 @@ import java.util.Set;
 import static cofh.core.util.helpers.AreaEffectHelper.validAreaEffectMiningItem;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
-@Mod.EventBusSubscriber(modid = ID_COFH_CORE)
+@EventBusSubscriber(modid = ID_COFH_CORE)
 public class AreaEffectEvents {
 
     private static final Set<BlockPos> HARVESTED_BLOCKS = new ObjectOpenHashSet<>();
@@ -104,12 +103,12 @@ public class AreaEffectEvents {
     }
 
     @SubscribeEvent (priority = EventPriority.LOWEST)
-    public static void handleTickEndEvent(TickEvent.ServerTickEvent event) {
-
-        if (event.phase == TickEvent.Phase.END) {
-            HARVESTED_BLOCKS.clear();
-        }
-    }
+    // TODO: Replace with alternative tick handling mechanism when available
+    // public static void handleTickEndEvent(TickEvent.ServerTickEvent event) {
+    //     if (event.phase == TickEvent.Phase.END) {
+    //         HARVESTED_BLOCKS.clear();
+    //     }
+    // }
 
     //@SubscribeEvent (priority = EventPriority.LOW)
     //public static void handleBlockToolModificationEvent(BlockEvent.BlockToolModificationEvent event) {

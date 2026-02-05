@@ -5,9 +5,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.ColorRGBA;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,26 +39,29 @@ public class GunpowderBlock extends ColoredFallingBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
 
-        ItemStack stack = player.getItemInHand(handIn);
         Item item = stack.getItem();
         if (item != Items.FLINT_AND_STEEL && item != Items.FIRE_CHARGE) {
-            return super.use(state, worldIn, pos, player, handIn, hit);
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         } else {
             onCaughtFire(state, worldIn, pos, hit.getDirection(), player);
             worldIn.setBlock(pos, Blocks.AIR.defaultBlockState(), 11);
             if (!player.isCreative()) {
                 if (item == Items.FLINT_AND_STEEL) {
-                    stack.hurtAndBreak(1, player, (entity) -> {
-                        entity.broadcastBreakEvent(handIn);
-                    });
+                    stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
                 } else {
                     stack.shrink(1);
                 }
             }
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
         }
+    }
+
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
+
+        return InteractionResult.PASS;
     }
 
     @Override

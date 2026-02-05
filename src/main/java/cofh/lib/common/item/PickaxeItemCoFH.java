@@ -7,9 +7,9 @@ import net.minecraft.world.item.Tier;
 
 public class PickaxeItemCoFH extends PickaxeItem implements ICoFHItem {
 
-    public PickaxeItemCoFH(Tier tier, int attackDamageIn, float attackSpeedIn, Properties builder) {
+    public PickaxeItemCoFH(Tier tier, Properties builder) {
 
-        super(tier, attackDamageIn, attackSpeedIn, builder);
+        super(tier, builder);
     }
 
     // region DISPLAY

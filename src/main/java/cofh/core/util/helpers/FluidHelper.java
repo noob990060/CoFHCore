@@ -6,6 +6,7 @@ import cofh.lib.init.tags.FluidTagsCoFH;
 import cofh.lib.util.helpers.BlockHelper;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -17,7 +18,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -67,18 +67,20 @@ public final class FluidHelper {
 
     public static int fluidHashcode(FluidStack stack) {
 
-        return stack.getTag() != null ? stack.getFluid().hashCode() + 31 * stack.getTag().hashCode() : stack.getFluid().hashCode();
+        net.minecraft.world.item.component.CustomData customData = stack.getComponents().get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
+        CompoundTag tag = customData != null ? customData.copyTag() : null;
+        return tag != null ? stack.getFluid().hashCode() + 31 * tag.hashCode() : stack.getFluid().hashCode();
     }
 
     // region COMPARISON
     public static boolean fluidsEqualWithTags(FluidStack resourceA, FluidStack resourceB) {
 
-        return fluidsEqual(resourceA, resourceB) && FluidStack.areFluidStackTagsEqual(resourceA, resourceB);
+        return fluidsEqual(resourceA, resourceB) && FluidStack.isSameFluidSameComponents(resourceA, resourceB);
     }
 
     public static boolean fluidsEqual(FluidStack resourceA, FluidStack resourceB) {
 
-        return resourceA != null && resourceA.isFluidEqual(resourceB) || resourceA == null && resourceB == null;
+        return resourceA.getFluid().equals(resourceB.getFluid());
     }
 
     public static boolean fluidsEqual(Fluid fluidA, FluidStack resourceB) {
@@ -109,7 +111,7 @@ public final class FluidHelper {
 
         amount = Math.min(amount, tank.getSpace());
         if (!tank.getFluidStack().isEmpty()) {
-            return extractFromAdjacent(tile, tank, new FluidStack(tank.getFluidStack(), amount), side);
+            return extractFromAdjacent(tile, tank, tank.getFluidStack().copyWithAmount(amount), side);
         }
         BlockEntity adjTile = BlockHelper.getAdjacentTileEntity(tile, side);
         Direction opposite = side.getOpposite();
@@ -139,7 +141,7 @@ public final class FluidHelper {
         FluidStack drainStack = handler.drain(resource, SIMULATE);
         int drainAmount = tank.fill(drainStack, EXECUTE);
         if (drainAmount > 0) {
-            handler.drain(new FluidStack(resource, drainAmount), EXECUTE);
+            handler.drain(resource.copyWithAmount(drainAmount), EXECUTE);
             return true;
         }
         return false;
@@ -159,7 +161,7 @@ public final class FluidHelper {
         if (handler == null) {
             return false;
         }
-        int fillAmount = handler.fill(new FluidStack(tank.getFluidStack(), amount), EXECUTE);
+        int fillAmount = handler.fill(tank.getFluidStack().copyWithAmount(amount), EXECUTE);
         if (fillAmount > 0) {
             tank.drain(fillAmount, EXECUTE);
             return true;
@@ -380,9 +382,9 @@ public final class FluidHelper {
                 var stackCap = stack.getCapability(Capabilities.FluidHandler.ITEM);
                 if (stackCap != null) {
                     if (player.getAbilities().instabuild) {
-                        handler.drain(new FluidStack(containedFluid, tankSpace), EXECUTE);
+                        handler.drain(containedFluid.copyWithAmount(tankSpace), EXECUTE);
                     } else {
-                        FluidUtil.tryFluidTransfer(stackCap, handler, new FluidStack(containedFluid, tankSpace), true);
+                        FluidUtil.tryFluidTransfer(stackCap, handler, containedFluid.copyWithAmount(tankSpace), true);
                     }
                 }
                 return true;
@@ -416,17 +418,23 @@ public final class FluidHelper {
     // region POTION HELPERS
     public static boolean hasPotionTag(FluidStack stack) {
 
-        return !stack.isEmpty() && stack.getTag() != null && stack.getTag().contains(TAG_POTION);
+        return !stack.isEmpty() && stack.getComponents().has(net.minecraft.core.component.DataComponents.POTION_CONTENTS);
     }
 
     public static Potion getPotionFromFluid(FluidStack fluid) {
 
-        return fluid.getFluid() == net.minecraft.world.level.material.Fluids.WATER ? Potions.WATER : getPotionFromFluidTag(fluid.getTag());
+        return fluid.getFluid() == net.minecraft.world.level.material.Fluids.WATER ? Potions.WATER.value() : getPotionFromFluidTag(getPotionTagFromFluidStack(fluid));
+    }
+
+    @Nullable
+    public static CompoundTag getPotionTagFromFluidStack(FluidStack fluid) {
+        net.minecraft.world.item.component.CustomData customData = fluid.getComponents().get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
+        return customData != null ? customData.copyTag() : null;
     }
 
     public static Potion getPotionFromFluidTag(@Nullable CompoundTag tag) {
 
-        return tag == null || !tag.contains(TAG_POTION) ? Potions.EMPTY : Potion.byName(tag.getString(TAG_POTION));
+        return tag == null || !tag.contains(TAG_POTION) ? Potions.WATER.value() : net.minecraft.core.registries.BuiltInRegistries.POTION.getOptional(net.minecraft.resources.ResourceLocation.tryParse(tag.getString(TAG_POTION))).orElse(Potions.WATER.value());
     }
 
     public static void addPotionTooltipStrings(FluidStack stack, List<Component> list) {
@@ -446,12 +454,17 @@ public final class FluidHelper {
         if (stack.isEmpty()) {
             return;
         }
-        PotionUtils.addPotionTooltip(PotionUtils.getAllEffects(stack.getTag()), lores, durationFactor, 20.F);
+        net.minecraft.world.item.alchemy.PotionContents contents = stack.getComponents().get(net.minecraft.core.component.DataComponents.POTION_CONTENTS);
+        if (contents != null && contents.potion().isPresent()) {
+            Holder<Potion> potion = contents.potion().get();
+            List<MobEffectInstance> effects = contents.customEffects();
+            net.minecraft.world.item.alchemy.PotionContents.addPotionTooltip(effects, lores::add, durationFactor, 20.F);
+        }
     }
 
     public static void addPotionTooltip(List<MobEffectInstance> list, List<Component> lores, float durationFactor) {
 
-        PotionUtils.addPotionTooltip(list, lores, durationFactor, 20.F);
+        net.minecraft.world.item.alchemy.PotionContents.addPotionTooltip(list, lores::add, durationFactor, 20.F);
     }
 
     //    public static void addPotionTooltip(List<MobEffectInstance> list, List<Component> lores, float durationFactor) {

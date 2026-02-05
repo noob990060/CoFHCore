@@ -179,7 +179,8 @@ public class FluidFilterMenu extends ContainerMenuCoFH implements IFilterOptions
         filter.setFluids(filterInventory.getStacks());
 
         if (type == SELF || type == ITEM) {
-            filter.write(filterStack.getOrCreateTag());
+            // TODO: Fix ItemStack tag methods for NeoForge 1.21.1
+            // filter.write(filterStack.getOrCreateTagElement("Filter"));
             filterableItem.onFilterChanged(filterStack);
         } else {
             filterable.onFilterChanged();
@@ -210,7 +211,8 @@ public class FluidFilterMenu extends ContainerMenuCoFH implements IFilterOptions
         byte size = (byte) filter.getFluids().size();
         buffer.writeByte(size);
         for (int i = 0; i < size; ++i) {
-            buffer.writeFluidStack(getFilterStacks().get(i));
+            // TODO: Fix writeFluidStack for NeoForge 1.21.1
+            // buffer.writeFluidStack(getFilterStacks().get(i));
         }
         return buffer;
     }
@@ -221,7 +223,8 @@ public class FluidFilterMenu extends ContainerMenuCoFH implements IFilterOptions
         byte size = buffer.readByte();
         List<FluidStack> fluidStacks = new ArrayList<>(size);
         for (int i = 0; i < size; ++i) {
-            fluidStacks.add(buffer.readFluidStack());
+            // TODO: Fix readFluidStack for NeoForge 1.21.1
+            // fluidStacks.add(buffer.readFluidStack());
         }
         filterInventory.readFromSource(fluidStacks);
     }

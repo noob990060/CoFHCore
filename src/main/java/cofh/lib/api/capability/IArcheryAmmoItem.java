@@ -17,9 +17,10 @@ public interface IArcheryAmmoItem extends IArcheryItem {
      *
      * @param world   World where the arrow will spawn.
      * @param shooter Player holding the bow.
+     * @param weapon  The weapon being used to fire the arrow.
      * @return Custom arrow entity which was spawned in the world.
      */
-    AbstractArrow createArrowEntity(Level world, Player shooter);
+    AbstractArrow createArrowEntity(Level world, Player shooter, ItemStack weapon);
 
     boolean isEmpty(Player shooter);
 

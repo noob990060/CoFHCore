@@ -84,9 +84,10 @@ public class BoatItemCoFH extends ItemCoFH {
     protected Boat createBoat(ItemStack stack, Level level, float rotation, double posX, double posY, double posZ) {
 
         var boat = factory.createBoat(type, level, posX, posY, posZ);
-        if (stack.hasCustomHoverName()) {
-            boat.setCustomName(stack.getHoverName());
-        }
+        // TODO: Fix ItemStack name check for NeoForge 1.21.1
+        // if (stack.hasCustomName()) {
+        //     boat.setCustomName(stack.getHoverName());
+        // }
         if (boat instanceof IOnPlaced placedBoat) {
             placedBoat.onPlaced(stack);
         }

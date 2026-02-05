@@ -1,8 +1,10 @@
 package cofh.lib.api.item;
 
 import cofh.lib.util.helpers.MathHelper;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
 import static cofh.lib.api.ContainerType.ENERGY;
 import static cofh.lib.util.constants.NBTTags.TAG_ENERGY;
@@ -18,7 +20,12 @@ public interface IEnergyContainerItem extends IContainerItem {
 
     default CompoundTag getOrCreateEnergyTag(ItemStack container) {
 
-        return container.getOrCreateTag();
+        var customData = container.get(DataComponents.CUSTOM_DATA);
+        if (customData == null || customData.isEmpty()) {
+            container.set(DataComponents.CUSTOM_DATA, CustomData.of(new CompoundTag()));
+            customData = container.get(DataComponents.CUSTOM_DATA);
+        }
+        return customData.copyTag();
     }
 
     default int getSpace(ItemStack container) {

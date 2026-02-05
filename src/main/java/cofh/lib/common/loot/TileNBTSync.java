@@ -1,7 +1,7 @@
 package cofh.lib.common.loot;
 
 import cofh.lib.api.block.entity.ITileCallback;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -20,19 +20,19 @@ import static net.minecraft.world.level.storage.loot.parameters.LootContextParam
 
 public class TileNBTSync extends LootItemConditionalFunction {
 
-    public static final Codec<TileNBTSync> CODEC = RecordCodecBuilder.create(
+    public static final MapCodec<TileNBTSync> CODEC = RecordCodecBuilder.mapCodec(
             instance -> commonFields(instance)
                     .apply(instance, TileNBTSync::new)
     );
 
-    private static LootItemFunctionType INSTANCE;
+    private static LootItemFunctionType<TileNBTSync> INSTANCE;
 
     public static void setup() {
 
         if (INSTANCE != null) {
             return;
         }
-        INSTANCE = Registry.register(BuiltInRegistries.LOOT_FUNCTION_TYPE, ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "nbt_sync"), new LootItemFunctionType(CODEC));
+        INSTANCE = Registry.register(BuiltInRegistries.LOOT_FUNCTION_TYPE, ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "nbt_sync"), new LootItemFunctionType<>(CODEC));
     }
 
     protected TileNBTSync(List<LootItemCondition> conditionsIn) {
@@ -41,7 +41,7 @@ public class TileNBTSync extends LootItemConditionalFunction {
     }
 
     @Override
-    public LootItemFunctionType getType() {
+    public LootItemFunctionType<TileNBTSync> getType() {
 
         return INSTANCE;
     }

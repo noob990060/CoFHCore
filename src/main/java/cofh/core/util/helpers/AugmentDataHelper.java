@@ -1,8 +1,10 @@
 package cofh.core.util.helpers;
 
 import cofh.core.common.item.IAugmentItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
 import javax.annotation.Nullable;
 
@@ -28,7 +30,12 @@ public final class AugmentDataHelper {
     @Nullable
     public static CompoundTag getAugmentData(ItemStack augment) {
 
-        CompoundTag augmentData = augment.getTagElement(TAG_AUGMENT_DATA);
+        CustomData customData = augment.get(DataComponents.CUSTOM_DATA);
+        CompoundTag augmentData = null;
+        if (customData != null) {
+            CompoundTag root = customData.copyTag();
+            augmentData = root.contains(TAG_AUGMENT_DATA) ? root.getCompound(TAG_AUGMENT_DATA) : null;
+        }
         if (augmentData == null && isAugmentItem(augment)) {
             return ((IAugmentItem) augment.getItem()).getAugmentData(augment);
         }

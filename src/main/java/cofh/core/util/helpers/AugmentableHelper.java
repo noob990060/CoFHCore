@@ -2,10 +2,12 @@ package cofh.core.util.helpers;
 
 import cofh.core.common.item.IAugmentableItem;
 import cofh.lib.util.helpers.MathHelper;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -115,13 +117,23 @@ public final class AugmentableHelper {
 
     public static float getPropertyWithDefault(ItemStack container, String key, float defaultValue) {
 
-        CompoundTag subTag = container.getTagElement(TAG_PROPERTIES);
+        CustomData customData = container.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return defaultValue;
+        }
+        CompoundTag root = customData.copyTag();
+        CompoundTag subTag = root.contains(TAG_PROPERTIES) ? root.getCompound(TAG_PROPERTIES) : null;
         return subTag == null ? defaultValue : getAttributeModWithDefault(subTag, key, defaultValue);
     }
 
     public static String getPropertyWithDefault(ItemStack container, String key, String defaultValue) {
 
-        CompoundTag subTag = container.getTagElement(TAG_PROPERTIES);
+        CustomData customData = container.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return defaultValue;
+        }
+        CompoundTag root = customData.copyTag();
+        CompoundTag subTag = root.contains(TAG_PROPERTIES) ? root.getCompound(TAG_PROPERTIES) : null;
         return subTag == null ? defaultValue : getAttributeModWithDefault(subTag, key, defaultValue);
     }
 
@@ -130,39 +142,54 @@ public final class AugmentableHelper {
     // region INTERNAL HELPERS
     private static void writeAugmentsToItem(ItemStack stack, ListTag list) {
 
-        CompoundTag nbt = stack.getTagElement(TAG_BLOCK_ENTITY);
-        if (nbt != null) {
-            nbt.put(TAG_AUGMENTS, list);
-            return;
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        CompoundTag root;
+        if (customData == null) {
+            root = new CompoundTag();
+        } else {
+            root = customData.copyTag();
         }
+        
         if (stack.getItem() instanceof BlockItem) {
-            nbt = new CompoundTag();
+            CompoundTag nbt = new CompoundTag();
             nbt.put(TAG_AUGMENTS, list);
-            stack.addTagElement(TAG_BLOCK_ENTITY, nbt);
-            return;
+            root.put(TAG_BLOCK_ENTITY, nbt);
+        } else {
+            root.put(TAG_AUGMENTS, list);
         }
-        stack.addTagElement(TAG_AUGMENTS, list);
+        
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(root));
     }
 
     private static List<ItemStack> getAugments(ListTag list) {
 
         ArrayList<ItemStack> ret = new ArrayList<>();
         for (int i = 0; i < list.size(); ++i) {
-            ret.add(ItemStack.of(list.getCompound(i)));
+            try {
+                ret.add(ItemStack.parse(null, list.getCompound(i)).orElse(ItemStack.EMPTY));
+            } catch (Exception e) {
+                ret.add(ItemStack.EMPTY);
+            }
         }
         return ret.isEmpty() ? Collections.emptyList() : ret;
     }
 
     private static ListTag getAugmentNBT(ItemStack stack) {
 
-        if (stack.getTag() == null) {
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
             return new ListTag();
         }
-        CompoundTag nbt = stack.getTagElement(TAG_BLOCK_ENTITY);
-        if (nbt != null) {
+        CompoundTag root = customData.copyTag();
+        
+        // Check for block entity first
+        if (root.contains(TAG_BLOCK_ENTITY)) {
+            CompoundTag nbt = root.getCompound(TAG_BLOCK_ENTITY);
             return nbt.contains(TAG_AUGMENTS) ? nbt.getList(TAG_AUGMENTS, TAG_COMPOUND) : new ListTag();
         }
-        return stack.getTag().getList(TAG_AUGMENTS, TAG_COMPOUND);
+        
+        // Check for direct augment tag
+        return root.contains(TAG_AUGMENTS) ? root.getList(TAG_AUGMENTS, TAG_COMPOUND) : new ListTag();
     }
 
     private static ListTag convertAugments(List<ItemStack> augments) {
@@ -171,7 +198,7 @@ public final class AugmentableHelper {
         for (ItemStack augment : augments) {
             // Empty slots are intentionally written.
             //if (!augment.isEmpty()) {
-            list.add(augment.save(new CompoundTag()));
+            list.add(augment.save(null));
             //}
         }
         return list;

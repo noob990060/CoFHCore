@@ -171,7 +171,7 @@ public class ItemFilterMenu extends ContainerMenuCoFH implements IFilterOptions 
                 customData = CustomData.of(new CompoundTag());
             }
             CompoundTag compound = customData.copyTag();
-            filter.write(compound);
+            filter.write(compound, player.level().registryAccess());
             filterStack.set(DataComponents.CUSTOM_DATA, CustomData.of(compound));
             filterableItem.onFilterChanged(filterStack);
         } else {

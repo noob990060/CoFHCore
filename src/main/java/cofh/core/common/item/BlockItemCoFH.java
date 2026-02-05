@@ -6,13 +6,12 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -54,7 +53,7 @@ public class BlockItemCoFH extends BlockItem implements ICoFHItem {
         return this;
     }
 
-    protected void tooltipDelegate(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+    protected void tooltipDelegate(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
 
     }
 
@@ -74,10 +73,10 @@ public class BlockItemCoFH extends BlockItem implements ICoFHItem {
     //    }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
 
         List<Component> additionalTooltips = new ArrayList<>();
-        tooltipDelegate(stack, worldIn, additionalTooltips, flagIn);
+        tooltipDelegate(stack, context, additionalTooltips, flagIn);
 
         if (!additionalTooltips.isEmpty()) {
             if (Screen.hasShiftDown() || CoreClientConfig.alwaysShowDetails.get()) {

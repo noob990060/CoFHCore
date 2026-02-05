@@ -2,6 +2,7 @@ package cofh.core.util.filter;
 
 import cofh.core.util.helpers.ItemHelper;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.Item;
@@ -81,7 +82,7 @@ public class BaseItemFilter implements IFilter, IFilterOptions {
     }
 
     @Override
-    public IFilter read(CompoundTag nbt) {
+    public IFilter read(CompoundTag nbt, HolderLookup.Provider provider) {
 
         CompoundTag subTag = nbt.getCompound(TAG_FILTER);
         //        int size = subTag.getInt(TAG_SLOTS);
@@ -96,7 +97,7 @@ public class BaseItemFilter implements IFilter, IFilterOptions {
             CompoundTag slotTag = list.getCompound(i);
             int slot = slotTag.getByte(TAG_SLOT);
             if (slot >= 0 && slot < items.size()) {
-                items.set(slot, ItemStack.of(slotTag));
+                items.set(slot, ItemStack.parse(provider, slotTag).orElse(ItemStack.EMPTY));
             }
         }
         allowList = subTag.getBoolean(TAG_FILTER_OPT_LIST);
@@ -105,7 +106,7 @@ public class BaseItemFilter implements IFilter, IFilterOptions {
     }
 
     @Override
-    public CompoundTag write(CompoundTag nbt) {
+    public CompoundTag write(CompoundTag nbt, HolderLookup.Provider provider) {
 
         CompoundTag subTag = new CompoundTag();
         ListTag list = new ListTag();
@@ -116,7 +117,7 @@ public class BaseItemFilter implements IFilter, IFilterOptions {
             if (!items.get(i).isEmpty()) {
                 CompoundTag slotTag = new CompoundTag();
                 slotTag.putByte(TAG_SLOT, (byte) i);
-                items.get(i).save(slotTag);
+                items.get(i).save(provider, slotTag);
                 list.add(slotTag);
             }
         }
@@ -154,6 +155,18 @@ public class BaseItemFilter implements IFilter, IFilterOptions {
 
         this.checkNBT = checkNBT;
         return true;
+    }
+    // endregion
+
+    // region INBTSerializable
+    @Override
+    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        return write(new CompoundTag(), provider);
+    }
+
+    @Override
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+        read(nbt, provider);
     }
     // endregion
 }

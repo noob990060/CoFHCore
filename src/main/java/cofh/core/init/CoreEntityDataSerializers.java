@@ -1,6 +1,5 @@
 package cofh.core.init;
 
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -17,27 +16,9 @@ public class CoreEntityDataSerializers {
 
     }
 
+    // NeoForge 1.21.1: Use forValueType static method with StreamCodec
     public static final DeferredHolder<EntityDataSerializer<?>, EntityDataSerializer<FluidStack>> FLUID_STACK_DATA_SERIALIZER = ENTITY_DATA_SERIALIZERS.register("fluid_stack_eds",
-            () -> new EntityDataSerializer<>() {
-
-                @Override
-                public void write(FriendlyByteBuf buf, FluidStack fluid) {
-
-                    buf.writeFluidStack(fluid);
-                }
-
-                @Override
-                public FluidStack read(FriendlyByteBuf buf) {
-
-                    return buf.readFluidStack();
-                }
-
-                @Override
-                public FluidStack copy(FluidStack stack) {
-
-                    return stack.copy();
-                }
-            }
+            () -> EntityDataSerializer.forValueType(FluidStack.STREAM_CODEC)
     );
 
 }

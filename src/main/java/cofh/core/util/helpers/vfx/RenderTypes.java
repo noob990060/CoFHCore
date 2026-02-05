@@ -13,15 +13,16 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.OptionalDouble;
 import java.util.function.Supplier;
 
-import static cofh.core.client.CoreRenderType.THICK_LINES;
 import static cofh.core.init.CoreShaders.*;
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderTypes {
 
+    public static final RenderStateShard.LineStateShard THICK_LINES = new RenderStateShard.LineStateShard(OptionalDouble.of(2.5D));
     public static final ResourceLocation BLANK_TEXTURE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/render/blank.png");
     public static final ResourceLocation LIN_GLOW_TEXTURE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/render/glow_linear.png");
     public static final ResourceLocation RND_GLOW_TEXTURE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/render/glow_round.png");
@@ -136,21 +137,19 @@ public class RenderTypes {
         return new ParticleRenderType() {
 
             @Override
-            public void begin(BufferBuilder builder, TextureManager manager) {
+            public BufferBuilder begin(Tesselator tessellator, TextureManager manager) {
 
                 RenderSystem.depthMask(false); // TODO post shader
                 RenderSystem.enableBlend();
                 RenderSystem.setShader(shader);
                 RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
-                builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
+                return tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
             }
 
             @Override
-            public void end(Tesselator tess) {
+            public String toString() {
 
-                tess.end();
-                RenderSystem.depthMask(true);
-                RenderSystem.disableBlend();
+                return "translucent_sheet";
             }
         };
     }

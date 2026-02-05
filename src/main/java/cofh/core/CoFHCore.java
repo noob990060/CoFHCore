@@ -24,6 +24,7 @@ import cofh.lib.util.Utils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 
+import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -176,12 +177,18 @@ public class CoFHCore {
     private void registrySetup(final NewRegistryEvent event) {
 
         CONFIG_MANAGER.setupCommon();
+        // Initialize enchantment registry for Utils class
+        // Note: This might not be the right place, let's try a different approach
     }
 
     private void registerLootData(final RegisterEvent event) {
 
         if (event.getRegistryKey() == BuiltInRegistries.LOOT_FUNCTION_TYPE.key()) {
             TileNBTSync.setup();
+        }
+        // Initialize enchantment registry for Utils class
+        if (event.getRegistryKey() == Registries.ENCHANTMENT) {
+            Utils.setEnchantmentRegistry((Registry<Enchantment>) event.getRegistry());
         }
     }
 

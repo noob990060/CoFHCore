@@ -138,7 +138,7 @@ public class ItemStorageCoFH implements IItemHandler, IItemStackHolder, IResourc
 
     public static ItemStack loadItemStack(CompoundTag nbt) {
 
-        ItemStack retStack = ItemStack.of(nbt);
+        ItemStack retStack = ItemStack.parseOptional(null, nbt);
         if (nbt.contains("IntCount")) {
             int storedCount = nbt.getInt("IntCount");
             if (retStack.getCount() < storedCount) {
@@ -150,7 +150,7 @@ public class ItemStorageCoFH implements IItemHandler, IItemStackHolder, IResourc
 
     protected final void saveItemStack(ItemStack stack, CompoundTag nbt) {
 
-        stack.save(nbt);
+        stack.save(null, nbt);
         if (stack.getCount() > Byte.MAX_VALUE) {
             nbt.putInt("IntCount", stack.getCount());
         }

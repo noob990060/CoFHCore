@@ -9,6 +9,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
 
 import java.util.function.Predicate;
 
@@ -95,8 +97,11 @@ public final class ItemHelper {
     // region NBT TAGS
     public static ItemStack copyTag(ItemStack container, ItemStack other) {
 
-        if (!other.isEmpty() && other.hasTag()) {
-            container.setTag(other.getTag().copy());
+        if (!other.isEmpty()) {
+            CustomData otherCustomData = other.get(DataComponents.CUSTOM_DATA);
+            if (otherCustomData != null) {
+                container.set(DataComponents.CUSTOM_DATA, otherCustomData);
+            }
         }
         return container;
     }
@@ -120,7 +125,7 @@ public final class ItemHelper {
     // region COMPARISON
     public static boolean itemsEqualWithTags(ItemStack stackA, ItemStack stackB) {
 
-        return ItemStack.isSameItemSameTags(stackA, stackB);
+        return ItemStack.matches(stackA, stackB);
     }
 
     public static boolean itemsEqual(ItemStack stackA, ItemStack stackB) {
@@ -153,19 +158,24 @@ public final class ItemHelper {
         if (stackA.getCount() != stackB.getCount()) {
             return false;
         }
-        if (stackA.getTag() == null && stackB.getTag() == null) {
+        
+        CustomData customDataA = stackA.get(DataComponents.CUSTOM_DATA);
+        CustomData customDataB = stackB.get(DataComponents.CUSTOM_DATA);
+        
+        if (customDataA == null && customDataB == null) {
             return true;
         }
-        if (stackA.getTag() == null || stackB.getTag() == null) {
+        if (customDataA == null || customDataB == null) {
             return false;
         }
-        int numberOfKeys = stackA.getTag().getAllKeys().size();
-        if (numberOfKeys != stackB.getTag().getAllKeys().size()) {
+        
+        CompoundTag tagA = customDataA.copyTag();
+        CompoundTag tagB = customDataB.copyTag();
+        
+        int numberOfKeys = tagA.getAllKeys().size();
+        if (numberOfKeys != tagB.getAllKeys().size()) {
             return false;
         }
-
-        CompoundTag tagA = stackA.getTag();
-        CompoundTag tagB = stackB.getTag();
 
         String[] keys = new String[numberOfKeys];
         keys = tagA.getAllKeys().toArray(keys);

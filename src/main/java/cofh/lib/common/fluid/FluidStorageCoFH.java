@@ -115,14 +115,14 @@ public class FluidStorageCoFH implements IFluidHandler, IFluidStackHolder, IReso
     // region NBT
     public FluidStorageCoFH read(CompoundTag nbt) {
 
-        FluidStack fluid = FluidStack.loadFluidStackFromNBT(nbt);
+        FluidStack fluid = FluidStack.parseOptional(null, nbt);
         setFluidStack(fluid);
         return this;
     }
 
     public CompoundTag write(CompoundTag nbt) {
 
-        fluid.writeToNBT(nbt);
+        fluid.save(null, nbt);
         nbt.putInt(TAG_CAPACITY, baseCapacity);
         return nbt;
     }
@@ -178,7 +178,7 @@ public class FluidStorageCoFH implements IFluidHandler, IFluidStackHolder, IReso
             return Math.min(capacity - fluid.getAmount(), resource.getAmount());
         }
         if (fluid.isEmpty()) {
-            setFluidStack(new FluidStack(resource, Math.min(capacity, resource.getAmount())));
+            setFluidStack(resource.copyWithAmount(Math.min(capacity, resource.getAmount())));
             return fluid.getAmount();
         }
         if (!fluid.isFluidEqual(resource)) {
@@ -216,7 +216,7 @@ public class FluidStorageCoFH implements IFluidHandler, IFluidStackHolder, IReso
         if (fluid.getAmount() < drained) {
             drained = fluid.getAmount();
         }
-        FluidStack stack = new FluidStack(fluid, drained);
+        FluidStack stack = fluid.copyWithAmount(drained);
         if (action.execute() && !isCreative()) {
             fluid.shrink(drained);
             if (fluid.isEmpty()) {

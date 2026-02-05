@@ -2,8 +2,7 @@ package cofh.lib.common.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -37,15 +36,17 @@ public class OreBlockCoFH extends Block {
     }
 
     @Override
-    public int getExpDrop(BlockState state, LevelReader level, RandomSource randomSource, BlockPos pos, int fortuneLevel, int silkTouchLevel) {
+    public int getExpDrop(BlockState state, net.minecraft.world.level.LevelAccessor level, BlockPos pos, 
+                         @org.jetbrains.annotations.Nullable net.minecraft.world.level.block.entity.BlockEntity blockEntity,
+                         @org.jetbrains.annotations.Nullable net.minecraft.world.entity.Entity breaker, ItemStack tool) {
 
-        if (silkTouchLevel > 0 || maxXp <= 0) {
+        if (maxXp <= 0) {
             return 0;
         }
         if (minXp >= maxXp) {
             return minXp;
         }
-        return Mth.nextInt(randomSource, minXp, maxXp);
+        return Mth.nextInt(level.getRandom(), minXp, maxXp);
     }
 
 }

@@ -2,6 +2,7 @@ package cofh.core.util.filter;
 
 import cofh.core.util.helpers.FluidHelper;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.material.Fluid;
@@ -81,22 +82,30 @@ public class BaseFluidFilter implements IFilter, IFilterOptions {
     }
 
     @Override
-    public IFilter read(CompoundTag nbt) {
+    public IFilter read(CompoundTag nbt, HolderLookup.Provider provider) {
 
         CompoundTag subTag = nbt.getCompound(TAG_FILTER);
-        //        int size = subTag.getInt(TAG_TANKS);
-        //        if (size > 0) {
-        //            fluids = new ArrayList<>(size);
-        //            for (int i = 0; i < size; ++i) {
-        //                fluids.add(FluidStack.EMPTY);
-        //            }
-        //        }
+        // int size = subTag.getInt(TAG_TANKS);
+        // if (size > 0) {
+        // fluids = new ArrayList<>(size);
+        // for (int i = 0; i < size; ++i) {
+        // fluids.add(FluidStack.EMPTY);
+        // }
+        // }
         ListTag list = subTag.getList(TAG_TANK_INV, TAG_COMPOUND);
         for (int i = 0; i < list.size(); ++i) {
             CompoundTag tankTag = list.getCompound(i);
             int tank = tankTag.getByte(TAG_TANK);
             if (tank >= 0 && tank < fluids.size()) {
-                fluids.set(tank, FluidStack.loadFluidStackFromNBT(tankTag));
+                try {
+                    // Try using the new parse method with Dynamic conversion
+                    fluids.set(tank,
+                            FluidStack.CODEC.parse(
+                                    new com.mojang.serialization.Dynamic<>(net.minecraft.nbt.NbtOps.INSTANCE, tankTag))
+                                    .getOrThrow());
+                } catch (Exception e) {
+                    fluids.set(tank, FluidStack.EMPTY);
+                }
             }
         }
         allowList = subTag.getBoolean(TAG_FILTER_OPT_LIST);
@@ -105,7 +114,7 @@ public class BaseFluidFilter implements IFilter, IFilterOptions {
     }
 
     @Override
-    public CompoundTag write(CompoundTag nbt) {
+    public CompoundTag write(CompoundTag nbt, HolderLookup.Provider provider) {
 
         CompoundTag subTag = new CompoundTag();
         ListTag list = new ListTag();
@@ -113,7 +122,9 @@ public class BaseFluidFilter implements IFilter, IFilterOptions {
             if (!fluids.get(i).isEmpty()) {
                 CompoundTag tankTag = new CompoundTag();
                 tankTag.putByte(TAG_TANK, (byte) i);
-                fluids.get(i).writeToNBT(tankTag);
+                // Try using the new save method with codec
+                tankTag = (CompoundTag) FluidStack.CODEC.encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, fluids.get(i))
+                        .getOrThrow();
                 list.add(tankTag);
             }
         }
@@ -152,5 +163,14 @@ public class BaseFluidFilter implements IFilter, IFilterOptions {
         this.checkNBT = checkNBT;
         return true;
     }
-    // endregion
+
+    @Override
+    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        return write(new CompoundTag(), provider);
+    }
+
+    @Override
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+        read(nbt, provider);
+    }
 }

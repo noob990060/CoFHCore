@@ -20,7 +20,7 @@ public class ChilledMobEffect extends CustomParticleMobEffect {
     }
 
     @Override
-    public void applyEffectTick(LivingEntity living, int amplifier) {
+    public boolean applyEffectTick(LivingEntity living, int amplifier) {
 
         super.applyEffectTick(living, amplifier);
 
@@ -28,6 +28,7 @@ public class ChilledMobEffect extends CustomParticleMobEffect {
             living.isInPowderSnow = true;
             living.setTicksFrozen(Math.min(living.getTicksRequiredToFreeze(), living.getTicksFrozen() + 2 + amplifier * 2));
         }
+        return false;
     }
 
     @Override

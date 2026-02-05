@@ -1,11 +1,9 @@
 package cofh.lib.common.item;
 
-import cofh.lib.api.item.ICoFHItem;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.DyeableHorseArmorItem;
 import net.minecraft.world.item.ItemStack;
 
-public class DyeableHorseArmorItemCoFH extends DyeableHorseArmorItem implements ICoFHItem {
+public class DyeableHorseArmorItemCoFH extends HorseArmorItemCoFH {
 
     protected int enchantability = 1;
 
@@ -25,7 +23,6 @@ public class DyeableHorseArmorItemCoFH extends DyeableHorseArmorItem implements 
         return this;
     }
 
-    @Override
     public boolean isEnchantable(ItemStack stack) {
 
         return enchantability > 0;
@@ -51,6 +48,11 @@ public class DyeableHorseArmorItemCoFH extends DyeableHorseArmorItem implements 
     public String getCreatorModId(ItemStack itemStack) {
 
         return modId == null || modId.isEmpty() ? super.getCreatorModId(itemStack) : modId;
+    }
+
+    @Override
+    public boolean isRepairable(ItemStack stack) {
+        return false; // Horse armor typically not repairable
     }
     // endregion
 }

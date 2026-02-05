@@ -2,6 +2,7 @@ package cofh.lib.util;
 
 import cofh.lib.common.enchantment.EnchantmentCoFH;
 import cofh.lib.init.tags.ItemTagsCoFH;
+import cofh.lib.util.Constants;
 import cofh.lib.util.helpers.MathHelper;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
@@ -15,7 +16,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -60,9 +60,6 @@ import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.nio.file.Path;
-
-import static cofh.lib.util.Constants.MAX_CAPACITY;
-import static cofh.lib.util.Constants.NETWORK_UPDATE_DISTANCE;
 
 public class Utils {
 
@@ -482,16 +479,32 @@ public class Utils {
     // endregion
 
     // region ENCHANT UTILS
+    private static Registry<Enchantment> getEnchantmentRegistry() {
+        // Use a fallback approach - this will need to be called with registry access when available
+        // For now, we'll use a static reference that should be initialized during mod loading
+        if (enchantmentRegistry == null) {
+            // This is a temporary workaround - in practice, these methods should be called
+            // with proper registry access context
+            throw new IllegalStateException("Enchantment registry not initialized. Call with proper registry access.");
+        }
+        return enchantmentRegistry;
+    }
+    
+    private static Registry<Enchantment> enchantmentRegistry;
+
+    public static void setEnchantmentRegistry(Registry<Enchantment> registry) {
+        enchantmentRegistry = registry;
+    }
+
     public static Enchantment getEnchantment(String modId, String enchantId) {
 
-        @SuppressWarnings("unchecked")
-        Registry<Enchantment> registry = (Registry<Enchantment>) BuiltInRegistries.REGISTRY.get(Registries.ENCHANTMENT);
+        Registry<Enchantment> registry = getEnchantmentRegistry();
         return registry.get(ResourceLocation.fromNamespaceAndPath(modId, enchantId));
     }
 
     public static int getEnchantedCapacity(int amount, int holding) {
 
-        return MathHelper.clamp(amount + amount * holding / 2, 0, MAX_CAPACITY);
+        return MathHelper.clamp(amount + amount * holding / 2, 0, Constants.MAX_CAPACITY);
     }
 
     public static int getItemEnchantmentLevel(Enchantment ench, ItemStack stack) {
@@ -502,8 +515,7 @@ public class Utils {
         if (!EnchantmentCoFH.isEnabled(ench)) {
             return 0;
         }
-        @SuppressWarnings("unchecked")
-        Registry<Enchantment> registry = (Registry<Enchantment>) BuiltInRegistries.REGISTRY.get(Registries.ENCHANTMENT);
+        Registry<Enchantment> registry = getEnchantmentRegistry();
         Holder<Enchantment> enchHolder = registry.wrapAsHolder(ench);
         return stack.getEnchantmentLevel(enchHolder);
     }
@@ -538,8 +550,7 @@ public class Utils {
         if (!EnchantmentCoFH.isEnabled(ench)) {
             return;
         }
-        @SuppressWarnings("unchecked")
-        Registry<Enchantment> registry = (Registry<Enchantment>) BuiltInRegistries.REGISTRY.get(Registries.ENCHANTMENT);
+        Registry<Enchantment> registry = getEnchantmentRegistry();
         Holder<Enchantment> enchHolder = registry.wrapAsHolder(ench);
         ItemEnchantments updated = EnchantmentHelper.updateEnchantments(stack, mutable -> mutable.set(enchHolder, level));
         EnchantmentHelper.setEnchantments(stack, updated);
@@ -550,8 +561,7 @@ public class Utils {
         if (stack.isEmpty() || ench == null) {
             return;
         }
-        @SuppressWarnings("unchecked")
-        Registry<Enchantment> registry = (Registry<Enchantment>) BuiltInRegistries.REGISTRY.get(Registries.ENCHANTMENT);
+        Registry<Enchantment> registry = getEnchantmentRegistry();
         Holder<Enchantment> enchHolder = registry.wrapAsHolder(ench);
         ItemEnchantments updated = EnchantmentHelper.updateEnchantments(stack, mutable -> mutable.removeIf(h -> h.equals(enchHolder)));
         EnchantmentHelper.setEnchantments(stack, updated);
