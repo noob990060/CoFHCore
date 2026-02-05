@@ -21,12 +21,11 @@ public class ClaimXPPacket {
 
     public void handle(final ClaimXPPayload payload, final IPayloadContext context) {
 
-        context.workHandler().submitAsync(() -> {
-            Optional<Player> senderOptional = context.player();
-            if (senderOptional.isEmpty()) {
+        context.enqueueWork(() -> {
+            Player player = context.player();
+            if (player == null) {
                 return;
             }
-            Player player = senderOptional.get();
 
             Level world = player.level;
             if (!world.isLoaded(payload.pos())) {
@@ -44,7 +43,7 @@ public class ClaimXPPacket {
         if (tile == null) {
             return false;
         }
-        PacketDistributor.SERVER.noArg().send(new ClaimXPPayload(tile.pos()));
+        PacketDistributor.sendToServer(new ClaimXPPayload(tile.pos()));
         return true;
     }
 
