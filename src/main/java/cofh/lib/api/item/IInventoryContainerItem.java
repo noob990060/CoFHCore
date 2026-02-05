@@ -2,8 +2,10 @@ package cofh.lib.api.item;
 
 import cofh.lib.common.inventory.SimpleItemInv;
 import cofh.lib.util.helpers.MathHelper;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
 import javax.annotation.Nonnull;
 
@@ -14,7 +16,21 @@ public interface IInventoryContainerItem { // extends IContainerItem {
 
     default CompoundTag getOrCreateInvTag(ItemStack container) {
 
-        return container.getOrCreateTagElement(TAG_ITEM_INV);
+        CustomData customData = container.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            CompoundTag newTag = new CompoundTag();
+            newTag.put(TAG_ITEM_INV, new CompoundTag());
+            container.set(DataComponents.CUSTOM_DATA, CustomData.of(newTag));
+            return newTag.getCompound(TAG_ITEM_INV);
+        }
+        
+        CompoundTag tag = customData.copyTag();
+        if (!tag.contains(TAG_ITEM_INV)) {
+            tag.put(TAG_ITEM_INV, new CompoundTag());
+            container.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        }
+        
+        return tag.getCompound(TAG_ITEM_INV);
     }
 
     SimpleItemInv getContainerInventory(ItemStack container);

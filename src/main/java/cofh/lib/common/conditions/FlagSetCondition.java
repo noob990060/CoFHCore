@@ -21,7 +21,7 @@ public record FlagSetCondition(String flag) implements ICondition {
     @Override
     public Codec<? extends ICondition> codec() {
 
-        return CODEC;
+        return FlagSetCondition.CODEC;
     }
 
     @Override

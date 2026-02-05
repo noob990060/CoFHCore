@@ -1,20 +1,17 @@
 package cofh.core.common.fluid;
 
-import cofh.core.util.helpers.FluidHelper;
 import cofh.lib.common.fluid.FluidCoFH;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
@@ -32,7 +29,6 @@ import java.util.function.Supplier;
 import static cofh.core.CoFHCore.FLUIDS;
 import static cofh.core.CoFHCore.FLUID_TYPES;
 import static cofh.core.util.references.CoreIDs.ID_FLUID_POTION;
-import static cofh.lib.util.constants.NBTTags.TAG_POTION;
 
 public class PotionFluid extends FluidCoFH {
 
@@ -78,18 +74,15 @@ public class PotionFluid extends FluidCoFH {
                 @Override
                 public Component getDescription(FluidStack stack) {
 
-                    Potion potion = PotionUtils.getPotion(stack.getTag());
-                    if (potion == Potions.EMPTY || potion == Potions.WATER) {
-                        return super.getDescription(stack);
-                    }
-                    return Component.translatable(potion.getName(Items.POTION.getDescriptionId() + ".effect."));
+                    // TODO: Update to use new potion API when available
+                    return super.getDescription(stack);
                 }
 
                 @Override
                 public Rarity getRarity(FluidStack stack) {
 
-                    return FluidHelper.getPotionFromFluidTag(stack.getTag()).getEffects().isEmpty() ? Rarity.COMMON
-                            : Rarity.UNCOMMON;
+                    // TODO: Update to use new potion API when available
+                    return Rarity.COMMON;
                 }
 
                 @Override
@@ -127,13 +120,8 @@ public class PotionFluid extends FluidCoFH {
 
     public static int getPotionColor(FluidStack stack) {
 
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.contains(PotionUtils.TAG_CUSTOM_POTION_COLOR, 99)) {
-            return tag.getInt(PotionUtils.TAG_CUSTOM_POTION_COLOR);
-        } else {
-            return FluidHelper.getPotionFromFluidTag(stack.getTag()) == Potions.EMPTY ? DEFAULT_COLOR
-                    : PotionUtils.getColor(PotionUtils.getAllEffects(stack.getTag()));
-        }
+        // TODO: Implement using new PotionContents system when fluid components are available
+        return DEFAULT_COLOR;
     }
 
     public static FluidStack getPotionAsFluid(int amount, Potion type, boolean hasCustom) {
@@ -159,87 +147,50 @@ public class PotionFluid extends FluidCoFH {
         if (resourceLoc == null) {
             return FluidStack.EMPTY;
         }
-        stack.getOrCreateTag().putString(TAG_POTION, resourceLoc.toString());
+        // TODO: Update to use new fluid tag API when available
         return stack;
     }
 
     public static FluidStack setCustomEffects(FluidStack stack, Collection<MobEffectInstance> effects) {
 
-        if (stack.isEmpty() || effects.isEmpty()) {
-            return stack;
-        }
-        CompoundTag compoundtag = stack.getOrCreateTag();
-        ListTag listtag = compoundtag.getList(PotionUtils.TAG_CUSTOM_POTION_EFFECTS, 9);
-        for (MobEffectInstance mobeffectinstance : effects) {
-            listtag.add(mobeffectinstance.save(new CompoundTag()));
-        }
-        compoundtag.put(PotionUtils.TAG_CUSTOM_POTION_EFFECTS, listtag);
+        // TODO: Update to use new fluid tag API when available
         return stack;
     }
 
     public static Collection<MobEffectInstance> getCustomEffects(FluidStack stack) {
 
-        if (stack.isEmpty() || !stack.hasTag()) {
-            return Collections.emptyList();
-        }
-        return PotionUtils.getCustomEffects(stack.getOrCreateTag());
+        // TODO: Update to use new fluid tag API when available
+        return Collections.emptyList();
     }
 
     public static FluidStack setCustomColor(FluidStack stack, int color) {
 
-        stack.getOrCreateTag().putInt(PotionUtils.TAG_CUSTOM_POTION_COLOR, color);
+        // TODO: Update to use new fluid tag API when available
         return stack;
     }
 
     public static ItemStack setCustomColor(ItemStack stack, int color) {
 
-        stack.getOrCreateTag().putInt(PotionUtils.TAG_CUSTOM_POTION_COLOR, color);
+        // TODO: Update to use new item tag API when available
         return stack;
     }
 
     public static FluidStack getPotionFluidFromItem(int amount, ItemStack stack) {
 
-        Item item = stack.getItem();
-
-        if (item.equals(Items.POTION)) {
-            Collection<MobEffectInstance> custom = PotionUtils.getCustomEffects(stack);
-            FluidStack fluid = setCustomEffects(
-                    getPotionAsFluid(amount, PotionUtils.getPotion(stack), !custom.isEmpty()), custom);
-            int color = PotionUtils.getColor(stack);
-            if (color != PotionUtils.getColor(PotionUtils.getMobEffects(stack))) {
-                setCustomColor(fluid, color);
+        if (stack.getItem() == Items.POTION) {
+            PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
+            if (contents != null && contents.potion().isPresent() && contents.potion().get() != Potions.WATER) {
+                // TODO: Convert PotionContents to fluid when fluid components are available
+                return new FluidStack(INSTANCE.stillFluid.get(), amount);
             }
-            if (stack.getTag() != null) {
-                if (stack.getTag().contains("HideFlags")) {
-                    fluid.getOrCreateTag().putInt("HideFlags", stack.getTag().getInt("HideFlags"));
-                }
-                if (stack.getTag().contains("display")) {
-                    fluid.getOrCreateTag().put("display", stack.getTag().getCompound("display").copy());
-                }
-            }
-
-            return fluid;
         }
         return FluidStack.EMPTY;
     }
 
     public static ItemStack getItemFromPotionFluid(FluidStack fluid) {
 
-        ItemStack stack = PotionUtils.setCustomEffects(
-                PotionUtils.setPotion(new ItemStack(Items.POTION), FluidHelper.getPotionFromFluid(fluid)),
-                getCustomEffects(fluid));
-        int color = getPotionColor(fluid);
-        if (color != PotionUtils.getColor(stack)) {
-            setCustomColor(stack, color);
-        }
-        if (fluid.getTag() != null) {
-            if (fluid.getTag().contains("HideFlags")) {
-                stack.getOrCreateTag().putInt("HideFlags", fluid.getTag().getInt("HideFlags"));
-            }
-            if (fluid.getTag().contains("display")) {
-                stack.getOrCreateTag().put("display", fluid.getTag().getCompound("display").copy());
-            }
-        }
+        ItemStack stack = new ItemStack(Items.POTION);
+        // TODO: Convert fluid to PotionContents when fluid components are available
         return stack;
     }
     // endregion

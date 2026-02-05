@@ -2,21 +2,24 @@ package cofh.lib.common.item;
 
 import cofh.lib.api.item.ICoFHItem;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.HorseArmorItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-public class HorseArmorItemCoFH extends HorseArmorItem implements ICoFHItem {
+public class HorseArmorItemCoFH extends Item implements ICoFHItem {
 
     protected int enchantability = 1;
+    protected int protection;
 
     public HorseArmorItemCoFH(int protection, String texture, Properties builder) {
 
-        super(protection, texture, builder);
+        super(builder);
+        this.protection = protection;
     }
 
     public HorseArmorItemCoFH(int protection, ResourceLocation texture, Properties builder) {
 
-        super(protection, texture, builder);
+        super(builder);
+        this.protection = protection;
     }
 
     public HorseArmorItemCoFH setEnchantability(int enchantability) {
@@ -50,7 +53,12 @@ public class HorseArmorItemCoFH extends HorseArmorItem implements ICoFHItem {
     @Override
     public String getCreatorModId(ItemStack itemStack) {
 
-        return modId == null || modId.isEmpty() ? super.getCreatorModId(itemStack) : modId;
+        return modId == null || modId.isEmpty() ? "" : modId;
+    }
+
+    @Override
+    public boolean isRepairable(ItemStack stack) {
+        return false; // Horse armor typically not repairable
     }
     // endregion
 }

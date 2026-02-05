@@ -1,6 +1,6 @@
 package cofh.lib.common.item;
 
-import net.minecraft.util.LazyLoadedValue;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -8,21 +8,19 @@ import java.util.function.Supplier;
 
 public class ItemTierCoFH implements Tier {
 
-    private final int level;
     private final int uses;
     private final float speed;
     private final float damage;
     private final int enchantmentValue;
-    private final LazyLoadedValue<Ingredient> repairIngredient;
+    private final Supplier<Ingredient> repairIngredient;
 
     public ItemTierCoFH(int level, int uses, float speed, float damage, int enchantmentValue, Supplier<Ingredient> repairIngredient) {
 
-        this.level = level;
         this.uses = uses;
         this.speed = speed;
         this.damage = damage;
         this.enchantmentValue = enchantmentValue;
-        this.repairIngredient = new LazyLoadedValue<>(repairIngredient);
+        this.repairIngredient = repairIngredient;
     }
 
     // region IItemTier
@@ -45,12 +43,6 @@ public class ItemTierCoFH implements Tier {
     }
 
     @Override
-    public int getLevel() {
-
-        return this.level;
-    }
-
-    @Override
     public int getEnchantmentValue() {
 
         return this.enchantmentValue;
@@ -60,6 +52,11 @@ public class ItemTierCoFH implements Tier {
     public Ingredient getRepairIngredient() {
 
         return this.repairIngredient.get();
+    }
+
+    @Override
+    public TagKey<net.minecraft.world.level.block.Block> getIncorrectBlocksForDrops() {
+        return null; // Default implementation - can be customized if needed
     }
     // endregion
 }

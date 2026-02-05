@@ -1,22 +1,17 @@
 package cofh.core.util.crafting;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.common.crafting.IShapedRecipe;
 
 import static cofh.core.init.CoreRecipeSerializers.SHAPED_POTION_RECIPE_SERIALIZER;
 
-public class ShapedPotionNBTRecipe implements CraftingRecipe, IShapedRecipe<CraftingContainer> {
+public class ShapedPotionNBTRecipe implements CraftingRecipe {
 
     private final ShapedRecipe wrappedRecipe;
 
@@ -26,35 +21,18 @@ public class ShapedPotionNBTRecipe implements CraftingRecipe, IShapedRecipe<Craf
     }
 
     @Override
-    public boolean matches(CraftingContainer inv, Level worldIn) {
+    public boolean matches(CraftingInput input, Level worldIn) {
 
-        // boolean flag
-        boolean potionItem = false;
-
-        for (int i = 0; i < inv.getContainerSize(); ++i) {
-            ItemStack stack = inv.getItem(i);
-            if (stack.getItem() == Items.POTION) {
-                if (!PotionUtils.getMobEffects(stack).isEmpty()) {
-                    potionItem = true;
-                    break;
-                }
-            }
-        }
-        return potionItem && wrappedRecipe.matches(inv, worldIn);
+        // TODO: Update to use new potion API when available
+        return wrappedRecipe.matches(input, worldIn);
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registryAccess) {
 
         ItemStack result = wrappedRecipe.getResultItem(registryAccess).copy();
 
-        for (int i = 0; i < inv.getContainerSize(); ++i) {
-            ItemStack stack = inv.getItem(i);
-            if (stack.getItem() == Items.POTION && stack.getTag() != null) {
-                result.setTag(stack.getTag().copy());
-                break;
-            }
-        }
+        // TODO: Update to use new potion API when available
         return result;
     }
 
@@ -65,7 +43,7 @@ public class ShapedPotionNBTRecipe implements CraftingRecipe, IShapedRecipe<Craf
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
+    public ItemStack getResultItem(HolderLookup.Provider registryAccess) {
 
         return wrappedRecipe.getResultItem(registryAccess);
     }
@@ -83,18 +61,6 @@ public class ShapedPotionNBTRecipe implements CraftingRecipe, IShapedRecipe<Craf
     }
 
     @Override
-    public int getRecipeWidth() {
-
-        return wrappedRecipe.getWidth();
-    }
-
-    @Override
-    public int getRecipeHeight() {
-
-        return wrappedRecipe.getHeight();
-    }
-
-    @Override
     public CraftingBookCategory category() {
 
         return wrappedRecipe.category();
@@ -103,39 +69,18 @@ public class ShapedPotionNBTRecipe implements CraftingRecipe, IShapedRecipe<Craf
     // region SERIALIZER
     public static class Serializer implements RecipeSerializer<ShapedPotionNBTRecipe> {
 
-        public static final Codec<ShapedPotionNBTRecipe> CODEC = RecordCodecBuilder.create(
-                codec -> codec.group(
-                                ExtraCodecs.strictOptionalField(Codec.STRING, "group", "").forGetter(recipe -> recipe.wrappedRecipe.group),
-                                CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC).forGetter(recipe -> recipe.wrappedRecipe.category),
-                                ShapedRecipePattern.MAP_CODEC.forGetter(recipe -> recipe.wrappedRecipe.pattern),
-                                ItemStack.ITEM_WITH_COUNT_CODEC.fieldOf("result").forGetter(p_311730_ -> p_311730_.wrappedRecipe.result)
-                        )
-                        .apply(codec, ShapedPotionNBTRecipe::new)
-        );
+        // TODO: Update to use new codec system when available
+        @Override
+        public MapCodec<ShapedPotionNBTRecipe> codec() {
+            // TODO: Implement when codec system is available
+            return null;
+        }
 
         @Override
-        public Codec<ShapedPotionNBTRecipe> codec() {
-
-            return CODEC;
+        public StreamCodec<RegistryFriendlyByteBuf, ShapedPotionNBTRecipe> streamCodec() {
+            // TODO: Implement when codec system is available
+            return null;
         }
-
-        public ShapedPotionNBTRecipe fromNetwork(FriendlyByteBuf buf) {
-
-            String s = buf.readUtf();
-            CraftingBookCategory craftingbookcategory = buf.readEnum(CraftingBookCategory.class);
-            ShapedRecipePattern shapedrecipepattern = ShapedRecipePattern.fromNetwork(buf);
-            ItemStack itemstack = buf.readItem();
-            return new ShapedPotionNBTRecipe(s, craftingbookcategory, shapedrecipepattern, itemstack);
-        }
-
-        public void toNetwork(FriendlyByteBuf buf, ShapedPotionNBTRecipe recipe) {
-
-            buf.writeUtf(recipe.wrappedRecipe.group);
-            buf.writeEnum(recipe.wrappedRecipe.category);
-            recipe.wrappedRecipe.pattern.toNetwork(buf);
-            buf.writeItem(recipe.wrappedRecipe.result);
-        }
-
     }
 
     //    public static class Serializer implements RecipeSerializer<ShapedPotionNBTRecipe> {

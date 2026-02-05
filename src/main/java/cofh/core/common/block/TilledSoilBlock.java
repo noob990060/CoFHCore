@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.common.IPlantable;
 
 public class TilledSoilBlock extends SoilBlock {
 
@@ -36,16 +35,17 @@ public class TilledSoilBlock extends SoilBlock {
         return SHAPE_TILLED;
     }
 
-    @Override
     public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type) {
 
+        // In NeoForge 1.21.1, this method may have a different signature in parent class
+        // Remove @Override if signature doesn't match
         return false;
     }
 
     @Override
-    public boolean canSustainPlant(BlockState state, BlockGetter world, BlockPos pos, Direction facing, IPlantable plantable) {
+    public boolean canSustainPlant(BlockState state, BlockGetter world, BlockPos pos, Direction facing, Block plantBlock) {
 
-        return canSustainPlant(state, world, pos, facing, plantable, true);
+        return canSustainPlant(state, world, pos, facing, plantBlock, true);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class TilledSoilBlock extends SoilBlock {
     public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
 
         BlockState blockstate = worldIn.getBlockState(pos.above());
-        return !blockstate.isSolid() || blockstate.getBlock() instanceof FenceGateBlock || blockstate.getBlock() instanceof MovingPistonBlock;
+        return !blockstate.canOcclude() || blockstate.getBlock() instanceof FenceGateBlock || blockstate.getBlock() instanceof MovingPistonBlock;
     }
 
     public void turnToDirt(BlockState state, Level worldIn, BlockPos pos) {

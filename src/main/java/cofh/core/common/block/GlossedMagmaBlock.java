@@ -8,7 +8,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -23,7 +22,6 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import javax.annotation.Nullable;
 
 import static cofh.lib.util.Constants.DIRECTIONS;
-import static cofh.lib.util.Utils.getItemEnchantmentLevel;
 
 public class GlossedMagmaBlock extends MagmaBlock {
 
@@ -45,9 +43,19 @@ public class GlossedMagmaBlock extends MagmaBlock {
     public void playerDestroy(Level worldIn, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity te, ItemStack stack) {
 
         super.playerDestroy(worldIn, player, pos, state, te, stack);
-        if (getItemEnchantmentLevel(Enchantments.SILK_TOUCH, stack) <= 0) {
+        // Check for silk touch enchantment using NeoForge 1.21.1 API
+        boolean hasSilkTouch = false;
+        if (worldIn instanceof ServerLevel serverLevel) {
+            var enchantmentLookup = serverLevel.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+            var enchantments = stack.getAllEnchantments(enchantmentLookup);
+            if (enchantments instanceof java.util.Map) {
+                hasSilkTouch = ((java.util.Map<?, ?>) enchantments).containsKey(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH);
+            }
+        }
+        
+        if (!hasSilkTouch) {
             BlockState below = worldIn.getBlockState(pos.below());
-            if (below.blocksMotion() || below.liquid()) {
+            if (below.canOcclude() || below.is(net.minecraft.world.level.block.Blocks.WATER)) {
                 worldIn.setBlockAndUpdate(pos, Blocks.LAVA.defaultBlockState());
             }
         }

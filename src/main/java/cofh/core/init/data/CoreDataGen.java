@@ -1,5 +1,6 @@
 package cofh.core.init.data;
 
+import cofh.core.init.data.enchantments.CoreEnchantmentsProvider;
 import cofh.core.init.data.providers.CoreBlockStateProvider;
 import cofh.core.init.data.providers.CoreItemModelProvider;
 import cofh.core.init.data.providers.CoreLootTableProvider;
@@ -7,13 +8,13 @@ import cofh.core.init.data.providers.CoreTagsProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
-@Mod.EventBusSubscriber(modid = ID_COFH_CORE, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ID_COFH_CORE)
 public class CoreDataGen {
 
     @SubscribeEvent
@@ -32,6 +33,9 @@ public class CoreDataGen {
         gen.addProvider(event.includeServer(), new CoreTagsProvider.DamageType(output, event.getLookupProvider(), exFileHelper));
 
         gen.addProvider(event.includeServer(), new CoreLootTableProvider(output));
+        
+        // Add enchantment data generation
+        gen.addProvider(event.includeServer(), new CoreEnchantmentsProvider(output, event.getLookupProvider()));
 
         gen.addProvider(event.includeClient(), new CoreBlockStateProvider(output, exFileHelper));
         gen.addProvider(event.includeClient(), new CoreItemModelProvider(output, exFileHelper));

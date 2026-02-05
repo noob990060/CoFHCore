@@ -5,12 +5,14 @@ import cofh.lib.api.control.ISecurable.AccessMode;
 import com.google.common.base.Strings;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.OldUsersConverter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -85,7 +87,15 @@ public final class SecurityHelper {
     // region ITEM HELPERS
     public static void createSecurityTag(ItemStack stack) {
 
-        stack.getOrCreateTagElement(TAG_SECURITY);
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(new CompoundTag()));
+        }
+        CompoundTag root = stack.get(DataComponents.CUSTOM_DATA).copyTag();
+        if (!root.contains(TAG_SECURITY)) {
+            root.put(TAG_SECURITY, new CompoundTag());
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(root));
+        }
     }
 
     public static boolean isItemClaimable(ItemStack stack) {
@@ -105,11 +115,16 @@ public final class SecurityHelper {
 
     public static CompoundTag getSecurityTag(ItemStack stack) {
 
-        CompoundTag nbt = stack.getTagElement(TAG_BLOCK_ENTITY);
-        if (nbt != null) {
-            return nbt.contains(TAG_SECURITY) ? nbt.getCompound(TAG_SECURITY) : null;
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return null;
         }
-        return stack.getTagElement(TAG_SECURITY);
+        CompoundTag root = customData.copyTag();
+        if (root.contains(TAG_BLOCK_ENTITY)) {
+            CompoundTag blockTag = root.getCompound(TAG_BLOCK_ENTITY);
+            return blockTag.contains(TAG_SECURITY) ? blockTag.getCompound(TAG_SECURITY) : null;
+        }
+        return root.contains(TAG_SECURITY) ? root.getCompound(TAG_SECURITY) : null;
     }
 
     public static boolean hasSecurity(ItemStack stack) {

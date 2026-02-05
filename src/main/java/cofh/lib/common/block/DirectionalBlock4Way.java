@@ -53,9 +53,9 @@ public class DirectionalBlock4Way extends Block {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 
-        if (Utils.isWrench(player.getItemInHand(handIn))) {
+        if (Utils.isWrench(player.getItemInHand(InteractionHand.MAIN_HAND))) {
 
             BlockState rotState = rotate(state, worldIn, pos, Rotation.CLOCKWISE_90);
             if (rotState != state) {

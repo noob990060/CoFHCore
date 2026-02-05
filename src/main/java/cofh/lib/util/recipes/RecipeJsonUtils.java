@@ -4,7 +4,9 @@ import cofh.lib.common.block.BlockIngredient;
 import cofh.lib.common.fluid.FluidIngredient;
 import cofh.lib.util.crafting.IngredientWithCount;
 import com.google.gson.*;
+import com.mojang.serialization.JsonOps;
 import com.mojang.logging.LogUtils;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
@@ -12,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -34,16 +37,18 @@ public abstract class RecipeJsonUtils {
     }
 
     // region HELPERS
-    public static Ingredient parseIngredient(JsonElement element) {
+    public static IngredientWithCount parseIngredient(JsonElement element) {
 
         if (element == null || element.isJsonNull()) {
-            return Ingredient.of(ItemStack.EMPTY);
+            return new IngredientWithCount(Ingredient.of(ItemStack.EMPTY), 1);
         }
         Ingredient ingredient;
 
         if (element.isJsonArray()) {
             try {
-                ingredient = Ingredient.fromJson(element, true);
+                ingredient = Ingredient.CODEC.parse(JsonOps.INSTANCE, element)
+                        .resultOrPartial(message -> LOG.debug("Invalid Ingredient - using EMPTY instead! {}", message))
+                        .orElse(Ingredient.of(ItemStack.EMPTY));
             } catch (Throwable t) {
                 ingredient = Ingredient.of(ItemStack.EMPTY);
                 LOG.debug("Invalid Ingredient - using EMPTY instead!", t);
@@ -53,9 +58,13 @@ public abstract class RecipeJsonUtils {
             try {
                 JsonObject object = subElement.getAsJsonObject();
                 if (object.has(VALUE)) {
-                    ingredient = Ingredient.fromJson(object.get(VALUE), true);
+                    ingredient = Ingredient.CODEC.parse(JsonOps.INSTANCE, object.get(VALUE))
+                            .resultOrPartial(message -> LOG.debug("Invalid Ingredient - using EMPTY instead! {}", message))
+                            .orElse(Ingredient.of(ItemStack.EMPTY));
                 } else {
-                    ingredient = Ingredient.fromJson(subElement, true);
+                    ingredient = Ingredient.CODEC.parse(JsonOps.INSTANCE, subElement)
+                            .resultOrPartial(message -> LOG.debug("Invalid Ingredient - using EMPTY instead! {}", message))
+                            .orElse(Ingredient.of(ItemStack.EMPTY));
                 }
                 int count = 1;
                 if (object.has(COUNT)) {
@@ -63,15 +72,13 @@ public abstract class RecipeJsonUtils {
                 } else if (object.has(AMOUNT)) {
                     count = object.get(AMOUNT).getAsInt();
                 }
-                if (count > 1) {
-                    return new IngredientWithCount(ingredient, count);
-                }
+                return new IngredientWithCount(ingredient, count);
             } catch (Throwable t) {
                 ingredient = Ingredient.of(ItemStack.EMPTY);
                 LOG.debug("Invalid Ingredient - using EMPTY instead!", t);
             }
         }
-        return ingredient;
+        return new IngredientWithCount(ingredient, 1);
     }
 
     public static FluidIngredient parseFluidIngredient(JsonElement element) {
@@ -124,7 +131,7 @@ public abstract class RecipeJsonUtils {
         return ingredient;
     }
 
-    public static void parseInputs(List<Ingredient> ingredients, List<FluidIngredient> fluids, JsonElement element) {
+    public static void parseInputs(List<IngredientWithCount> ingredients, List<FluidIngredient> fluids, JsonElement element) {
 
         if (element.isJsonArray()) {
             for (JsonElement arrayElement : element.getAsJsonArray()) {
@@ -214,7 +221,7 @@ public abstract class RecipeJsonUtils {
                     } else {
                         nbt = TagParser.parseTag(GsonHelper.convertToString(nbtElement, NBT));
                     }
-                    stack.setTag(nbt);
+                    stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
                 } catch (Exception e) {
                     LOG.debug("Invalid ItemStack - using EMPTY instead!", e);
                     return ItemStack.EMPTY;
@@ -265,7 +272,7 @@ public abstract class RecipeJsonUtils {
                     } else {
                         nbt = TagParser.parseTag(GsonHelper.convertToString(nbtElement, NBT));
                     }
-                    stack.setTag(nbt);
+                    stack.set(DataComponents.CUSTOM_DATA, CustomData.of(nbt));
                 } catch (Exception e) {
                     LOG.debug("Invalid FluidStack - using EMPTY instead!", e);
                     return FluidStack.EMPTY;

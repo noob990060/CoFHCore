@@ -1,5 +1,6 @@
 package cofh.core.common.entity;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.damagesource.DamageSource;
@@ -40,7 +41,8 @@ public class BoatCoFH extends Boat implements IOnPlaced {
 
     public BoatCoFH onPlaced(ItemStack stack) {
 
-        this.enchantments = stack.getEnchantmentTags();
+        // For now, keep enchantments empty since the API has changed
+        this.enchantments = new ListTag();
         return this;
     }
 
@@ -53,10 +55,10 @@ public class BoatCoFH extends Boat implements IOnPlaced {
     public ItemStack createItemStackTag(ItemStack stack) {
 
         if (this.hasCustomName()) {
-            stack.setHoverName(this.getCustomName());
+            stack.set(DataComponents.CUSTOM_NAME, this.getCustomName());
         }
         if (!this.enchantments.isEmpty()) {
-            stack.addTagElement(TAG_ENCHANTMENTS, enchantments);
+            // TODO: Update to use new enchantment component system when available
         }
         return stack;
     }

@@ -5,7 +5,7 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.loading.FMLPaths;
@@ -41,6 +41,12 @@ public class ConfigManager {
         return this;
     }
 
+    protected ModContainer getModContainer() {
+        // This should be injected or obtained from the main mod class
+        // For now, we'll need to access it through the mod loading context
+        return net.neoforged.fml.ModLoadingContext.get().getActiveContainer();
+    }
+
     public synchronized ConfigManager addCommonConfig(IBaseConfig config) {
 
         commonSubConfigs.add(config);
@@ -64,11 +70,11 @@ public class ConfigManager {
         if (!commonInit) {
             genCommonConfig();
             commonSpec = commonConfig.build();
-            ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, commonSpec);
+            getModContainer().registerConfig(ModConfig.Type.COMMON, commonSpec);
             commonInit = true;
 
             String configName = String.format(Locale.ROOT, "%s-%s.toml",
-                    ModLoadingContext.get().getActiveContainer().getModId(), ModConfig.Type.COMMON.extension());
+                    getModContainer().getModId(), ModConfig.Type.COMMON.extension());
             loadConfig(commonSpec, FMLPaths.CONFIGDIR.get().resolve(configName));
         }
     }
@@ -83,7 +89,8 @@ public class ConfigManager {
                 .build();
 
         configData.load();
-        spec.setConfig(configData);
+        // In NeoForge 1.21.1, the config is automatically loaded from the file
+        // No need to call setConfig() anymore
     }
 
     /**
@@ -94,7 +101,7 @@ public class ConfigManager {
         if (ProxyUtils.isClient() && !clientInit) {
             genClientConfig();
             clientSpec = clientConfig.build();
-            ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, clientSpec);
+            getModContainer().registerConfig(ModConfig.Type.CLIENT, clientSpec);
             clientInit = true;
         }
     }
@@ -107,7 +114,7 @@ public class ConfigManager {
         if (!serverInit) {
             genServerConfig();
             serverSpec = serverConfig.build();
-            ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, serverSpec);
+            getModContainer().registerConfig(ModConfig.Type.SERVER, serverSpec);
             serverInit = true;
         }
     }

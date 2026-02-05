@@ -17,14 +17,11 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.common.CommonHooks;
-import net.neoforged.neoforge.common.PlantType;
 
 import java.util.List;
 
 import static cofh.lib.util.constants.BlockStatePropertiesCoFH.AGE_0_9;
 import static cofh.lib.util.constants.BlockStatePropertiesCoFH.TOP;
-import static net.minecraft.world.item.enchantment.Enchantments.BLOCK_FORTUNE;
 
 public class CropBlockTall extends CropBlockCoFH {
 
@@ -38,15 +35,10 @@ public class CropBlockTall extends CropBlockCoFH {
             box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D),
             box(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D)};
 
-    public CropBlockTall(Properties builder, PlantType type, int growLight, float growMod) {
-
-        super(builder, type, growLight, growMod);
-        this.registerDefaultState(this.stateDefinition.any().setValue(this.getAgeProperty(), 0).setValue(TOP, false));
-    }
-
     public CropBlockTall(Properties builder, int growLight, float growMod) {
 
-        this(builder, PlantType.CROP, growLight, growMod);
+        super(builder, growLight, growMod);
+        this.registerDefaultState(this.stateDefinition.any().setValue(this.getAgeProperty(), 0).setValue(TOP, false));
     }
 
     public CropBlockTall(Properties builder) {
@@ -99,14 +91,13 @@ public class CropBlockTall extends CropBlockCoFH {
         if (worldIn.getRawBrightness(pos, 0) >= growLight) {
             if (!canHarvest(state)) {
                 int age = getAge(state);
-                float growthChance = MathHelper.maxF(getGrowthSpeed(this, worldIn, pos) * growMod, 0.1F);
-                if (CommonHooks.onCropsGrowPre(worldIn, pos, state, rand.nextInt((int) (25.0F / growthChance) + 1) == 0)) {
+                float growthChance = MathHelper.maxF(getGrowthSpeed(state, worldIn, pos) * growMod, 0.1F);
+                if (rand.nextInt((int) (25.0F / growthChance) + 1) == 0) {
                     int newAge = age + 1 == getPostHarvestAge() ? getMaxAge() : age + 1;
                     worldIn.setBlock(pos, getStateForAge(newAge), 2);
                     if (newAge >= getTallAge()) {
                         worldIn.setBlock(pos.above(), getStateForAge(newAge).setValue(TOP, true), 2);
                     }
-                    CommonHooks.onCropsGrowPost(worldIn, pos, state);
                 }
             }
         }
@@ -161,7 +152,9 @@ public class CropBlockTall extends CropBlockCoFH {
             return true;
         }
         if (getPostHarvestAge() >= 0) {
-            int fortune = Utils.getItemEnchantmentLevel(BLOCK_FORTUNE, player.getMainHandItem());
+            // TODO: BLOCK_FORTUNE is no longer available in NeoForge 1.21.1
+            // Block fortune enchantments have been removed or changed significantly
+            int fortune = 0; // Utils.getItemEnchantmentLevel(EnchantmentEffectComponents.BLOCK_FORTUNE, player.getMainHandItem());
             Utils.dropItemStackIntoWorldWithRandomness(new ItemStack(getCropItem(), 2 + MathHelper.binomialDist(fortune, 0.5D)), world, pos);
             if (isTop(state)) {
                 world.setBlock(pos, this.getStateForAge(getPostHarvestAge() + getTallAge()), 2);

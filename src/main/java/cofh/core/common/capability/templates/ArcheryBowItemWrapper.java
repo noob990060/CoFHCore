@@ -3,6 +3,7 @@ package cofh.core.common.capability.templates;
 import cofh.core.util.helpers.ArcheryHelper;
 import cofh.lib.api.capability.IArcheryBowItem;
 import cofh.lib.util.helpers.MathHelper;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -50,7 +51,7 @@ public class ArcheryBowItemWrapper implements IArcheryBowItem {
     @Override
     public void onArrowLoosed(Player shooter) {
 
-        bowItem.hurtAndBreak(1, shooter, (entity) -> entity.broadcastBreakEvent(shooter.getUsedItemHand()));
+        bowItem.hurtAndBreak(1, shooter, EquipmentSlot.MAINHAND);
     }
 
     @Override

@@ -97,7 +97,7 @@ public class ElectricField extends AbstractFieldSpell {
             Entity target = result.getEntity();
             target.hurt(source, power * 4.0F);
             if (target instanceof LivingEntity living && rand.nextFloat() < power * 0.4F) {
-                living.addEffect(new MobEffectInstance(CoreMobEffects.SHOCKED.get(), 80, 0, true, false, true));
+                living.addEffect(new MobEffectInstance(CoreMobEffects.SHOCKED.getDelegate(), 80, 0, true, false, true));
             }
         });
     }

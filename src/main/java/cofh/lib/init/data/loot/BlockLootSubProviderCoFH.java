@@ -6,6 +6,7 @@ import net.minecraft.advancements.critereon.EnchantmentPredicate;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.MinMaxBounds;
 import net.minecraft.advancements.critereon.StatePropertiesPredicate;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.flag.FeatureFlags;
@@ -36,9 +37,9 @@ public abstract class BlockLootSubProviderCoFH extends BlockLootSubProvider {
 
     private final Set<Block> knownBlocks = new ReferenceOpenHashSet<>();
 
-    protected BlockLootSubProviderCoFH() {
+    protected BlockLootSubProviderCoFH(HolderLookup.Provider provider) {
 
-        super(Collections.emptySet(), FeatureFlags.VANILLA_SET);
+        super(Collections.emptySet(), FeatureFlags.REGISTRY.allFlags(), provider);
     }
 
     @Override
@@ -71,12 +72,9 @@ public abstract class BlockLootSubProviderCoFH extends BlockLootSubProvider {
         LootPool.Builder builder = LootPool.lootPool()
                 .name(name)
                 .setRolls(ConstantValue.exactly(1))
-                .add(AlternativesEntry.alternatives(LootItem.lootTableItem(block)
-                        .when(MatchTool.toolMatches(ItemPredicate.Builder.item()
-                                .hasEnchantment(new EnchantmentPredicate(Enchantments.SILK_TOUCH, MinMaxBounds.Ints.atLeast(1))))), LootItem.lootTableItem(lootItem)
+                .add(LootItem.lootTableItem(block)
                         .apply(SetItemCountFunction.setCount(UniformGenerator.between(min, max)))
-                        .apply(ApplyBonusCount.addUniformBonusCount(Enchantments.BLOCK_FORTUNE, bonus))
-                        .apply(ApplyExplosionDecay.explosionDecay())));
+                        .apply(ApplyExplosionDecay.explosionDecay()));
         return LootTable.lootTable().withPool(builder);
     }
 
@@ -84,11 +82,8 @@ public abstract class BlockLootSubProviderCoFH extends BlockLootSubProvider {
 
         LootPool.Builder builder = LootPool.lootPool()
                 .setRolls(ConstantValue.exactly(1))
-                .add(AlternativesEntry.alternatives(LootItem.lootTableItem(block)
-                        .when(MatchTool.toolMatches(ItemPredicate.Builder.item()
-                                .hasEnchantment(new EnchantmentPredicate(Enchantments.SILK_TOUCH, MinMaxBounds.Ints.atLeast(1))))), LootItem.lootTableItem(lootItem)
-                        .apply(ApplyBonusCount.addOreBonusCount(Enchantments.BLOCK_FORTUNE))
-                        .apply(ApplyExplosionDecay.explosionDecay())));
+                .add(LootItem.lootTableItem(lootItem)
+                        .apply(ApplyExplosionDecay.explosionDecay()));
         return LootTable.lootTable().withPool(builder);
     }
 
@@ -102,9 +97,7 @@ public abstract class BlockLootSubProviderCoFH extends BlockLootSubProvider {
                                 .otherwise(LootItem.lootTableItem(seed))))
                 .withPool(LootPool.lootPool()
                         .when(harvestAge)
-                        .add(LootItem.lootTableItem(seed)
-                                // These are Mojang's numbers. No idea.
-                                .apply(ApplyBonusCount.addBonusBinomialDistributionCount(Enchantments.BLOCK_FORTUNE, 0.5714286F, 3))))
+                        .add(LootItem.lootTableItem(seed)))
                 .apply(ApplyExplosionDecay.explosionDecay());
     }
 
@@ -116,9 +109,8 @@ public abstract class BlockLootSubProviderCoFH extends BlockLootSubProvider {
                         .add(LootItem.lootTableItem(crop)))
                 .withPool(LootPool.lootPool()
                         .when(harvestAge)
-                        .add(LootItem.lootTableItem(crop)
-                                .apply(ApplyBonusCount.addBonusBinomialDistributionCount(Enchantments.BLOCK_FORTUNE, 0.5714286F, 3)))
-                        .apply(ApplyExplosionDecay.explosionDecay()));
+                        .add(LootItem.lootTableItem(crop)))
+                .apply(ApplyExplosionDecay.explosionDecay());
     }
 
     protected LootTable.Builder getSimpleDropTable(Block block) {
@@ -145,9 +137,7 @@ public abstract class BlockLootSubProviderCoFH extends BlockLootSubProvider {
                         .apply(CopyNbtFunction.copyData(ContextNbtProvider.BLOCK_ENTITY)
                                 .copy("Info", "BlockEntityTag.Info", CopyNbtFunction.MergeStrategy.REPLACE)
                                 .copy("Items", "BlockEntityTag.Items", CopyNbtFunction.MergeStrategy.REPLACE)
-                                .copy("Energy", "BlockEntityTag.Energy", CopyNbtFunction.MergeStrategy.REPLACE))
-                        .apply(SetContainerContents.setContents(type)
-                                .withEntry(DynamicLoot.dynamicEntry(ResourceLocation.fromNamespaceAndPath("minecraft", "contents"))));
+                                .copy("Energy", "BlockEntityTag.Energy", CopyNbtFunction.MergeStrategy.REPLACE)));
         return LootTable.lootTable().withPool(builder);
     }
 

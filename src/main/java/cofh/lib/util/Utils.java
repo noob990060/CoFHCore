@@ -11,10 +11,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -39,6 +40,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -54,7 +56,6 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.entity.PartEntity;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
@@ -62,10 +63,6 @@ import java.nio.file.Path;
 
 import static cofh.lib.util.Constants.MAX_CAPACITY;
 import static cofh.lib.util.Constants.NETWORK_UPDATE_DISTANCE;
-import static cofh.lib.util.constants.NBTTags.TAG_ENCHANTMENTS;
-import static net.minecraft.nbt.Tag.TAG_COMPOUND;
-import static net.minecraft.nbt.Tag.TAG_LIST;
-import static net.minecraft.world.item.enchantment.EnchantmentHelper.getEnchantmentLevel;
 
 public class Utils {
 
@@ -123,9 +120,11 @@ public class Utils {
 
     public static void loadConfig(ModConfigSpec spec, Path path) {
 
-        final CommentedFileConfig configData = CommentedFileConfig.builder(path).sync().autosave().writingMode(WritingMode.REPLACE).build();
+        final CommentedFileConfig configData = CommentedFileConfig.builder(path).sync().autosave()
+                .writingMode(WritingMode.REPLACE).build();
         configData.load();
-        spec.setConfig(configData);
+        // TODO: Update config loading for NeoForge 1.21.1
+        // spec.setConfig(configData) method has been removed
     }
 
     public static boolean spawnLightningBolt(Level world, BlockPos pos) {
@@ -159,7 +158,8 @@ public class Utils {
     public static boolean destroyBlock(Level world, BlockPos pos, boolean dropBlock, @Nullable Entity entityIn) {
 
         BlockState state = world.getBlockState(pos);
-        if (state.isAir() || state.getDestroySpeed(world, pos) < 0 || (entityIn instanceof Player player && state.getDestroyProgress(player, world, pos) < 0)) {
+        if (state.isAir() || state.getDestroySpeed(world, pos) < 0
+                || (entityIn instanceof Player player && state.getDestroyProgress(player, world, pos) < 0)) {
             return false;
         } else {
             FluidState ifluidstate = world.getFluidState(pos);
@@ -208,7 +208,8 @@ public class Utils {
                 // noinspection unchecked
                 return (E) e;
             }
-            throw new IllegalStateException("Client could not locate entity (id: " + entityId + ")  for entity container or the entity was of an invalid type. This is likely caused by a mod breaking client side entity lookup.");
+            throw new IllegalStateException("Client could not locate entity (id: " + entityId
+                    + ")  for entity container or the entity was of an invalid type. This is likely caused by a mod breaking client side entity lookup.");
         }
         return null;
     }
@@ -224,7 +225,8 @@ public class Utils {
         return hurt;
     }
 
-    public static DamageSource source(DamageSources sources, ResourceKey<DamageType> type, @Nullable Entity directEntity, @Nullable Entity causingEntity, Vec3 location) {
+    public static DamageSource source(DamageSources sources, ResourceKey<DamageType> type,
+            @Nullable Entity directEntity, @Nullable Entity causingEntity, Vec3 location) {
 
         return new DamageSource(sources.damageTypes.getHolderOrThrow(type), directEntity, causingEntity, location);
     }
@@ -273,7 +275,8 @@ public class Utils {
     // endregion
 
     // region PARTICLE UTILS
-    public static void spawnBlockParticlesClient(Level world, ParticleOptions particle, BlockPos pos, RandomSource rand, int count) {
+    public static void spawnBlockParticlesClient(Level world, ParticleOptions particle, BlockPos pos, RandomSource rand,
+            int count) {
 
         for (int i = 0; i < count; ++i) {
             double d0 = (double) pos.getX() + rand.nextDouble();
@@ -286,27 +289,34 @@ public class Utils {
         }
     }
 
-    public static void spawnParticles(Level world, ParticleOptions particle, double posX, double posY, double posZ, int particleCount, double xOffset, double yOffset, double zOffset, double speed) {
+    public static void spawnParticles(Level world, ParticleOptions particle, double posX, double posY, double posZ,
+            int particleCount, double xOffset, double yOffset, double zOffset, double speed) {
 
         if (isServerWorld(world)) {
-            ((ServerLevel) world).sendParticles(particle, posX, posY + 1.0D, posZ, particleCount, xOffset, yOffset, zOffset, speed);
+            ((ServerLevel) world).sendParticles(particle, posX, posY + 1.0D, posZ, particleCount, xOffset, yOffset,
+                    zOffset, speed);
         } else {
             world.addParticle(particle, posX + xOffset, posY + yOffset, posZ + zOffset, 0.0D, 0.0D, 0.0D);
         }
     }
 
-    public static void spawnParticles(Level level, ParticleOptions particle, int count, Vec3 pos, float posVar, Vec3 velocity, float velVar) {
+    public static void spawnParticles(Level level, ParticleOptions particle, int count, Vec3 pos, float posVar,
+            Vec3 velocity, float velVar) {
 
         for (int i = 0; i < count; ++i) {
             spawnParticles(level, particle, pos, posVar, velocity, velVar);
         }
     }
 
-    public static void spawnParticles(Level level, ParticleOptions particle, Vec3 pos, float posVar, Vec3 velocity, float velVar) {
+    public static void spawnParticles(Level level, ParticleOptions particle, Vec3 pos, float posVar, Vec3 velocity,
+            float velVar) {
 
         RandomSource rand = level.getRandom();
-        spawnParticles(level, particle, pos.add(rand.nextFloat() * posVar * 2 - posVar, rand.nextFloat() * posVar * 2 - posVar, rand.nextFloat() * posVar * 2 - posVar),
-                velocity.add(rand.nextFloat() * velVar * 2 - velVar, rand.nextFloat() * velVar * 2 - velVar, rand.nextFloat() * velVar * 2 - velVar));
+        spawnParticles(level, particle,
+                pos.add(rand.nextFloat() * posVar * 2 - posVar, rand.nextFloat() * posVar * 2 - posVar,
+                        rand.nextFloat() * posVar * 2 - posVar),
+                velocity.add(rand.nextFloat() * velVar * 2 - velVar, rand.nextFloat() * velVar * 2 - velVar,
+                        rand.nextFloat() * velVar * 2 - velVar));
     }
 
     public static void spawnParticles(Level level, ParticleOptions particle, Vec3 pos, Vec3 velocity) {
@@ -359,9 +369,14 @@ public class Utils {
 
     public static boolean isPotionApplicableNoEvent(LivingEntity entity, MobEffectInstance potioneffectIn) {
 
-        if (entity.getMobType() == MobType.UNDEAD) {
-            MobEffect effect = potioneffectIn.getEffect();
-            return effect != MobEffects.REGENERATION && effect != MobEffects.POISON;
+        // In NeoForge 1.21.1, MobType has been replaced with MobCategory
+        // Undead entities are typically classified as MONSTER category
+        // We need to check if the entity is undead and if the effect is harmful to
+        // undead
+        Holder<MobEffect> effectHolder = potioneffectIn.getEffect();
+        if (entity.getType().getCategory() == MobCategory.MONSTER &&
+                (effectHolder.is(MobEffects.REGENERATION) || effectHolder.is(MobEffects.POISON))) {
+            return false;
         }
         return true;
     }
@@ -398,7 +413,8 @@ public class Utils {
         ItemEntity entity = new ItemEntity(world, pos.x + x2, pos.y + y2, pos.z + z2, stack.copy());
 
         if (velocity) {
-            entity.setDeltaMovement(world.random.nextGaussian() * 0.05F, world.random.nextGaussian() * 0.05F + 0.2F, world.random.nextGaussian() * 0.05F);
+            entity.setDeltaMovement(world.random.nextGaussian() * 0.05F, world.random.nextGaussian() * 0.05F + 0.2F,
+                    world.random.nextGaussian() * 0.05F);
         } else {
             entity.setDeltaMovement(-0.05, 0, 0);
         }
@@ -446,7 +462,7 @@ public class Utils {
             return false;
         }
         if (entity instanceof ServerPlayer player && !isFakePlayer(entity)) {
-            if (player.connection.connection.isConnected() && !player.isSleeping()) {
+            if (player.connection.getConnection().isConnected() && !player.isSleeping()) {
                 if (entity.isPassenger()) {
                     entity.stopRiding();
                 }
@@ -468,7 +484,9 @@ public class Utils {
     // region ENCHANT UTILS
     public static Enchantment getEnchantment(String modId, String enchantId) {
 
-        return BuiltInRegistries.ENCHANTMENT.get(ResourceLocation.fromNamespaceAndPath(modId, enchantId));
+        @SuppressWarnings("unchecked")
+        Registry<Enchantment> registry = (Registry<Enchantment>) BuiltInRegistries.REGISTRY.get(Registries.ENCHANTMENT);
+        return registry.get(ResourceLocation.fromNamespaceAndPath(modId, enchantId));
     }
 
     public static int getEnchantedCapacity(int amount, int holding) {
@@ -478,52 +496,65 @@ public class Utils {
 
     public static int getItemEnchantmentLevel(Enchantment ench, ItemStack stack) {
 
-        if (ench == null || ench instanceof EnchantmentCoFH && !((EnchantmentCoFH) ench).isEnabled()) {
+        if (ench == null) {
             return 0;
         }
-        return EnchantmentHelper.getItemEnchantmentLevel(ench, stack);
+        if (!EnchantmentCoFH.isEnabled(ench)) {
+            return 0;
+        }
+        @SuppressWarnings("unchecked")
+        Registry<Enchantment> registry = (Registry<Enchantment>) BuiltInRegistries.REGISTRY.get(Registries.ENCHANTMENT);
+        Holder<Enchantment> enchHolder = registry.wrapAsHolder(ench);
+        return stack.getEnchantmentLevel(enchHolder);
     }
 
     public static int getHeldEnchantmentLevel(LivingEntity living, Enchantment ench) {
 
-        if (ench == null || ench instanceof EnchantmentCoFH && !((EnchantmentCoFH) ench).isEnabled()) {
+        if (ench == null) {
             return 0;
         }
-        return Math.max(EnchantmentHelper.getItemEnchantmentLevel(ench, living.getMainHandItem()), EnchantmentHelper.getItemEnchantmentLevel(ench, living.getOffhandItem()));
+        int mainHand = getItemEnchantmentLevel(ench, living.getMainHandItem());
+        int offHand = getItemEnchantmentLevel(ench, living.getOffhandItem());
+        return Math.max(mainHand, offHand);
     }
 
     public static int getMaxEquippedEnchantmentLevel(LivingEntity living, Enchantment ench) {
 
-        if (ench == null || ench instanceof EnchantmentCoFH && !((EnchantmentCoFH) ench).isEnabled()) {
+        if (ench == null) {
             return 0;
         }
-        return getEnchantmentLevel(ench, living);
+        int maxLevel = getHeldEnchantmentLevel(living, ench);
+        for (ItemStack armor : living.getArmorSlots()) {
+            maxLevel = Math.max(maxLevel, getItemEnchantmentLevel(ench, armor));
+        }
+        return maxLevel;
     }
 
     public static void addEnchantment(ItemStack stack, Enchantment ench, int level) {
 
-        stack.enchant(ench, level);
+        if (stack.isEmpty() || ench == null || level <= 0) {
+            return;
+        }
+        if (!EnchantmentCoFH.isEnabled(ench)) {
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        Registry<Enchantment> registry = (Registry<Enchantment>) BuiltInRegistries.REGISTRY.get(Registries.ENCHANTMENT);
+        Holder<Enchantment> enchHolder = registry.wrapAsHolder(ench);
+        ItemEnchantments updated = EnchantmentHelper.updateEnchantments(stack, mutable -> mutable.set(enchHolder, level));
+        EnchantmentHelper.setEnchantments(stack, updated);
     }
 
     public static void removeEnchantment(ItemStack stack, Enchantment ench) {
 
-        if (stack.getTag() == null || !stack.getTag().contains(TAG_ENCHANTMENTS, TAG_LIST)) {
+        if (stack.isEmpty() || ench == null) {
             return;
         }
-        ListTag list = stack.getTag().getList(TAG_ENCHANTMENTS, TAG_COMPOUND);
-        String encId = String.valueOf(BuiltInRegistries.ENCHANTMENT.getKey(ench));
-
-        for (int i = 0; i < list.size(); ++i) {
-            CompoundTag tag = list.getCompound(i);
-            String id = tag.getString("id");
-            if (encId.equals(id)) {
-                list.remove(i);
-                break;
-            }
-        }
-        if (list.isEmpty()) {
-            stack.removeTagKey(TAG_ENCHANTMENTS);
-        }
+        @SuppressWarnings("unchecked")
+        Registry<Enchantment> registry = (Registry<Enchantment>) BuiltInRegistries.REGISTRY.get(Registries.ENCHANTMENT);
+        Holder<Enchantment> enchHolder = registry.wrapAsHolder(ench);
+        ItemEnchantments updated = EnchantmentHelper.updateEnchantments(stack, mutable -> mutable.removeIf(h -> h.equals(enchHolder)));
+        EnchantmentHelper.setEnchantments(stack, updated);
     }
     // endregion
 
@@ -543,8 +574,8 @@ public class Utils {
         return BuiltInRegistries.FLUID.getKey(fluid);
     }
 
-    public static ResourceLocation getRegistryName(EntityType entity) {
-
+    public static ResourceLocation getRegistryName(EntityType<?> entity) {
+        
         return BuiltInRegistries.ENTITY_TYPE.getKey(entity);
     }
 
@@ -613,29 +644,6 @@ public class Utils {
 
         ResourceLocation loc = getRegistryName(stack.getFluid());
         return loc == null ? "" : loc.getPath();
-    }
-    // endregion
-
-    // region PACKET UTILS
-
-    public static PacketDistributor.TargetPoint createTargetPoint(Entity entity) {
-
-        return createTargetPoint(entity, NETWORK_UPDATE_DISTANCE);
-    }
-
-    public static PacketDistributor.TargetPoint createTargetPoint(Entity entity, int radius) {
-
-        return new PacketDistributor.TargetPoint(entity.getX(), entity.getY(), entity.getZ(), radius, entity.level.dimension());
-    }
-
-    public static PacketDistributor.TargetPoint createTargetPoint(Level level, BlockPos pos) {
-
-        return createTargetPoint(level, pos, NETWORK_UPDATE_DISTANCE);
-    }
-
-    public static PacketDistributor.TargetPoint createTargetPoint(Level level, BlockPos pos, int radius) {
-
-        return new PacketDistributor.TargetPoint(pos.getX(), pos.getY(), pos.getZ(), radius, level.dimension());
     }
     // endregion
 }

@@ -52,7 +52,8 @@ public final class RenderHelper {
     public static final ResourceLocation MC_BLOCK_SHEET = ResourceLocation.parse("textures/atlas/blocks.png");
     public static final ResourceLocation MC_FONT_DEFAULT = ResourceLocation.parse("textures/font/ascii.png");
     public static final ResourceLocation MC_FONT_SGA = ResourceLocation.parse("textures/font/ascii_sga.png");
-    public static final ResourceLocation MC_ITEM_GLINT = ResourceLocation.parse("textures/misc/enchanted_item_glint.png");
+    public static final ResourceLocation MC_ITEM_GLINT = ResourceLocation
+            .parse("textures/misc/enchanted_item_glint.png");
     public static PoseStack particleStack = new PoseStack();
 
     // region ACCESSORS
@@ -103,12 +104,12 @@ public final class RenderHelper {
 
     public static float partialTick() {
 
-        return Minecraft.getInstance().getPartialTick();
+        return Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
     }
 
     public static float frameDelta() {
 
-        return Minecraft.getInstance().getDeltaFrameTime();
+        return Minecraft.getInstance().getTimer().getRealtimeDeltaTicks();
     }
 
     public static boolean isFabulousGraphics() {
@@ -147,30 +148,33 @@ public final class RenderHelper {
         setPosTexShader();
         setBlockTextureSheet();
         setShaderColorFromInt(color);
-        drawTiledTexture(x, y, getTexture(IClientFluidTypeExtensions.of(fluid.getFluid()).getStillTexture(fluid)), width, height);
+        drawTiledTexture(x, y, getTexture(IClientFluidTypeExtensions.of(fluid.getFluid()).getStillTexture(fluid)),
+                width, height);
     }
 
     public static void drawIcon(TextureAtlasSprite icon, double z) {
 
-        BufferBuilder buffer = tesselator().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(0, 16, z).uv(icon.getU0(), icon.getV1());
-        buffer.vertex(16, 16, z).uv(icon.getU1(), icon.getV1());
-        buffer.vertex(16, 0, z).uv(icon.getU1(), icon.getV0());
-        buffer.vertex(0, 0, z).uv(icon.getU0(), icon.getV0());
-        tesselator().end();
+        BufferBuilder buffer = Tesselator.getInstance().begin(
+                VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.POSITION_TEX);
+        buffer.addVertex(0.0F, 16.0F, (float) z).setUv(icon.getU0(), icon.getV1());
+        buffer.addVertex(16.0F, 16.0F, (float) z).setUv(icon.getU1(), icon.getV1());
+        buffer.addVertex(16.0F, 0.0F, (float) z).setUv(icon.getU1(), icon.getV0());
+        buffer.addVertex(0.0F, 0.0F, (float) z).setUv(icon.getU0(), icon.getV0());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
 
     }
 
     public static void drawIcon(double x, double y, double z, TextureAtlasSprite icon, int width, int height) {
 
-        BufferBuilder buffer = tesselator().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(x, y + height, z).uv(icon.getU0(), icon.getV1());
-        buffer.vertex(x + width, y + height, z).uv(icon.getU1(), icon.getV1());
-        buffer.vertex(x + width, y, z).uv(icon.getU1(), icon.getV0());
-        buffer.vertex(x, y, z).uv(icon.getU0(), icon.getV0());
-        tesselator().end();
+        BufferBuilder buffer = Tesselator.getInstance().begin(
+                VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.POSITION_TEX);
+        buffer.addVertex((float) x, (float) (y + height), (float) z).setUv(icon.getU0(), icon.getV1());
+        buffer.addVertex((float) (x + width), (float) (y + height), (float) z).setUv(icon.getU1(), icon.getV1());
+        buffer.addVertex((float) (x + width), (float) y, (float) z).setUv(icon.getU1(), icon.getV0());
+        buffer.addVertex((float) x, (float) y, (float) z).setUv(icon.getU0(), icon.getV0());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     public static void drawTiledTexture(int x, int y, TextureAtlasSprite icon, int width, int height) {
@@ -188,7 +192,8 @@ public final class RenderHelper {
         resetShaderColor();
     }
 
-    public static void drawScaledTexturedModalRectFromSprite(int x, int y, TextureAtlasSprite icon, int width, int height) {
+    public static void drawScaledTexturedModalRectFromSprite(int x, int y, TextureAtlasSprite icon, int width,
+            int height) {
 
         if (icon == null) {
             return;
@@ -201,42 +206,46 @@ public final class RenderHelper {
         float u = minU + (maxU - minU) * width / 16F;
         float v = minV + (maxV - minV) * height / 16F;
 
-        BufferBuilder buffer = tesselator().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(x, y + height, 0).uv(minU, v).endVertex();
-        buffer.vertex(x + width, y + height, 0).uv(u, v).endVertex();
-        buffer.vertex(x + width, y, 0).uv(u, minV).endVertex();
-        buffer.vertex(x, y, 0).uv(minU, minV).endVertex();
-        tesselator().end();
+        BufferBuilder buffer = Tesselator.getInstance().begin(
+                VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.POSITION_TEX);
+        buffer.addVertex((float) x, (float) (y + height), 0.0F).setUv(minU, v);
+        buffer.addVertex((float) (x + width), (float) (y + height), 0.0F).setUv(u, v);
+        buffer.addVertex((float) (x + width), (float) y, 0.0F).setUv(u, minV);
+        buffer.addVertex((float) x, (float) y, 0.0F).setUv(minU, minV);
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
-
     // TODO This is unused, needs PoseStack argument and Shaders set
-/*    public static void drawStencil(int xStart, int yStart, int xEnd, int yEnd, int flag) {
-
-        RenderSystem.disableTexture();
-        GL11.glStencilFunc(GL11.GL_ALWAYS, flag, flag);
-        GL11.glStencilOp(GL11.GL_ZERO, GL11.GL_ZERO, GL11.GL_REPLACE);
-        GL11.glStencilMask(flag);
-        RenderSystem.colorMask(false, false, false, false);
-        RenderSystem.depthMask(false);
-        GL11.glClearStencil(0);
-        RenderSystem.clear(GL11.GL_STENCIL_BUFFER_BIT, false);
-
-        BufferBuilder buffer = Tessellator.getInstance().getBuilder();
-        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
-        buffer.vertex(xStart, yEnd, 0).endVertex();
-        buffer.vertex(xEnd, yEnd, 0).endVertex();
-        buffer.vertex(xEnd, yStart, 0).endVertex();
-        buffer.vertex(xStart, yStart, 0).endVertex();
-        Tessellator.getInstance().end();
-
-        RenderSystem.enableTexture();
-        GL11.glStencilFunc(GL11.GL_EQUAL, flag, flag);
-        GL11.glStencilMask(0);
-        RenderSystem.colorMask(true, true, true, true);
-        RenderSystem.depthMask(true);
-    }*/
+    /*
+     * public static void drawStencil(int xStart, int yStart, int xEnd, int yEnd,
+     * int flag) {
+     * 
+     * RenderSystem.disableTexture();
+     * GL11.glStencilFunc(GL11.GL_ALWAYS, flag, flag);
+     * GL11.glStencilOp(GL11.GL_ZERO, GL11.GL_ZERO, GL11.GL_REPLACE);
+     * GL11.glStencilMask(flag);
+     * RenderSystem.colorMask(false, false, false, false);
+     * RenderSystem.depthMask(false);
+     * GL11.glClearStencil(0);
+     * RenderSystem.clear(GL11.GL_STENCIL_BUFFER_BIT, false);
+     * 
+     * BufferBuilder buffer = Tesselator.getInstance().begin(
+     * GL11.GL_QUADS,
+     * DefaultVertexFormats.POSITION);
+     * buffer.vertex(xStart, yEnd, 0).endVertex();
+     * buffer.vertex(xEnd, yEnd, 0).endVertex();
+     * buffer.vertex(xEnd, yStart, 0).endVertex();
+     * buffer.vertex(xStart, yStart, 0).endVertex();
+     * Tesselator.getInstance().end();
+     * 
+     * RenderSystem.enableTexture();
+     * GL11.glStencilFunc(GL11.GL_EQUAL, flag, flag);
+     * GL11.glStencilMask(0);
+     * RenderSystem.colorMask(true, true, true, true);
+     * RenderSystem.depthMask(true);
+     * }
+     */
     // endregion
 
     // region MATRIX DRAW METHODS
@@ -253,37 +262,42 @@ public final class RenderHelper {
         setBlockTextureSheet();
         setShaderColorFromInt(color);
 
-        drawTiledTexture(pGuiGraphics, x, y, getTexture(IClientFluidTypeExtensions.of(fluid.getFluid()).getStillTexture(fluid)), width, height);
+        drawTiledTexture(pGuiGraphics, x, y,
+                getTexture(IClientFluidTypeExtensions.of(fluid.getFluid()).getStillTexture(fluid)), width, height);
     }
 
     public static void drawIcon(GuiGraphics pGuiGraphics, TextureAtlasSprite icon, float z) {
 
         Matrix4f matrix = pGuiGraphics.pose().last().pose();
 
-        BufferBuilder buffer = tesselator().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(matrix, 0, 16, z).uv(icon.getU0(), icon.getV1());
-        buffer.vertex(matrix, 16, 16, z).uv(icon.getU1(), icon.getV1());
-        buffer.vertex(matrix, 16, 0, z).uv(icon.getU1(), icon.getV0());
-        buffer.vertex(matrix, 0, 0, z).uv(icon.getU0(), icon.getV0());
-        tesselator().end();
+        BufferBuilder buffer = Tesselator.getInstance().begin(
+                VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.POSITION_TEX);
+        buffer.addVertex(matrix, 0.0F, 16.0F, z).setUv(icon.getU0(), icon.getV1());
+        buffer.addVertex(matrix, 16.0F, 16.0F, z).setUv(icon.getU1(), icon.getV1());
+        buffer.addVertex(matrix, 16.0F, 0.0F, z).setUv(icon.getU1(), icon.getV0());
+        buffer.addVertex(matrix, 0.0F, 0.0F, z).setUv(icon.getU0(), icon.getV0());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
 
     }
 
-    public static void drawIcon(GuiGraphics pGuiGraphics, float x, float y, float z, TextureAtlasSprite icon, int width, int height) {
+    public static void drawIcon(GuiGraphics pGuiGraphics, float x, float y, float z, TextureAtlasSprite icon, int width,
+            int height) {
 
         Matrix4f matrix = pGuiGraphics.pose().last().pose();
 
-        BufferBuilder buffer = tesselator().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(matrix, x, y + height, z).uv(icon.getU0(), icon.getV1());
-        buffer.vertex(matrix, x + width, y + height, z).uv(icon.getU1(), icon.getV1());
-        buffer.vertex(matrix, x + width, y, z).uv(icon.getU1(), icon.getV0());
-        buffer.vertex(matrix, x, y, z).uv(icon.getU0(), icon.getV0());
-        tesselator().end();
+        BufferBuilder buffer = Tesselator.getInstance().begin(
+                VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.POSITION_TEX);
+        buffer.addVertex(matrix, x, y + height, z).setUv(icon.getU0(), icon.getV1());
+        buffer.addVertex(matrix, x + width, y + height, z).setUv(icon.getU1(), icon.getV1());
+        buffer.addVertex(matrix, x + width, y, z).setUv(icon.getU1(), icon.getV0());
+        buffer.addVertex(matrix, x, y, z).setUv(icon.getU0(), icon.getV0());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
-    public static void drawTiledTexture(GuiGraphics pGuiGraphics, int x, int y, TextureAtlasSprite icon, int width, int height) {
+    public static void drawTiledTexture(GuiGraphics pGuiGraphics, int x, int y, TextureAtlasSprite icon, int width,
+            int height) {
 
         int drawHeight;
         int drawWidth;
@@ -298,7 +312,8 @@ public final class RenderHelper {
         resetShaderColor();
     }
 
-    public static void drawScaledTexturedModalRectFromSprite(GuiGraphics pGuiGraphics, int x, int y, TextureAtlasSprite icon, int width, int height) {
+    public static void drawScaledTexturedModalRectFromSprite(GuiGraphics pGuiGraphics, int x, int y,
+            TextureAtlasSprite icon, int width, int height) {
 
         if (icon == null) {
             return;
@@ -313,13 +328,14 @@ public final class RenderHelper {
 
         Matrix4f matrix = pGuiGraphics.pose().last().pose();
 
-        BufferBuilder buffer = tesselator().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(matrix, x, y + height, 0).uv(minU, v).endVertex();
-        buffer.vertex(matrix, x + width, y + height, 0).uv(u, v).endVertex();
-        buffer.vertex(matrix, x + width, y, 0).uv(u, minV).endVertex();
-        buffer.vertex(matrix, x, y, 0).uv(minU, minV).endVertex();
-        tesselator().end();
+        BufferBuilder buffer = Tesselator.getInstance().begin(
+                VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.POSITION_TEX);
+        buffer.addVertex(matrix, x, y + height, 0.0F).setUv(minU, v);
+        buffer.addVertex(matrix, x + width, y + height, 0.0F).setUv(u, v);
+        buffer.addVertex(matrix, x + width, y, 0.0F).setUv(u, minV);
+        buffer.addVertex(matrix, x, y, 0.0F).setUv(minU, minV);
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     public static void drawStencil(PoseStack matrixStack, int xStart, int yStart, int xEnd, int yEnd, int flag) {
@@ -335,13 +351,14 @@ public final class RenderHelper {
 
         Matrix4f matrix = matrixStack.last().pose();
 
-        BufferBuilder buffer = tesselator().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-        buffer.vertex(matrix, xStart, yEnd, 0).endVertex();
-        buffer.vertex(matrix, xEnd, yEnd, 0).endVertex();
-        buffer.vertex(matrix, xEnd, yStart, 0).endVertex();
-        buffer.vertex(matrix, xStart, yStart, 0).endVertex();
-        tesselator().end();
+        BufferBuilder buffer = Tesselator.getInstance().begin(
+                VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.POSITION);
+        buffer.addVertex(matrix, xStart, yEnd, 0.0F);
+        buffer.addVertex(matrix, xEnd, yEnd, 0.0F);
+        buffer.addVertex(matrix, xEnd, yStart, 0.0F);
+        buffer.addVertex(matrix, xStart, yStart, 0.0F);
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
 
         GL11.glStencilFunc(GL11.GL_EQUAL, flag, flag);
         GL11.glStencilMask(0);
@@ -352,25 +369,27 @@ public final class RenderHelper {
 
     // region PASSTHROUGHS
     // TODO Fix these if needed.
-/*    public static void disableStandardItemLighting() {
-
-        net.minecraft.client.renderer.RenderHelper.turnOff();
-    }
-
-    public static void enableStandardItemLighting() {
-
-        net.minecraft.client.renderer.RenderHelper.turnBackOn();
-    }
-
-    public static void setupGuiFlatDiffuseLighting() {
-
-        net.minecraft.client.renderer.RenderHelper.setupForFlatItems();
-    }
-
-    public static void setupGui3DDiffuseLighting() {
-
-        net.minecraft.client.renderer.RenderHelper.setupFor3DItems();
-    }*/
+    /*
+     * public static void disableStandardItemLighting() {
+     * 
+     * net.minecraft.client.renderer.RenderHelper.turnOff();
+     * }
+     * 
+     * public static void enableStandardItemLighting() {
+     * 
+     * net.minecraft.client.renderer.RenderHelper.turnBackOn();
+     * }
+     * 
+     * public static void setupGuiFlatDiffuseLighting() {
+     * 
+     * net.minecraft.client.renderer.RenderHelper.setupForFlatItems();
+     * }
+     * 
+     * public static void setupGui3DDiffuseLighting() {
+     * 
+     * net.minecraft.client.renderer.RenderHelper.setupFor3DItems();
+     * }
+     */
     // endregion
 
     // region TEXTURE GETTERS
@@ -414,7 +433,7 @@ public final class RenderHelper {
         List<VertexFormatElement> elements = from.getElements();
         for (int i = 0; i < from.getElements().size(); ++i) {
             VertexFormatElement element = elements.get(i);
-            if (element.getUsage() == VertexFormatElement.Usage.COLOR) {
+            if (element.usage() == VertexFormatElement.Usage.COLOR) {
                 vertexColorIndex = i;
                 break;
             }
@@ -446,11 +465,11 @@ public final class RenderHelper {
 
         int length = Math.min(4, to.length);
         VertexFormatElement element = formatFrom.getElements().get(e);
-        int vertexStart = v * formatFrom.getVertexSize() + formatFrom.getOffset(e);
-        int count = element.getElementCount();
-        VertexFormatElement.Type type = element.getType();
-        VertexFormatElement.Usage usage = element.getUsage();
-        int size = type.getSize();
+        int vertexStart = v * formatFrom.getVertexSize() + formatFrom.getOffset(element);
+        int count = element.count();
+        VertexFormatElement.Type type = element.type();
+        VertexFormatElement.Usage usage = element.usage();
+        int size = type.size();
         int mask = (256 << (8 * (size - 1))) - 1;
         for (int i = 0; i < length; i++) {
             if (i < count) {
@@ -485,10 +504,10 @@ public final class RenderHelper {
     public static void packLight(float[] from, int[] to, VertexFormat formatTo, int v, int e) {
 
         VertexFormatElement element = formatTo.getElements().get(e);
-        int vertexStart = v * formatTo.getVertexSize() + formatTo.getOffset(e);
-        int count = element.getElementCount();
-        VertexFormatElement.Type type = element.getType();
-        int size = type.getSize();
+        int vertexStart = v * formatTo.getVertexSize() + formatTo.getOffset(element);
+        int count = element.count();
+        VertexFormatElement.Type type = element.type();
+        int size = type.size();
         int mask = (256 << (8 * (size - 1))) - 1;
         for (int i = 0; i < 4; i++) {
             if (i < count) {
@@ -499,11 +518,9 @@ public final class RenderHelper {
                 float f = i < from.length ? from[i] : 0;
                 if (type == VertexFormatElement.Type.FLOAT) {
                     bits = Float.floatToRawIntBits(f);
-                } else if (
-                        type == VertexFormatElement.Type.UBYTE ||
-                                type == VertexFormatElement.Type.USHORT ||
-                                type == VertexFormatElement.Type.UINT
-                ) {
+                } else if (type == VertexFormatElement.Type.UBYTE ||
+                        type == VertexFormatElement.Type.USHORT ||
+                        type == VertexFormatElement.Type.UINT) {
                     bits = Math.round(f * mask);
                 } else {
                     bits = Math.round(f * (mask >> 1));
@@ -591,49 +608,57 @@ public final class RenderHelper {
 
         // What of this do I still need?
 
-        //        GlStateManager.enableAlpha();
-        //        GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);
-        //        GlStateManager.enableBlend();
-        //        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
-        //        GlStateManager.popMatrix();
-        //        net.minecraft.client.renderer.RenderHelper.enableStandardItemLighting();
+        // GlStateManager.enableAlpha();
+        // GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);
+        // GlStateManager.enableBlend();
+        // GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA,
+        // GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+        // GlStateManager.popMatrix();
+        // net.minecraft.client.renderer.RenderHelper.enableStandardItemLighting();
     }
 
     // TODO Fix if required, 1.17 render changes are required.
-/*    private static void renderFastItem(@Nonnull ItemStack itemStack, BlockState state, int slot, PoseStack matrix, MultiBufferSource.BufferSource buffer, int combinedLight, int combinedOverlay, Direction side, float partialTickTime) {
-
-        matrix.pushPose();
-
-        Consumer<MultiBufferSource.BufferSource> finish = (IRenderTypeBuffer buf) -> {
-            if (buf instanceof IRenderTypeBuffer.Impl)
-                ((IRenderTypeBuffer.Impl) buf).endBatch();
-        };
-
-        try {
-            matrix.translate(0, 0, 100f);
-            matrix.scale(1, -1, 1);
-            matrix.scale(16, 16, 16);
-
-            IBakedModel itemModel = renderItem().getModel(itemStack, null, null);
-            boolean render3D = itemModel.isGui3d();
-            finish.accept(buffer);
-
-            if (render3D) {
-                setupGui3DDiffuseLighting();
-            } else {
-                setupGuiFlatDiffuseLighting();
-            }
-            matrix.last().normal().set(1, -1, 1);
-            renderItem().render(itemStack, ItemCameraTransforms.TransformType.GUI, false, matrix, buffer, combinedLight, combinedOverlay, itemModel);
-            finish.accept(buffer);
-        } catch (Exception e) {
-            // pokemon!
-        }
-        matrix.popPose();
-    }*/
+    /*
+     * private static void renderFastItem(@Nonnull ItemStack itemStack, BlockState
+     * state, int slot, PoseStack matrix, MultiBufferSource.BufferSource buffer, int
+     * combinedLight, int combinedOverlay, Direction side, float partialTickTime) {
+     * 
+     * matrix.pushPose();
+     * 
+     * Consumer<MultiBufferSource.BufferSource> finish = (IRenderTypeBuffer buf) ->
+     * {
+     * if (buf instanceof IRenderTypeBuffer.Impl)
+     * ((IRenderTypeBuffer.Impl) buf).endBatch();
+     * };
+     * 
+     * try {
+     * matrix.translate(0, 0, 100f);
+     * matrix.scale(1, -1, 1);
+     * matrix.scale(16, 16, 16);
+     * 
+     * IBakedModel itemModel = renderItem().getModel(itemStack, null, null);
+     * boolean render3D = itemModel.isGui3d();
+     * finish.accept(buffer);
+     * 
+     * if (render3D) {
+     * setupGui3DDiffuseLighting();
+     * } else {
+     * setupGuiFlatDiffuseLighting();
+     * }
+     * matrix.last().normal().set(1, -1, 1);
+     * renderItem().render(itemStack, ItemCameraTransforms.TransformType.GUI, false,
+     * matrix, buffer, combinedLight, combinedOverlay, itemModel);
+     * finish.accept(buffer);
+     * } catch (Exception e) {
+     * // pokemon!
+     * }
+     * matrix.popPose();
+     * }
+     */
 
     // region GEOMETRY
-    public static void renderCuboid(AABB aabb, PoseStack poseStack, VertexConsumer buffer, int light, float r, float g, float b, float a, TextureAtlasSprite icon) {
+    public static void renderCuboid(AABB aabb, PoseStack poseStack, VertexConsumer buffer, int light, float r, float g,
+            float b, float a, TextureAtlasSprite icon) {
 
         var mat4 = poseStack.last().pose();
         var mat3 = poseStack.last().normal();
@@ -643,41 +668,67 @@ public final class RenderHelper {
         float v0 = icon.getV0();
         float v1 = icon.getV1();
 
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.minZ).color(r, g, b, a).uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, -1.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.minZ).color(r, g, b, a).uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, -1.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.maxZ).color(r, g, b, a).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, -1.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.maxZ).color(r, g, b, a).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, -1.0F, 0.0F).endVertex();
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, -1.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, -1.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, -1.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, -1.0F, 0.0F);
 
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.minZ).color(r, g, b, a).uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 1.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.maxZ).color(r, g, b, a).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 1.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.maxZ).color(r, g, b, a).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 1.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.minZ).color(r, g, b, a).uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 1.0F, 0.0F).endVertex();
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 1.0F, 0.0F);
 
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.minZ).color(r, g, b, a).uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 0.0F, -1.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.minZ).color(r, g, b, a).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 0.0F, -1.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.minZ).color(r, g, b, a).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 0.0F, -1.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.minZ).color(r, g, b, a).uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 0.0F, -1.0F).endVertex();
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 0.0F, -1.0F);
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 0.0F, -1.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 0.0F, -1.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 0.0F, -1.0F);
 
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.maxZ).color(r, g, b, a).uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 0.0F, 1.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.maxZ).color(r, g, b, a).uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 0.0F, 1.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.maxZ).color(r, g, b, a).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 0.0F, 1.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.maxZ).color(r, g, b, a).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 0.0F, 0.0F, 1.0F).endVertex();
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 0.0F, 1.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 0.0F, 1.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 0.0F, 1.0F);
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0.0F, 0.0F, 1.0F);
 
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.minZ).color(r, g, b, a).uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, -1.0F, 0.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.maxZ).color(r, g, b, a).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, -1.0F, 0.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.maxZ).color(r, g, b, a).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, -1.0F, 0.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.minZ).color(r, g, b, a).uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, -1.0F, 0.0F, 0.0F).endVertex();
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(-1.0F, 0.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.minY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(-1.0F, 0.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(-1.0F, 0.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.minX, (float) aabb.maxY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(-1.0F, 0.0F, 0.0F);
 
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.minZ).color(r, g, b, a).uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 1.0F, 0.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.minZ).color(r, g, b, a).uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 1.0F, 0.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.maxZ).color(r, g, b, a).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 1.0F, 0.0F, 0.0F).endVertex();
-        buffer.vertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.maxZ).color(r, g, b, a).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(mat3, 1.0F, 0.0F, 0.0F).endVertex();
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(1.0F, 0.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.minZ).setColor(r, g, b, a)
+                .setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(1.0F, 0.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.maxY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(1.0F, 0.0F, 0.0F);
+        buffer.addVertex(mat4, (float) aabb.maxX, (float) aabb.minY, (float) aabb.maxZ).setColor(r, g, b, a)
+                .setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(1.0F, 0.0F, 0.0F);
     }
 
     public static Vector4f[] getCuboidCorners(Matrix4f pose, float w, float l, float h) {
 
-        Vector4f[] corners = {new Vector4f(-w, -l, -h, 1.0F), new Vector4f(-w, -l, h, 1.0F), new Vector4f(w, -l, -h, 1.0F), new Vector4f(w, -l, h, 1.0F),
-                new Vector4f(w, l, -h, 1.0F), new Vector4f(w, l, h, 1.0F), new Vector4f(-w, l, -h, 1.0F), new Vector4f(-w, l, h, 1.0F)};
+        Vector4f[] corners = { new Vector4f(-w, -l, -h, 1.0F), new Vector4f(-w, -l, h, 1.0F),
+                new Vector4f(w, -l, -h, 1.0F), new Vector4f(w, -l, h, 1.0F),
+                new Vector4f(w, l, -h, 1.0F), new Vector4f(w, l, h, 1.0F), new Vector4f(-w, l, -h, 1.0F),
+                new Vector4f(-w, l, h, 1.0F) };
 
         for (Vector4f corner : corners) {
             corner.mul(pose);
@@ -685,7 +736,8 @@ public final class RenderHelper {
         return corners;
     }
 
-    public static void renderSides(VertexConsumer consumer, int light, Color color, Vector4f[] corners, Vector3f normal, float u0, float v0, float u1, float v1) {
+    public static void renderSides(VertexConsumer consumer, int light, Color color, Vector4f[] corners, Vector3f normal,
+            float u0, float v0, float u1, float v1) {
 
         renderFace(consumer, light, color, corners[1], corners[0], corners[2], corners[3], u0, v0, u1, v1, normal);
         renderFace(consumer, light, color, corners[3], corners[2], corners[4], corners[5], u0, v0, u1, v1, normal);
@@ -693,38 +745,49 @@ public final class RenderHelper {
         renderFace(consumer, light, color, corners[7], corners[6], corners[0], corners[1], u0, v0, u1, v1, normal);
     }
 
-    public static void renderBottom(VertexConsumer consumer, int light, Color color, Vector4f[] corners, Vector3f normal, float u0, float v0, float u1, float v1) {
+    public static void renderBottom(VertexConsumer consumer, int light, Color color, Vector4f[] corners,
+            Vector3f normal, float u0, float v0, float u1, float v1) {
 
         renderFace(consumer, light, color, corners[6], corners[4], corners[2], corners[0], u0, v0, u1, v1, normal);
     }
 
-    public static void renderTop(VertexConsumer consumer, int light, Color color, Vector4f[] corners, Vector3f normal, float u0, float v0, float u1, float v1) {
+    public static void renderTop(VertexConsumer consumer, int light, Color color, Vector4f[] corners, Vector3f normal,
+            float u0, float v0, float u1, float v1) {
 
         renderFace(consumer, light, color, corners[1], corners[3], corners[5], corners[7], u0, v0, u1, v1, normal);
     }
 
-    public static void renderCuboid(VertexConsumer consumer, int light, Color color, Vector4f[] corners, Vector3f normal, float u0, float v0, float u1, float v1) {
+    public static void renderCuboid(VertexConsumer consumer, int light, Color color, Vector4f[] corners,
+            Vector3f normal, float u0, float v0, float u1, float v1) {
 
         renderSides(consumer, light, color, corners, normal, u0, v0, u1, v1);
         renderBottom(consumer, light, color, corners, normal, u0, v0, u1, v1);
         renderTop(consumer, light, color, corners, normal, u0, v0, u1, v1);
     }
 
-    public static void renderFace(VertexConsumer consumer, int light, Color color, Vector4f a, Vector4f b, Vector4f c, Vector4f d, float u0, float v0, float u1, float v1, Vector3f normal) {
+    public static void renderFace(VertexConsumer consumer, int light, Color color, Vector4f a, Vector4f b, Vector4f c,
+            Vector4f d, float u0, float v0, float u1, float v1, Vector3f normal) {
 
-        consumer.vertex(a.x(), a.y(), a.z()).color(color.r, color.g, color.b, color.a).uv(u0, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normal.x(), normal.y(), normal.z()).endVertex();
-        consumer.vertex(b.x(), b.y(), b.z()).color(color.r, color.g, color.b, color.a).uv(u1, v0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normal.x(), normal.y(), normal.z()).endVertex();
-        consumer.vertex(c.x(), c.y(), c.z()).color(color.r, color.g, color.b, color.a).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normal.x(), normal.y(), normal.z()).endVertex();
-        consumer.vertex(d.x(), d.y(), d.z()).color(color.r, color.g, color.b, color.a).uv(u0, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(normal.x(), normal.y(), normal.z()).endVertex();
+        consumer.addVertex(a.x(), a.y(), a.z()).setColor(color.r, color.g, color.b, color.a).setUv(u0, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(normal.x(), normal.y(), normal.z());
+        consumer.addVertex(b.x(), b.y(), b.z()).setColor(color.r, color.g, color.b, color.a).setUv(u1, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(normal.x(), normal.y(), normal.z());
+        consumer.addVertex(c.x(), c.y(), c.z()).setColor(color.r, color.g, color.b, color.a).setUv(u1, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(normal.x(), normal.y(), normal.z());
+        consumer.addVertex(d.x(), d.y(), d.z()).setColor(color.r, color.g, color.b, color.a).setUv(u0, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(normal.x(), normal.y(), normal.z());
     }
 
     /**
-     * Renders a trigonal trapezohedron (a cube stretched along one diagonal). Has 6 congruent rhombi as faces.
+     * Renders a trigonal trapezohedron (a cube stretched along one diagonal). Has 6
+     * congruent rhombi as faces.
      *
      * @param height The total height of the polyhedron.
-     * @param radius The maximum distance of a point within the polyhedron from its axis.
+     * @param radius The maximum distance of a point within the polyhedron from its
+     *               axis.
      */
-    public static void renderTrigonalTrapezohedron(PoseStack stack, VertexConsumer consumer, int packedLight, Color col, float height, float radius) {
+    public static void renderTrigonalTrapezohedron(PoseStack stack, VertexConsumer consumer, int packedLight, Color col,
+            float height, float radius) {
 
         int a = col.a;
         if (a <= 0) {
@@ -736,16 +799,17 @@ public final class RenderHelper {
         PoseStack.Pose last = stack.last();
         Matrix4f pose = last.pose();
         Matrix3f norm = last.normal();
-        //float lenSqr = (diagRatio * diagRatio + 1) * 0.25F;
-        //float rad = 0.57735F * diagRatio;
-        //float h = 0.5F * (float) Math.sqrt(lenSqr - rad * rad);
+        // float lenSqr = (diagRatio * diagRatio + 1) * 0.25F;
+        // float rad = 0.57735F * diagRatio;
+        // float h = 0.5F * (float) Math.sqrt(lenSqr - rad * rad);
         float h = 0.1666667F * height;
 
         Vector4f u = new Vector4f(0, 3 * h, 0, 1).mul(pose);
         Vector4f l = new Vector4f(0, -3 * h, 0, 1).mul(pose);
         Vector4f[] v = new Vector4f[8];
         for (int i = 0; i < 6; ++i) {
-            v[i] = new Vector4f(radius * MathHelper.sin(i * 1.0472F), h, radius * MathHelper.cos(i * 1.0472F), 1).mul(pose);
+            v[i] = new Vector4f(radius * MathHelper.sin(i * 1.0472F), h, radius * MathHelper.cos(i * 1.0472F), 1)
+                    .mul(pose);
             h = -h;
         }
         v[6] = v[0];
@@ -754,19 +818,27 @@ public final class RenderHelper {
             Vector4f v0 = v[i];
             Vector4f v1 = v[i + 1];
             Vector4f v2 = v[i + 2];
-            consumer.vertex(v0.x(), v0.y(), v0.z()).color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(v1.x(), v1.y(), v1.z()).color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(v2.x(), v2.y(), v2.z()).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(u.x(), u.y(), u.z()).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
+            consumer.addVertex(v0.x(), v0.y(), v0.z()).setColor(r, g, b, a).setUv(0, 0)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(v1.x(), v1.y(), v1.z()).setColor(r, g, b, a).setUv(0, 1)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(v2.x(), v2.y(), v2.z()).setColor(r, g, b, a).setUv(1, 1)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(u.x(), u.y(), u.z()).setColor(r, g, b, a).setUv(1, 0)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
         }
         for (int i = 1; i < 7; i += 2) {
             Vector4f v0 = v[i + 2];
             Vector4f v1 = v[i + 1];
             Vector4f v2 = v[i];
-            consumer.vertex(v0.x(), v0.y(), v0.z()).color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(v1.x(), v1.y(), v1.z()).color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(v2.x(), v2.y(), v2.z()).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(l.x(), l.y(), l.z()).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
+            consumer.addVertex(v0.x(), v0.y(), v0.z()).setColor(r, g, b, a).setUv(0, 0)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(v1.x(), v1.y(), v1.z()).setColor(r, g, b, a).setUv(0, 1)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(v2.x(), v2.y(), v2.z()).setColor(r, g, b, a).setUv(1, 1)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(l.x(), l.y(), l.z()).setColor(r, g, b, a).setUv(1, 0)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
         }
     }
 
@@ -774,10 +846,12 @@ public final class RenderHelper {
      * Renders a bipyramid.
      *
      * @param height    The total height of the polyhedron.
-     * @param radius    The maximum distance of a point within the polyhedron from its axis.
+     * @param radius    The maximum distance of a point within the polyhedron from
+     *                  its axis.
      * @param baseEdges The number of edges that the base of each pyramid has.
      */
-    public static void renderBipyramid(PoseStack stack, VertexConsumer consumer, int packedLight, Color col, int baseEdges, float height, float radius) {
+    public static void renderBipyramid(PoseStack stack, VertexConsumer consumer, int packedLight, Color col,
+            int baseEdges, float height, float radius) {
 
         int a = col.a;
         if (col.a <= 0) {
@@ -797,19 +871,26 @@ public final class RenderHelper {
         for (int i = 0; i < baseEdges; ++i) {
             v[i] = new Vector4f(radius * MathHelper.sin(i * angle), 0, radius * MathHelper.cos(i * angle), 1).mul(pose);
         }
-        v[baseEdges] = v[0];
         for (int i = 0; i < baseEdges; ++i) {
             Vector4f v0 = v[i];
-            Vector4f v1 = v[i + 1];
-            consumer.vertex(v0.x(), v0.y(), v0.z()).color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(v1.x(), v1.y(), v1.z()).color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(u.x(), u.y(), u.z()).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(u.x(), u.y(), u.z()).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
+            Vector4f v1 = v[(i + 1) % baseEdges];
+            consumer.addVertex(v0.x(), v0.y(), v0.z()).setColor(r, g, b, a).setUv(0, 0)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(v1.x(), v1.y(), v1.z()).setColor(r, g, b, a).setUv(0, 1)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(u.x(), u.y(), u.z()).setColor(r, g, b, a).setUv(1, 1)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(u.x(), u.y(), u.z()).setColor(r, g, b, a).setUv(1, 0)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
 
-            consumer.vertex(v1.x(), v1.y(), v1.z()).color(r, g, b, a).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(v0.x(), v0.y(), v0.z()).color(r, g, b, a).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(l.x(), l.y(), l.z()).color(r, g, b, a).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
-            consumer.vertex(l.x(), l.y(), l.z()).color(r, g, b, a).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(norm, 0, 1, 0).endVertex();
+            consumer.addVertex(v1.x(), v1.y(), v1.z()).setColor(r, g, b, a).setUv(0, 0)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(v0.x(), v0.y(), v0.z()).setColor(r, g, b, a).setUv(0, 1)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(l.x(), l.y(), l.z()).setColor(r, g, b, a).setUv(1, 1)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
+            consumer.addVertex(l.x(), l.y(), l.z()).setColor(r, g, b, a).setUv(1, 0)
+                    .setOverlay(OverlayTexture.NO_OVERLAY).setLight(packedLight).setNormal(0, 1, 0);
         }
     }
     // endregion

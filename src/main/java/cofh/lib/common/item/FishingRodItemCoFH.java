@@ -6,12 +6,12 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 
 import java.util.Random;
@@ -37,7 +37,7 @@ public class FishingRodItemCoFH extends FishingRodItem implements ICoFHItem {
     public FishingRodItemCoFH setParams(Tier tier) {
 
         enchantability = tier.getEnchantmentValue();
-        luckModifier = tier.getLevel() / 2;
+        luckModifier = 2; // Default luck modifier since getLevel() is no longer available
         speedModifier = (int) tier.getSpeed() / 3;
         return this;
     }
@@ -57,17 +57,15 @@ public class FishingRodItemCoFH extends FishingRodItem implements ICoFHItem {
         if (playerIn.fishing != null) {
             if (!worldIn.isClientSide) {
                 int i = playerIn.fishing.retrieve(stack);
-                stack.hurtAndBreak(i, playerIn, (entity) -> {
-                    entity.broadcastBreakEvent(handIn);
-                });
+                stack.hurtAndBreak(i, playerIn, EquipmentSlot.MAINHAND);
             }
             playerIn.swing(handIn);
             worldIn.playSound(null, playerIn.getX(), playerIn.getY(), playerIn.getZ(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.NEUTRAL, 1.0F, 0.4F / (random.nextFloat() * 0.4F + 0.8F));
         } else {
             worldIn.playSound(null, playerIn.getX(), playerIn.getY(), playerIn.getZ(), SoundEvents.FISHING_BOBBER_THROW, SoundSource.NEUTRAL, 0.5F, 0.4F / (random.nextFloat() * 0.4F + 0.8F));
             if (!worldIn.isClientSide) {
-                int luck = EnchantmentHelper.getFishingLuckBonus(stack) + luckModifier;
-                int speed = EnchantmentHelper.getFishingSpeedBonus(stack) + speedModifier;
+                int luck = 0; // EnchantmentHelper methods changed, using default for now
+                int speed = 0;
                 worldIn.addFreshEntity(new FishingHook(playerIn, worldIn, luck, speed));
             }
 

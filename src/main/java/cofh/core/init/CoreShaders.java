@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 
 import java.io.IOException;
@@ -21,7 +21,7 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 import static net.minecraft.client.renderer.RenderStateShard.RENDERTYPE_TRANSLUCENT_SHADER;
 import static net.minecraft.client.renderer.RenderStateShard.TRANSLUCENT_TRANSPARENCY;
 
-@Mod.EventBusSubscriber(modid = ID_COFH_CORE, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ID_COFH_CORE, value = Dist.CLIENT)
 public class CoreShaders {
 
     public static ShaderInstance PARTICLE_OVER;
@@ -45,7 +45,7 @@ public class CoreShaders {
             if (!isEnabled()) {
                 builder.setTransparencyState(TRANSLUCENT_TRANSPARENCY);
             }
-            return RenderType.create(outputName, DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, buffer.getSize(), false, false, builder.createCompositeState(false));
+            return RenderType.create(outputName, DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, true, builder.createCompositeState(false));
         }
 
     };

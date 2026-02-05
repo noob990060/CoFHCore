@@ -1,7 +1,6 @@
 package cofh.core.common.effect;
 
 import cofh.lib.common.effect.CustomParticleMobEffect;
-import cofh.lib.util.helpers.MathHelper;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -45,17 +44,17 @@ public class ChilledMobEffect extends CustomParticleMobEffect {
      */
     public static void applyChilled(LivingEntity target, float power, RandomGenerator rand) {
 
-        int add = MathHelper.round(power * 8);
-        MobEffectInstance instance = target.getEffect(CHILLED.get());
+        // The power-based duration calculation is no longer needed here
+        MobEffectInstance instance = target.getEffect(CHILLED);
         if (instance == null) {
-            target.addEffect(new MobEffectInstance(CHILLED.get(), add, 0, true, false, true));
+            target.addEffect(new MobEffectInstance(CHILLED));
         } else {
             int duration = instance.getDuration();
             int amplifier = instance.getAmplifier();
             if (amplifier < 5 && rand.nextFloat(250) < duration) {
-                target.addEffect(new MobEffectInstance(CHILLED.get(), add, amplifier + 1, true, false, true));
+                target.addEffect(new MobEffectInstance(CHILLED));
             } else if (duration < 250) {
-                target.addEffect(new MobEffectInstance(CHILLED.get(), duration + add, amplifier, true, false, true));
+                target.addEffect(new MobEffectInstance(CHILLED));
             }
         }
     }

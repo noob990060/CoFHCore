@@ -2,7 +2,6 @@ package cofh.lib.common.block;
 
 import cofh.lib.util.Utils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -43,7 +42,7 @@ public class DirectionalBlock6Way extends Block {
     @Override
     public BlockState rotate(BlockState state, Rotation rot) {
 
-        return state.setValue(FACING_ALL, Direction.from3DDataValue(state.getValue(FACING_ALL).get3DDataValue() + 1));
+        return state.setValue(FACING_ALL, rot.rotate(state.getValue(FACING_ALL)));
     }
 
     @Override
@@ -53,11 +52,11 @@ public class DirectionalBlock6Way extends Block {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 
-        if (Utils.isWrench(player.getItemInHand(handIn))) {
+        if (Utils.isWrench(player.getItemInHand(InteractionHand.MAIN_HAND))) {
 
-            BlockState rotState = rotate(state, worldIn, pos, Rotation.CLOCKWISE_90);
+            BlockState rotState = this.rotate(state, Rotation.CLOCKWISE_90);
             if (rotState != state) {
                 worldIn.setBlockAndUpdate(pos, rotState);
                 return InteractionResult.SUCCESS;

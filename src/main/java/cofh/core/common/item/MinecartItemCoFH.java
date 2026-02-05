@@ -6,6 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
+import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
@@ -55,8 +56,9 @@ public class MinecartItemCoFH extends ItemCoFH {
     protected void createMinecart(ItemStack stack, Level level, double posX, double posY, double posZ) {
 
         AbstractMinecartCoFH minecart = factory.createMinecart(level, posX, posY, posZ);
-        if (stack.hasCustomHoverName()) {
-            minecart.setCustomName(stack.getHoverName());
+        Component name = stack.getHoverName();
+        if (name != null) {
+            minecart.setCustomName(name);
         }
         minecart.onPlaced(stack);
         level.addFreshEntity(minecart);

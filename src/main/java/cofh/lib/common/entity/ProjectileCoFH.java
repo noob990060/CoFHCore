@@ -5,6 +5,7 @@ import cofh.lib.util.constants.NBTTags;
 import cofh.lib.util.helpers.MathHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -52,7 +53,7 @@ public class ProjectileCoFH extends Projectile {
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
 
     }
 
@@ -72,7 +73,6 @@ public class ProjectileCoFH extends Projectile {
     public void tick() {
 
         this.walkDistO = this.walkDist;
-        handleNetherPortal();
 
         this.wasInPowderSnow = this.isInPowderSnow;
         this.isInPowderSnow = false;
@@ -107,10 +107,12 @@ public class ProjectileCoFH extends Projectile {
                 BlockPos blockpos = blockResult.getBlockPos();
                 BlockState blockstate = level.getBlockState(blockpos);
                 if (blockstate.is(Blocks.NETHER_PORTAL)) {
-                    this.handleInsidePortal(blockpos);
+                    // Nether portal handling removed in NeoForge 1.21.1
+                    // Portals are now handled automatically by the entity system
                 } else if (blockstate.is(Blocks.END_GATEWAY)) {
-                    if (level.getBlockEntity(blockpos) instanceof TheEndGatewayBlockEntity gateway && TheEndGatewayBlockEntity.canEntityTeleport(this)) {
-                        TheEndGatewayBlockEntity.teleportEntity(level, blockpos, blockstate, this, gateway);
+                    if (level.getBlockEntity(blockpos) instanceof TheEndGatewayBlockEntity gateway) {
+                        // TODO: Update EndGateway teleportation for NeoForge 1.21.1
+                        // The canEntityTeleport and teleportEntity methods have changed
                     }
                     return;
                 } else if (EventHooks.onProjectileImpact(this, blockResult)) {

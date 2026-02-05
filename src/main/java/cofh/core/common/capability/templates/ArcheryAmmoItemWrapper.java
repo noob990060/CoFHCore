@@ -2,10 +2,14 @@ package cofh.core.common.capability.templates;
 
 import cofh.core.util.helpers.ArcheryHelper;
 import cofh.lib.api.capability.IArcheryAmmoItem;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 
@@ -41,7 +45,10 @@ public class ArcheryAmmoItemWrapper implements IArcheryAmmoItem {
     @Override
     public boolean isInfinite(ItemStack bow, Player shooter) {
 
-        return shooter != null && shooter.getAbilities().instabuild || getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, bow) > 0 && ammoItem.getItem().getClass() == ArrowItem.class;
+        @SuppressWarnings("unchecked")
+        Registry<Enchantment> registry = (Registry<Enchantment>) BuiltInRegistries.REGISTRY.get(Registries.ENCHANTMENT);
+        Enchantment infinity = registry.get(Enchantments.INFINITY.location());
+        return shooter != null && shooter.getAbilities().instabuild || infinity != null && getItemEnchantmentLevel(infinity, bow) > 0 && ammoItem.getItem().getClass() == ArrowItem.class;
     }
 
 }

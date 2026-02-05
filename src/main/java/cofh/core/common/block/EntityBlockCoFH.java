@@ -61,7 +61,7 @@ public class EntityBlockCoFH extends Block implements EntityBlock, IDismantleabl
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 
         if (Utils.isClientWorld(worldIn)) {
             return InteractionResult.SUCCESS;
@@ -72,7 +72,7 @@ public class EntityBlockCoFH extends Block implements EntityBlock, IDismantleabl
                 ProxyUtils.setOverlayMessage(player, Component.translatable("info.cofh.secure_warning", SecurityHelper.getOwnerName(tile)));
                 return InteractionResult.PASS;
             }
-            if (Utils.isWrench(player.getItemInHand(handIn))) {
+            if (Utils.isWrench(player.getItemInHand(InteractionHand.MAIN_HAND))) {
                 if (player.isSecondaryUseActive()) {
                     if (canDismantle(worldIn, pos, state, player)) {
                         dismantleBlock(worldIn, pos, state, hit, player, returnDismantleDrops());
@@ -86,7 +86,7 @@ public class EntityBlockCoFH extends Block implements EntityBlock, IDismantleabl
                     }
                 }
             }
-            if (onBlockActivatedDelegate(worldIn, pos, state, player, handIn, hit)) {
+            if (onBlockActivatedDelegate(worldIn, pos, state, player, InteractionHand.MAIN_HAND, hit)) {
                 return InteractionResult.SUCCESS;
             }
             if (cofhTile.canOpenGui()) {

@@ -7,9 +7,9 @@ import net.minecraft.world.item.Tier;
 
 public class AxeItemCoFH extends AxeItem implements ICoFHItem {
 
-    public AxeItemCoFH(Tier tier, float attackDamageIn, float attackSpeedIn, Properties builder) {
+    public AxeItemCoFH(Tier tier, Properties builder) {
 
-        super(tier, attackDamageIn, attackSpeedIn, builder);
+        super(tier, builder);
     }
 
     // region DISPLAY

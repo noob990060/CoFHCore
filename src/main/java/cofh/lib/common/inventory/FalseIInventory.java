@@ -3,10 +3,11 @@ package cofh.lib.common.inventory;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeInput;
 
 import javax.annotation.Nonnull;
 
-public final class FalseIInventory implements Container {
+public final class FalseIInventory implements Container, RecipeInput {
 
     public static FalseIInventory INSTANCE = new FalseIInventory();
 
@@ -63,6 +64,11 @@ public final class FalseIInventory implements Container {
     @Override
     public void clearContent() {
 
+    }
+
+    @Override
+    public int size() {
+        return 0;
     }
 
 }

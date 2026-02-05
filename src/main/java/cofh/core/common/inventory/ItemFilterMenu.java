@@ -8,6 +8,9 @@ import cofh.lib.common.inventory.SlotLocked;
 import cofh.lib.common.inventory.wrapper.InvWrapperGeneric;
 import cofh.lib.util.helpers.MathHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
@@ -37,7 +40,8 @@ public class ItemFilterMenu extends ContainerMenuCoFH implements IFilterOptions 
 
     public final FilterHolderType type;
 
-    public ItemFilterMenu(int windowId, Level world, Inventory inventory, Player player, int holder, int id, BlockPos pos) {
+    public ItemFilterMenu(int windowId, Level world, Inventory inventory, Player player, int holder, int id,
+            BlockPos pos) {
 
         super(ITEM_FILTER_CONTAINER.get(), windowId, inventory, player);
 
@@ -162,7 +166,13 @@ public class ItemFilterMenu extends ContainerMenuCoFH implements IFilterOptions 
         filter.setItems(filterInventory.getStacks());
 
         if (type == SELF || type == ITEM) {
-            filter.write(filterStack.getOrCreateTag());
+            CustomData customData = filterStack.get(DataComponents.CUSTOM_DATA);
+            if (customData == null) {
+                customData = CustomData.of(new CompoundTag());
+            }
+            CompoundTag compound = customData.copyTag();
+            filter.write(compound);
+            filterStack.set(DataComponents.CUSTOM_DATA, CustomData.of(compound));
             filterableItem.onFilterChanged(filterStack);
         } else {
             filterable.onFilterChanged();

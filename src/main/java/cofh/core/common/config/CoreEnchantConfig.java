@@ -1,12 +1,9 @@
 package cofh.core.common.config;
 
-import cofh.lib.common.enchantment.EnchantmentCoFH;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.function.Supplier;
 
-import static cofh.core.CoFHCore.ENCHANTMENTS;
-import static cofh.core.util.references.CoreIDs.ID_HOLDING;
 import static cofh.lib.util.Constants.MAX_ENCHANT_LEVEL;
 import static cofh.lib.util.Constants.TRUE;
 
@@ -14,9 +11,6 @@ public class CoreEnchantConfig implements IBaseConfig {
 
     @Override
     public void apply(ModConfigSpec.Builder builder) {
-
-        String treasure = "This sets whether or not the Enchantment is considered a 'treasure' enchantment.";
-        String level = "This option adjusts the maximum allowable level for the Enchantment.";
 
         builder.push("Enchantments");
 
@@ -33,10 +27,10 @@ public class CoreEnchantConfig implements IBaseConfig {
                 .comment("If TRUE, the Holding Enchantment is available for various Storage Items and Blocks.")
                 .define("Enable", true);
         treasureHolding = builder
-                .comment(treasure)
+                .comment("This sets whether or not the Holding Enchantment is considered a 'treasure' enchantment.")
                 .define("Treasure", false);
         levelHolding = builder
-                .comment(level)
+                .comment("This option adjusts the maximum allowable level for the Holding Enchantment.")
                 .defineInRange("Max Level", 4, 1, MAX_ENCHANT_LEVEL);
         builder.pop();
 
@@ -45,12 +39,9 @@ public class CoreEnchantConfig implements IBaseConfig {
 
     @Override
     public void refresh() {
-
-        if (ENCHANTMENTS.get(ID_HOLDING) instanceof EnchantmentCoFH enc) {
-            enc.setEnable(enableHolding.get());
-            enc.setTreasureEnchantment(treasureHolding.get());
-            enc.setMaxLevel(levelHolding.get());
-        }
+        // In NeoForge 1.21.1, enchantments are defined through data generation
+        // and cannot be configured through runtime methods.
+        // Configuration values are stored for potential use in data generation.
     }
 
     public static boolean improvedFeatherFalling() {
@@ -63,11 +54,26 @@ public class CoreEnchantConfig implements IBaseConfig {
         return improvedMending.get();
     }
 
+    public static boolean enableHolding() {
+
+        return enableHolding.get();
+    }
+
+    public static boolean treasureHolding() {
+
+        return treasureHolding.get();
+    }
+
+    public static int levelHolding() {
+
+        return levelHolding.get();
+    }
+
     private static Supplier<Boolean> improvedFeatherFalling = TRUE;
     private static Supplier<Boolean> improvedMending = TRUE;
 
-    private Supplier<Boolean> enableHolding;
-    private Supplier<Boolean> treasureHolding;
-    private Supplier<Integer> levelHolding;
+    private static Supplier<Boolean> enableHolding;
+    private static Supplier<Boolean> treasureHolding;
+    private static Supplier<Integer> levelHolding;
 
 }

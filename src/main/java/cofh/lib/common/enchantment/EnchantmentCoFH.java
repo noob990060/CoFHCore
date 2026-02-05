@@ -1,106 +1,99 @@
 package cofh.lib.common.enchantment;
 
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentCategory;
 
-public abstract class EnchantmentCoFH extends Enchantment {
+/**
+ * Utility class for CoFH enchantment functionality.
+ * 
+ * In NeoForge 1.21.1, enchantments are defined through data generation
+ * and Enchantment is now a record class that cannot be extended.
+ * This class provides utility methods for enchantment configuration
+ * and compatibility checks.
+ */
+public class EnchantmentCoFH {
 
-    protected boolean enable = true;
-
-    protected boolean allowGenerateInLoot = true;
-    protected boolean allowOnBooks = true;
-    protected boolean allowVillagerTrade = true;
-    protected boolean treasureEnchantment = false;
-
-    protected int maxLevel = 1;
-
-    protected EnchantmentCoFH(Rarity rarityIn, EnchantmentCategory typeIn, EquipmentSlot[] slots) {
-
-        super(rarityIn, typeIn, slots);
+    /**
+     * Checks if an enchantment is enabled based on configuration.
+     * This method should be used by enchantment effect components
+     * to determine if the enchantment should be active.
+     * 
+     * @param enchantment The enchantment to check
+     * @return true if the enchantment should be enabled
+     */
+    public static boolean isEnabled(Enchantment enchantment) {
+        // TODO: Implement configuration-based enable/disable logic
+        // This would typically check a configuration system
+        return true;
     }
 
-    public EnchantmentCoFH setEnable(boolean enable) {
-
-        this.enable = enable;
-        return this;
+    /**
+     * Checks if an enchantment is allowed on books.
+     * 
+     * @param enchantment The enchantment to check
+     * @return true if the enchantment can be applied to books
+     */
+    public static boolean isAllowedOnBooks(Enchantment enchantment) {
+        // TODO: Implement configuration-based book allowance logic
+        return true;
     }
 
-    public EnchantmentCoFH setTreasureEnchantment(boolean treasureEnchantment) {
-
-        this.treasureEnchantment = treasureEnchantment;
-        return this;
+    /**
+     * Checks if an enchantment is discoverable in loot.
+     * 
+     * @param enchantment The enchantment to check
+     * @return true if the enchantment can be found in loot
+     */
+    public static boolean isDiscoverable(Enchantment enchantment) {
+        // TODO: Implement configuration-based discoverability logic
+        return true;
     }
 
-    public EnchantmentCoFH setAllowOnBooks(boolean allowOnBooks) {
-
-        this.allowOnBooks = allowOnBooks;
-        return this;
+    /**
+     * Checks if an enchantment is tradeable by villagers.
+     * 
+     * @param enchantment The enchantment to check
+     * @return true if the enchantment can be traded
+     */
+    public static boolean isTradeable(Enchantment enchantment) {
+        // TODO: Implement configuration-based tradeability logic
+        return true;
     }
 
-    public EnchantmentCoFH setMaxLevel(int maxLevel) {
-
-        this.maxLevel = maxLevel;
-        return this;
+    /**
+     * Checks if an enchantment is a treasure enchantment.
+     * 
+     * @param enchantment The enchantment to check
+     * @return true if the enchantment is a treasure enchantment
+     */
+    public static boolean isTreasureOnly(Enchantment enchantment) {
+        // TODO: Implement configuration-based treasure logic
+        return false;
     }
 
-    @Override
-    public String getDescriptionId() {
-
-        return isEnabled() ? this.getOrCreateDescriptionId() : "enchantment.cofh_core.disabled";
+    /**
+     * Gets the maximum level for an enchantment.
+     * 
+     * @param enchantment The enchantment to check
+     * @return The maximum level, or 1 if not specified
+     */
+    public static int getMaxLevel(Enchantment enchantment) {
+        // TODO: Implement configuration-based max level logic
+        return enchantment.definition().maxLevel();
     }
 
-    public boolean isEnabled() {
-
-        return enable;
+    /**
+     * Gets the description for an enchantment, with support for disabled state.
+     * 
+     * @param enchantment The enchantment to get the description for
+     * @return The description Component, or disabled message if not enabled
+     */
+    public static Component getDescription(Enchantment enchantment) {
+        return isEnabled(enchantment) ? enchantment.description() : Component.literal("enchantment.cofh_core.disabled");
     }
 
-    @Override
-    public int getMaxCost(int level) {
-
-        return enable ? maxDelegate(level) : -1;
+    private EnchantmentCoFH() {
+        // Utility class - no instances
     }
-
-    protected int maxDelegate(int level) {
-
-        return getMinCost(level) + 5;
-    }
-
-    @Override
-    public int getMaxLevel() {
-
-        return maxLevel;
-    }
-
-    @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack) {
-
-        return enable && super.canApplyAtEnchantingTable(stack);
-    }
-
-    @Override
-    public boolean isAllowedOnBooks() {
-
-        return enable && allowOnBooks;
-    }
-
-    @Override
-    public boolean isDiscoverable() {
-
-        return enable && allowGenerateInLoot;
-    }
-
-    @Override
-    public boolean isTradeable() {
-
-        return enable && allowVillagerTrade;
-    }
-
-    @Override
-    public boolean isTreasureOnly() {
-
-        return treasureEnchantment;
-    }
-
 }

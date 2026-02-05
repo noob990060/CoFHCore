@@ -1,7 +1,6 @@
 package cofh.core.common.entity;
 
 import cofh.core.common.item.KnifeItem;
-import cofh.lib.util.Utils;
 import cofh.lib.util.helpers.MathHelper;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -21,8 +20,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -42,23 +39,24 @@ public class ThrownKnife extends AbstractArrow {
 
     public ThrownKnife(EntityType<? extends AbstractArrow> type, Level worldIn) {
 
-        super(type, worldIn, ItemStack.EMPTY);
+        super(type, worldIn);
     }
 
     public ThrownKnife(EntityType<? extends AbstractArrow> type, Level worldIn, ItemStack stack) {
 
-        super(type, worldIn, stack);
+        super(type, worldIn);
+        this.entityData.set(DATA_ITEM_STACK, stack.copy());
     }
 
     public ThrownKnife(Level world, double x, double y, double z, ItemStack stack) {
 
-        super(THROWN_KNIFE.get(), x, y, z, world, stack);
+        super(THROWN_KNIFE.get(), x, y, z, world, stack, null);
         this.entityData.set(DATA_ITEM_STACK, stack.copy());
     }
 
     public ThrownKnife(Level world, LivingEntity owner, ItemStack stack) {
 
-        super(THROWN_KNIFE.get(), owner, world, stack);
+        super(THROWN_KNIFE.get(), owner, world, stack, null);
         this.entityData.set(DATA_ITEM_STACK, stack.copy());
     }
 
@@ -69,10 +67,16 @@ public class ThrownKnife extends AbstractArrow {
     }
 
     @Override
-    protected void defineSynchedData() {
+    public ItemStack getDefaultPickupItem() {
 
-        super.defineSynchedData();
-        this.entityData.define(DATA_ITEM_STACK, ItemStack.EMPTY);
+        return this.getEntityData().get(DATA_ITEM_STACK);
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+
+        super.defineSynchedData(builder);
+        builder.define(DATA_ITEM_STACK, ItemStack.EMPTY);
     }
 
     @Override
@@ -83,7 +87,9 @@ public class ThrownKnife extends AbstractArrow {
         }
         Entity owner = this.getOwner();
         if (hitTime > 4 && owner != null) {
-            int loyalty = Utils.getItemEnchantmentLevel(Enchantments.LOYALTY, getPickupItem());
+            // TODO: Update to use new enchantment API when available
+            // int loyalty = Utils.getItemEnchantmentLevel(Enchantments.LOYALTY, getPickupItem());
+            int loyalty = 0;
             if (loyalty > 0) {
                 if (this.hasReturnOwner()) {
                     if (hitTime == 5) {
@@ -131,12 +137,13 @@ public class ThrownKnife extends AbstractArrow {
         ItemStack stack = getPickupItem();
         if (stack.getItem() instanceof KnifeItem) {
             float velocity = (float) this.getDeltaMovement().length();
-            float damage = ((KnifeItem) stack.getItem()).getDamage();
+            float damage = ((KnifeItem) stack.getItem()).getDamage(stack);
 
             damage = (float) MathHelper.clamp(velocity * damage, 0.0D, damage * 3);
-            if (target instanceof LivingEntity) {
-                damage += EnchantmentHelper.getDamageBonus(stack, ((LivingEntity) target).getMobType());
-            }
+            // TODO: Update to use new enchantment API when available
+            // if (target instanceof LivingEntity) {
+            //     damage += EnchantmentHelper.getDamageBonus(stack, ((LivingEntity) target).getMobType());
+            // }
             Entity owner = this.getOwner();
             if (target.hurt(this.damageSource(), damage)) {
                 if (target.getType() == EntityType.ENDERMAN) {
@@ -147,14 +154,16 @@ public class ThrownKnife extends AbstractArrow {
                 }
                 if (target instanceof LivingEntity livingTarget) {
                     if (owner instanceof LivingEntity) {
-                        EnchantmentHelper.doPostHurtEffects(livingTarget, owner);
-                        EnchantmentHelper.doPostDamageEffects((LivingEntity) owner, livingTarget);
+                        // TODO: Update to use new enchantment API when available
+                        // EnchantmentHelper.doPostHurtEffects(livingTarget, owner);
+                        // EnchantmentHelper.doPostDamageEffects((LivingEntity) owner, livingTarget);
                         if (owner instanceof Player player) {
                             stack.hurtEnemy(livingTarget, player);
                         }
                     }
                     this.doPostHurtEffects(livingTarget);
-                    target.setSecondsOnFire(4 * Utils.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, stack));
+                    // TODO: Update to use new enchantment API when available
+                    // target.setSecondsOnFire(4 * Utils.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, stack));
                 }
             }
             this.setDeltaMovement(this.getDeltaMovement().multiply(-0.01D, -0.1D, -0.01D));
@@ -182,7 +191,8 @@ public class ThrownKnife extends AbstractArrow {
 
         super.readAdditionalSaveData(nbt);
         if (nbt.contains("Knife", TAG_COMPOUND)) {
-            this.entityData.set(DATA_ITEM_STACK, ItemStack.of(nbt.getCompound("Knife")));
+            // TODO: Update to use new ItemStack loading when available
+            // this.entityData.set(DATA_ITEM_STACK, ItemStack.of(nbt.getCompound("Knife")));
         }
         this.hitTime = nbt.getInt("HitTime");
     }
@@ -191,16 +201,19 @@ public class ThrownKnife extends AbstractArrow {
     public void addAdditionalSaveData(CompoundTag nbt) {
 
         super.addAdditionalSaveData(nbt);
-        nbt.put("Knife", getPickupItem().save(new CompoundTag()));
+        // TODO: Update to use new ItemStack saving when available
+        // nbt.put("Knife", getPickupItem().save(new CompoundTag()));
         nbt.putInt("HitTime", this.hitTime);
     }
 
     @Override
     public void tickDespawn() {
 
-        if (this.pickup != AbstractArrow.Pickup.ALLOWED || Utils.getItemEnchantmentLevel(Enchantments.LOYALTY, getPickupItem()) <= 0) {
-            super.tickDespawn();
-        }
+        // TODO: Update to use new enchantment API when available
+        // if (this.pickup != AbstractArrow.Pickup.ALLOWED || Utils.getItemEnchantmentLevel(Enchantments.LOYALTY, getPickupItem()) <= 0) {
+        //     super.tickDespawn();
+        // }
+        super.tickDespawn();
     }
 
     protected boolean hasReturnOwner() {

@@ -1,7 +1,7 @@
 package cofh.lib.common.entity;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
@@ -61,27 +61,26 @@ public abstract class AbstractFieldSpell extends AbstractAoESpell implements IEn
         return getType().getDimensions().scale(radius * 2, 1);
     }
 
-    @Override
-    protected float getEyeHeight(Pose pose, EntityDimensions dimensions) {
+    public float getFieldEyeHeight(Pose pose) {
 
-        return dimensions.height * 0.45F;
+        return getDimensions(pose).height() * 0.45F;
     }
 
     @Override
     protected AABB makeBoundingBox() {
 
-        return dimensions.makeBoundingBox(position().subtract(0, dimensions.height * 0.5F, 0));
+        return dimensions.makeBoundingBox(position().subtract(0, dimensions.height() * 0.5F, 0));
     }
 
     @Override
-    public void writeSpawnData(FriendlyByteBuf buffer) {
+    public void writeSpawnData(RegistryFriendlyByteBuf buffer) {
 
         buffer.writeVarInt(getDuration());
         buffer.writeFloat(getRadius());
     }
 
     @Override
-    public void readSpawnData(FriendlyByteBuf additionalData) {
+    public void readSpawnData(RegistryFriendlyByteBuf additionalData) {
 
         duration = additionalData.readVarInt();
         setRadius(additionalData.readFloat());

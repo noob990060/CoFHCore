@@ -8,9 +8,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.event.TickEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 import java.util.Map;
 import java.util.Objects;
@@ -19,17 +19,18 @@ import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 import static net.minecraft.world.InteractionHand.MAIN_HAND;
 import static net.minecraft.world.InteractionHand.OFF_HAND;
 
-@Mod.EventBusSubscriber(modid = ID_COFH_CORE)
+@EventBusSubscriber(modid = ID_COFH_CORE)
 public class ItemTracker {
 
     // TODO weak reference players
     protected static Map<Hand, ItemStack> HELD = new Object2ObjectOpenHashMap<>();
     protected static Object2IntMap<ItemStack> USING = new Object2IntOpenHashMap<>();
 
-    //protected static Object2LongMap<ItemStack> TIME = new Object2LongOpenHashMap<>();
+    // protected static Object2LongMap<ItemStack> TIME = new
+    // Object2LongOpenHashMap<>();
     static {
         USING.defaultReturnValue(-1);
-        //TIME.defaultReturnValue(-1);
+        // TIME.defaultReturnValue(-1);
     }
 
     /**
@@ -40,53 +41,51 @@ public class ItemTracker {
         return USING.getInt(stack);
     }
 
-    ///**
+    /// **
     // * Stores a time value associated with the item until it is swapped off of.
     // */
-    //public static void recordTime(ItemStack stack, long time) {
+    // public static void recordTime(ItemStack stack, long time) {
     //
-    //    TIME.computeLongIfPresent(stack, (key, old) -> time);
-    //}
+    // TIME.computeLongIfPresent(stack, (key, old) -> time);
+    // }
 
-    ///**
+    /// **
     // * Recalls the previously recorded time value, or -1 if not present.
     // */
-    //public static long getRecordedTime(ItemStack stack) {
+    // public static long getRecordedTime(ItemStack stack) {
     //
-    //    return TIME.getLong(stack);
-    //}
+    // return TIME.getLong(stack);
+    // }
 
-    //@Nullable
-    //public static Pair<Player, InteractionHand> getUser(ItemStack stack) {
+    // @Nullable
+    // public static Pair<Player, InteractionHand> getUser(ItemStack stack) {
     //
-    //    if (stack.getItem() instanceof ITrackedItem tracked) {
-    //        return HELD.entrySet().stream()
-    //                .filter(entry -> tracked.matches(stack, entry.getValue()))
-    //                .findFirst()
-    //                .map(entry -> {
-    //                    Hand hand = entry.getKey();
-    //                    if (hand == null) {
-    //                        return null;
-    //                    }
-    //                    return Pair.of(hand.player, hand.hand);
-    //                })
-    //                .orElse(null);
-    //    }
-    //    return null;
-    //}
+    // if (stack.getItem() instanceof ITrackedItem tracked) {
+    // return HELD.entrySet().stream()
+    // .filter(entry -> tracked.matches(stack, entry.getValue()))
+    // .findFirst()
+    // .map(entry -> {
+    // Hand hand = entry.getKey();
+    // if (hand == null) {
+    // return null;
+    // }
+    // return Pair.of(hand.player, hand.hand);
+    // })
+    // .orElse(null);
+    // }
+    // return null;
+    // }
 
-    @SubscribeEvent (priority = EventPriority.LOWEST)
-    public static void playerTick(TickEvent.PlayerTickEvent event) {
-
-        Player player = event.player;
-        if (event.phase != TickEvent.Phase.START) {
-            return;
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void serverTick(ServerTickEvent event) {
+        // Update all players on the server
+        for (Player player : event.getServer().getPlayerList().getPlayers()) {
+            updateData(player, MAIN_HAND);
+            updateData(player, OFF_HAND);
         }
-        updateData(player, MAIN_HAND);
-        updateData(player, OFF_HAND);
     }
 
-    @SubscribeEvent (priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onStartUsing(LivingEntityUseItemEvent.Start event) {
 
         if (!event.isCanceled()) {
@@ -94,7 +93,7 @@ public class ItemTracker {
         }
     }
 
-    @SubscribeEvent (priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onTickUsing(LivingEntityUseItemEvent.Tick event) {
 
         if (!event.isCanceled()) {
@@ -120,13 +119,13 @@ public class ItemTracker {
         Hand key = new Hand(player, hand);
         ItemStack previous = HELD.remove(key);
         int duration = USING.removeInt(previous);
-        //long time = TIME.removeLong(previous);
+        // long time = TIME.removeLong(previous);
         ItemStack current = player.getItemInHand(hand);
         if (previous != null && previous.getItem() instanceof ITrackedItem item) {
             if (item.matches(previous, current)) {
                 HELD.put(key, current);
                 USING.put(current, duration);
-                //TIME.put(current, time);
+                // TIME.put(current, time);
                 return;
             }
             item.onSwapFrom(player, hand, previous, current, duration);
@@ -134,14 +133,17 @@ public class ItemTracker {
         if (current.getItem() instanceof ITrackedItem item) {
             HELD.put(key, current);
             USING.put(current, duration);
-            //TIME.put(current, time);
+            // TIME.put(current, time);
             item.onSwapTo(player, hand, previous, current);
         }
     }
 
     protected static void updateUsing(ItemStack stack, int duration) {
 
-        USING.computeIntIfPresent(stack, (key, old) -> stack.getUseDuration() - duration);
+        USING.computeIntIfPresent(stack, (key, old) -> {
+            // For items that don't have a specific use duration, return the old value
+            return old;
+        });
     }
 
     protected static void stopUsing(ItemStack stack) {
@@ -159,7 +161,8 @@ public class ItemTracker {
                 return true;
             }
             if (o instanceof Hand other) {
-                return player.equals(other.player) && player.isLocalPlayer() == other.player.isLocalPlayer() && hand.equals(other.hand);
+                return player.equals(other.player) && player.isLocalPlayer() == other.player.isLocalPlayer()
+                        && hand.equals(other.hand);
             }
             return false;
         }

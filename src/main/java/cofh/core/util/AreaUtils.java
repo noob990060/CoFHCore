@@ -11,7 +11,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.monster.Endermite;
 import net.minecraft.world.level.Level;
@@ -48,10 +47,10 @@ public class AreaUtils {
     public static final IEffectApplier IGNITE_ENTITIES = (target, duration, power, source) -> {
 
         if (!target.fireImmune() && !target.isInWater() && target.getRemainingFireTicks() <= 0) {
-            target.setSecondsOnFire(duration / 20);
+            target.setRemainingFireTicks(duration * 20);
         }
         if (target instanceof LivingEntity living) {
-            living.removeEffect(CHILLED.get());
+            living.removeEffect(CHILLED.getDelegate());
         }
     };
 
@@ -61,21 +60,21 @@ public class AreaUtils {
             target.setRemainingFireTicks(0);
         }
         if (target instanceof LivingEntity living) {
-            living.addEffect(new MobEffectInstance(CHILLED.get(), duration, power));
+            living.addEffect(new MobEffectInstance(CHILLED.getDelegate(), duration, power));
         }
     };
 
     public static final IEffectApplier SUNDER_ENTITIES = (target, duration, power, source) -> {
 
         if (target instanceof LivingEntity living) {
-            living.addEffect(new MobEffectInstance(SUNDERED.get(), duration, power));
+            living.addEffect(new MobEffectInstance(SUNDERED.getDelegate(), duration, power));
         }
     };
 
     public static final IEffectApplier SHOCK_ENTITIES = (target, duration, power, source) -> {
 
-        if (target instanceof LivingEntity living && !living.hasEffect(LIGHTNING_RESISTANCE.get())) {
-            living.addEffect(new MobEffectInstance(SHOCKED.get(), duration, power));
+        if (target instanceof LivingEntity living && !living.hasEffect(LIGHTNING_RESISTANCE.getDelegate())) {
+            living.addEffect(new MobEffectInstance(SHOCKED.getDelegate(), duration, power));
         }
     };
 
@@ -252,10 +251,11 @@ public class AreaUtils {
 
         if (target instanceof LivingEntity living) {
             living.addEffect(new MobEffectInstance(MobEffects.GLOWING, duration, power));
-            if (living.getMobType() == MobType.UNDEAD) {
-                living.hurt(living.level.damageSources().indirectMagic(source instanceof LivingEntity ? source : null, null), 4.0F);
-                living.setSecondsOnFire(duration / 20);
-            }
+            // TODO: Update to use new entity type system when available
+            // if (living.getMobType() == MobType.UNDEAD) {
+            //     living.hurt(living.level.damageSources().indirectMagic(source instanceof LivingEntity ? source : null, null), 4.0F);
+            //     living.setRemainingFireTicks(duration * 20);
+            // }
         }
     };
     public static final IBlockTransformer ENDER_AIR_TRANSFORM = getConversionTransform(REPLACEABLE_AIR, ENDER_AIR.get().defaultBlockState(), false);
@@ -263,7 +263,7 @@ public class AreaUtils {
 
         if (target instanceof EnderMan || target instanceof Endermite) {
             LivingEntity living = (LivingEntity) target;
-            living.addEffect(new MobEffectInstance(ENDERFERENCE.get(), duration, power));
+            living.addEffect(new MobEffectInstance(ENDERFERENCE.getDelegate(), duration, power));
             living.hurt(living.level.damageSources().indirectMagic(source instanceof LivingEntity ? source : null, null), 4.0F);
         }
     };
@@ -505,7 +505,7 @@ public class AreaUtils {
         mobs.removeIf(Entity::fireImmune);
         mobs.removeIf(mob -> mob instanceof EnderMan);
         for (LivingEntity mob : mobs) {
-            mob.setSecondsOnFire(duration);
+            mob.setRemainingFireTicks(duration * 20);
         }
     }
 

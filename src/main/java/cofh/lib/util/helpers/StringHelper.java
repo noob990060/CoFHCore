@@ -2,6 +2,8 @@ package cofh.lib.util.helpers;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.Item;
@@ -56,6 +58,8 @@ public final class StringHelper {
         MutableComponent name = fluid.getFluidType().getDescription(stack).copy();
 
         switch (fluid.getFluidType().getRarity(stack)) {
+            case COMMON -> {
+            }
             case UNCOMMON -> name.withStyle(ChatFormatting.YELLOW);
             case RARE -> name.withStyle(ChatFormatting.AQUA);
             case EPIC -> name.withStyle(ChatFormatting.LIGHT_PURPLE);
@@ -68,7 +72,9 @@ public final class StringHelper {
         Item item = stack.getItem();
         MutableComponent name = item.getName(stack).copy();
 
-        switch (item.getRarity(stack)) {
+        switch (stack.getRarity()) {
+            case COMMON -> {
+            }
             case UNCOMMON -> name.withStyle(ChatFormatting.YELLOW);
             case RARE -> name.withStyle(ChatFormatting.AQUA);
             case EPIC -> name.withStyle(ChatFormatting.LIGHT_PURPLE);
@@ -116,12 +122,22 @@ public final class StringHelper {
 
     public static String toJSON(Component chatComponent) {
 
-        return Component.Serializer.toJson(chatComponent);
+        return toJSON(chatComponent, RegistryAccess.EMPTY);
+    }
+
+    public static String toJSON(Component chatComponent, HolderLookup.Provider provider) {
+
+        return Component.Serializer.toJson(chatComponent, provider);
     }
 
     public static MutableComponent fromJSON(String string) {
 
-        return Component.Serializer.fromJsonLenient(string);
+        return fromJSON(string, RegistryAccess.EMPTY);
+    }
+
+    public static MutableComponent fromJSON(String string, HolderLookup.Provider provider) {
+
+        return Component.Serializer.fromJsonLenient(string, provider);
     }
 
     public static MutableComponent getEmptyLine() {

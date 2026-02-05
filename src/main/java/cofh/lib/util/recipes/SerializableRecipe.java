@@ -1,7 +1,7 @@
 package cofh.lib.util.recipes;
 
 import cofh.lib.common.inventory.FalseIInventory;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -22,19 +22,13 @@ public abstract class SerializableRecipe implements Recipe<FalseIInventory> {
     }
 
     @Override
-    public ItemStack assemble(FalseIInventory inv, RegistryAccess pRegistryAccess) {
+    public ItemStack assemble(FalseIInventory inv, HolderLookup.Provider registries) {
 
         return ItemStack.EMPTY;
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-
-        return true;
-    }
-
-    @Override
-    public ItemStack getResultItem(RegistryAccess pRegistryAccess) {
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
 
         return ItemStack.EMPTY;
     }

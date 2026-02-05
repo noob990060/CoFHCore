@@ -7,9 +7,9 @@ import net.minecraft.world.item.Tier;
 
 public class HoeItemCoFH extends HoeItem implements ICoFHItem {
 
-    public HoeItemCoFH(Tier tier, int attackDamageIn, float attackSpeedIn, Properties builder) {
+    public HoeItemCoFH(Tier tier, Properties builder) {
 
-        super(tier, attackDamageIn, attackSpeedIn, builder);
+        super(tier, builder);
     }
 
     // region DISPLAY

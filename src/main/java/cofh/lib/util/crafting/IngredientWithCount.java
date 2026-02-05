@@ -6,55 +6,61 @@ import net.minecraft.world.item.crafting.Ingredient;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
-import java.util.stream.Stream;
 
-public class IngredientWithCount extends Ingredient {
+public final class IngredientWithCount {
 
     private final Ingredient ingredient;
     private final int count;
 
     public IngredientWithCount(Ingredient ingredient, int count) {
 
-        super(Stream.empty());
-
         this.ingredient = ingredient;
         this.count = count;
     }
 
-    @Override
     public ItemStack[] getItems() {
 
-        if (ingredient.itemStacks == null) {
-            ingredient.getItems();
-            for (ItemStack stack : ingredient.itemStacks) {
-                stack.setCount(count);
-            }
+        ItemStack[] items = ingredient.getItems();
+        if (count <= 1) {
+            return items;
         }
-        return ingredient.getItems();
+        ItemStack[] counted = new ItemStack[items.length];
+        for (int i = 0; i < items.length; i++) {
+            ItemStack stack = items[i].copy();
+            stack.setCount(count);
+            counted[i] = stack;
+        }
+        return counted;
     }
 
-    @Override
     public boolean test(@Nullable ItemStack stack) {
 
         return stack != null && ingredient.test(stack) && stack.getCount() >= count;
     }
 
-    @Override
     public IntList getStackingIds() {
 
         return ingredient.getStackingIds();
     }
 
-    @Override
     public boolean isEmpty() {
 
         return ingredient.isEmpty();
     }
 
-    @Override
     public boolean isSimple() {
 
         return ingredient.isSimple();
+    }
+
+    public Ingredient ingredient() {
+
+        return ingredient;
+    }
+
+    public int count() {
+
+        return count;
     }
 
     @Override
@@ -76,5 +82,4 @@ public class IngredientWithCount extends Ingredient {
 
         return count + "x " + ingredient;
     }
-
 }

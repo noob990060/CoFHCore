@@ -1,14 +1,6 @@
 package cofh.core.init;
 
-import cofh.core.common.enchantment.HoldingEnchantment;
-import cofh.lib.common.enchantment.EnchantmentCoFH;
-import net.minecraft.world.item.*;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentCategory;
-import net.neoforged.neoforge.registries.DeferredHolder;
-
-import static cofh.core.CoFHCore.ENCHANTMENTS;
-import static cofh.core.util.references.CoreIDs.ID_HOLDING;
+import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public class CoreEnchantments {
 
@@ -18,28 +10,22 @@ public class CoreEnchantments {
 
     public static void register() {
 
+        // In NeoForge 1.21.1, enchantments are registered through data generation
+        // See CoreEnchantmentsProvider for the actual enchantment definition
         Types.register();
     }
 
     public static class Types {
 
         public static void register() {
-
-            ENCHANTABLE = EnchantmentCategory.create("ENCHANTABLE", (item -> item.getEnchantmentValue() > 0));
-            HOE = EnchantmentCategory.create("HOE", (item -> item instanceof HoeItem));
-            PICKAXE_OR_SHOVEL = EnchantmentCategory.create("PICKAXE_OR_SHOVEL", (item -> item instanceof PickaxeItem || item instanceof ShovelItem));
-            SWORD_OR_AXE = EnchantmentCategory.create("SWORD_OR_AXE", (item -> item instanceof SwordItem || item instanceof AxeItem));
-            SWORD_OR_AXE_OR_CROSSBOW = EnchantmentCategory.create("SWORD_OR_AXE_OR_CROSSBOW", (item -> item instanceof SwordItem || item instanceof AxeItem || item instanceof CrossbowItem));
+            // Enchantment types are now defined through JSON data generation
+            // The actual enchantment is registered in CoreEnchantmentsProvider
         }
-
-        public static EnchantmentCategory ENCHANTABLE;
-        public static EnchantmentCategory HOE;
-        public static EnchantmentCategory PICKAXE_OR_SHOVEL;
-        public static EnchantmentCategory SWORD_OR_AXE;
-        public static EnchantmentCategory SWORD_OR_AXE_OR_CROSSBOW;
-
     }
 
-    public static final DeferredHolder<Enchantment, EnchantmentCoFH> HOLDING = ENCHANTMENTS.register(ID_HOLDING, HoldingEnchantment::new);
+    // In NeoForge 1.21.1, enchantments are registered through data generation
+    // The holding enchantment is now defined in CoreEnchantmentsProvider
+    // We can keep this as a reference for the enchantment ID
+    public static final String HOLDING_ID = ID_COFH_CORE + ":holding";
 
 }
