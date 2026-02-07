@@ -14,12 +14,12 @@ public class ArmorMaterialCoFH {
 
     protected static final int[] MAX_DAMAGE_ARRAY = new int[]{13, 15, 16, 11};
 
-    public static ArmorMaterial create(String nameIn, int maxDamageFactorIn, int[] damageReductionAmountsIn, int enchantabilityIn, SoundEvent equipSoundIn, float toughnessIn, float knockbackResistanceIn, Supplier<Ingredient> repairMaterialSupplier) {
+    public static ArmorMaterial create(String nameIn, int maxDamageFactorIn, int[] damageReductionAmountsIn, int enchantabilityIn, Holder<SoundEvent> equipSoundIn, float toughnessIn, float knockbackResistanceIn, Supplier<Ingredient> repairMaterialSupplier) {
 
         return new ArmorMaterial(
             createDefenseMap(damageReductionAmountsIn),
             enchantabilityIn,
-            Holder.direct(equipSoundIn),
+            equipSoundIn,
             repairMaterialSupplier,
             List.of(new ArmorMaterial.Layer(net.minecraft.resources.ResourceLocation.withDefaultNamespace(nameIn))),
             toughnessIn,

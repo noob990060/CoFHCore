@@ -5,6 +5,10 @@ import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CarvedPumpkinBlock;
+import net.minecraft.world.level.block.state.BlockState;
+
+import java.lang.reflect.Field;
+import java.util.function.Predicate;
 
 public class CarvedPumpkinBlockCoFH extends CarvedPumpkinBlock {
 
@@ -21,7 +25,14 @@ public class CarvedPumpkinBlockCoFH extends CarvedPumpkinBlock {
      */
     public static void updatePredicate() {
 
-        PUMPKINS_PREDICATE = (state) -> state != null && (state.is(Blocks.CARVED_PUMPKIN) || state.is(Blocks.JACK_O_LANTERN) || state.getBlock() instanceof CarvedPumpkinBlockCoFH);
+        Predicate<BlockState> predicate = (state) -> state != null && (state.is(Blocks.CARVED_PUMPKIN) || state.is(Blocks.JACK_O_LANTERN) || state.getBlock() instanceof CarvedPumpkinBlockCoFH);
+        try {
+            Field field = CarvedPumpkinBlock.class.getDeclaredField("PUMPKINS_PREDICATE");
+            field.setAccessible(true);
+            field.set(null, predicate);
+        } catch (ReflectiveOperationException ex) {
+            throw new IllegalStateException("Failed to update pumpkin predicate.", ex);
+        }
     }
 
     public CarvedPumpkinBlockCoFH(Properties properties) {

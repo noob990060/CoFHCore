@@ -69,7 +69,8 @@ public abstract class AbstractFieldSpell extends AbstractAoESpell implements IEn
     @Override
     protected AABB makeBoundingBox() {
 
-        return dimensions.makeBoundingBox(position().subtract(0, dimensions.height() * 0.5F, 0));
+        EntityDimensions dims = getDimensions(getPose());
+        return dims.makeBoundingBox(position().subtract(0, dims.height() * 0.5F, 0));
     }
 
     @Override

@@ -108,7 +108,7 @@ public class Constants {
     // endregion
 
     // region TEXTURES
-    public static final String PATH_GUI = ID_COFH_CORE + ":textures/gui/";
+    public static final String PATH_GUI = "textures/gui/";
     public static final String PATH_ELEMENTS = PATH_GUI + "elements/";
     public static final String PATH_ICONS = PATH_GUI + "icons/";
     // endregion

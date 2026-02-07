@@ -21,7 +21,7 @@ public class ShockwaveRenderer extends EntityRenderer<Shockwave> {
         float time = entity.tickCount + partialTicks;
         stack.pushPose();
         stack.translate(-0.5, 0, -0.5);
-        VFXHelper.renderShockwave(stack, buffer, entity.level, entity.blockPosition(), time * entity.getSpeed(), entity.getBbWidth() * 0.5F, entity.getBbHeight());
+        VFXHelper.renderShockwave(stack, buffer, entity.level(), entity.blockPosition(), time * entity.getSpeed(), entity.getBbWidth() * 0.5F, entity.getBbHeight());
         stack.popPose();
     }
 

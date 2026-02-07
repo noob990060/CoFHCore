@@ -3,6 +3,9 @@ package cofh.lib.common.block;
 import cofh.lib.util.Utils;
 import cofh.lib.util.recipes.RecipeJsonUtils;
 import com.google.gson.*;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
+
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
@@ -23,14 +26,20 @@ import java.util.stream.StreamSupport;
 
 public class BlockIngredient implements Predicate<BlockState> {
 
-    public static final BlockIngredient EMPTY = new BlockIngredient(new IBlockStateList[0]) {
-
-        @Override
-        public boolean test(@Nullable BlockState state) {
-
-            return false;
-        }
-    };
+    public static final Codec<BlockIngredient> CODEC = Codec.PASSTHROUGH.xmap(
+            dynamic -> {
+                JsonElement json = dynamic.convert(JsonOps.INSTANCE).getValue();
+                if (json.isJsonArray()) {
+                    return fromJsonArray(json.getAsJsonArray());
+                } else if (json.isJsonObject()) {
+                    return fromJsonObject(json.getAsJsonObject());
+                } else {
+                    throw new JsonParseException("Invalid BlockIngredient JSON: " + json);
+                }
+            },
+            ingredient -> new com.mojang.serialization.Dynamic<>(
+                    JsonOps.INSTANCE,
+                    ingredient.toJson()));
 
     protected static IBlockStateList EMPTY_LIST = new IBlockStateList() {
 
@@ -46,6 +55,7 @@ public class BlockIngredient implements Predicate<BlockState> {
             return new JsonObject();
         }
     };
+    public static final BlockIngredient EMPTY = new BlockIngredient(new IBlockStateList[]{EMPTY_LIST});
 
     private final IBlockStateList[] values;
     private Set<BlockState> blockStates;
@@ -75,7 +85,8 @@ public class BlockIngredient implements Predicate<BlockState> {
     private void dissolve() {
 
         if (this.blockStates == null) {
-            this.blockStates = Arrays.stream(this.values).flatMap(IBlockStateList::getBlockStates).collect(Collectors.toCollection(ReferenceOpenHashSet::new));
+            this.blockStates = Arrays.stream(this.values).flatMap(IBlockStateList::getBlockStates)
+                    .collect(Collectors.toCollection(ReferenceOpenHashSet::new));
         }
     }
 
@@ -86,7 +97,11 @@ public class BlockIngredient implements Predicate<BlockState> {
             return false;
         }
         this.dissolve();
-        return this.blockStates.contains(state);
+        boolean result = this.blockStates.contains(state);
+        if (!result) {
+            // System.out.println("[DEBUG_LOG] BlockIngredient test failed for " + state);
+        }
+        return result;
     }
 
     public final void toNetwork(FriendlyByteBuf buffer) {
@@ -136,7 +151,9 @@ public class BlockIngredient implements Predicate<BlockState> {
         if (jsonArray.isEmpty()) {
             throw new JsonSyntaxException("Block array cannot be empty, at least one block must be defined");
         }
-        return fromValues(StreamSupport.stream(jsonArray.spliterator(), false).map(elem -> valueFromJson(GsonHelper.convertToJsonObject(elem, RecipeJsonUtils.BLOCK))).toArray(IBlockStateList[]::new));
+        return fromValues(StreamSupport.stream(jsonArray.spliterator(), false)
+                .map(elem -> valueFromJson(GsonHelper.convertToJsonObject(elem, RecipeJsonUtils.BLOCK)))
+                .toArray(IBlockStateList[]::new));
     }
 
     protected static IBlockStateList valueFromJson(JsonObject jsonObject) {
@@ -166,7 +183,8 @@ public class BlockIngredient implements Predicate<BlockState> {
             }
             return new BlockList(state, state.getProperties());
         } else if (jsonObject.has(RecipeJsonUtils.TAG)) {
-            return new TagList(BlockTags.create(ResourceLocation.parse(GsonHelper.getAsString(jsonObject, RecipeJsonUtils.TAG))));
+            return new TagList(
+                    BlockTags.create(ResourceLocation.parse(GsonHelper.getAsString(jsonObject, RecipeJsonUtils.TAG))));
         } else {
             throw new JsonParseException("A block ingredient entry needs either a tag or a block");
         }
@@ -235,8 +253,10 @@ public class BlockIngredient implements Predicate<BlockState> {
 
         public Stream<BlockState> getBlockStates() {
 
-            return getStreamFromIterator(BuiltInRegistries.BLOCK.getTagOrEmpty(tag).iterator()).flatMap(holder -> holder.value().getStateDefinition().getPossibleStates().stream());
-            // return BuiltInRegistries.BLOCK.tags().getTag(this.tag).stream().flatMap(block -> block.getStateDefinition().getPossibleStates().stream());
+            return getStreamFromIterator(BuiltInRegistries.BLOCK.getTagOrEmpty(tag).iterator())
+                    .flatMap(holder -> holder.value().getStateDefinition().getPossibleStates().stream());
+            // return BuiltInRegistries.BLOCK.tags().getTag(this.tag).stream().flatMap(block
+            // -> block.getStateDefinition().getPossibleStates().stream());
         }
 
         public JsonObject serialize() {
@@ -248,12 +268,10 @@ public class BlockIngredient implements Predicate<BlockState> {
 
     }
 
-    public static <T> Stream<T>
-    getStreamFromIterator(Iterator<T> iterator) {
+    public static <T> Stream<T> getStreamFromIterator(Iterator<T> iterator) {
 
         // Convert the iterator to Spliterator
-        Spliterator<T>
-                spliterator = Spliterators
+        Spliterator<T> spliterator = Spliterators
                 .spliteratorUnknownSize(iterator, 0);
 
         // Get a Sequential Stream from spliterator

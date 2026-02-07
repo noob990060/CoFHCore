@@ -2,7 +2,9 @@ package cofh.lib.api.item;
 
 import cofh.lib.util.helpers.MathHelper;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
@@ -69,11 +71,8 @@ public interface IFluidContainerItem extends IContainerItem {
         if (!tag.contains(TAG_FLUID)) {
             return FluidStack.EMPTY;
         }
-        if (level != null) {
-            return FluidStack.parseOptional(level.registryAccess(), tag.getCompound(TAG_FLUID));
-        }
-        // Fallback for contexts without Level access - this may not work for all fluids
-        return FluidStack.parseOptional(null, tag.getCompound(TAG_FLUID));
+        HolderLookup.Provider lookupProvider = getLookupProvider(level);
+        return FluidStack.parseOptional(lookupProvider, tag.getCompound(TAG_FLUID));
     }
 
     /**
@@ -121,12 +120,8 @@ public interface IFluidContainerItem extends IContainerItem {
         if (isCreative(container, FLUID)) {
             if (action.execute()) {
                 CompoundTag fluidTag = new CompoundTag();
-                if (level != null) {
-                    resource.save(level.registryAccess(), fluidTag);
-                } else {
-                    // Fallback for contexts without Level access
-                    resource.save(null, fluidTag);
-                }
+                HolderLookup.Provider lookupProvider = getLookupProvider(level);
+                resource.save(lookupProvider, fluidTag);
                 fluidTag.putInt(TAG_AMOUNT, capacity);
                 containerTag.put(TAG_FLUID, fluidTag);
             }
@@ -147,12 +142,8 @@ public interface IFluidContainerItem extends IContainerItem {
         }
         if (!containerTag.contains(TAG_FLUID)) {
             CompoundTag newFluidTag = new CompoundTag();
-            if (level != null) {
-                resource.save(level.registryAccess(), newFluidTag);
-            } else {
-                // Fallback for contexts without Level access
-                resource.save(null, newFluidTag);
-            }
+            HolderLookup.Provider lookupProvider = getLookupProvider(level);
+            resource.save(lookupProvider, newFluidTag);
             if (capacity < resource.getAmount()) {
                 newFluidTag.putInt(TAG_AMOUNT, capacity);
                 containerTag.put(TAG_FLUID, newFluidTag);
@@ -175,12 +166,8 @@ public interface IFluidContainerItem extends IContainerItem {
             stack.setAmount(capacity);
         }
         CompoundTag updatedFluidTag = new CompoundTag();
-        if (level != null) {
-            stack.save(level.registryAccess(), updatedFluidTag);
-        } else {
-            // Fallback for contexts without Level access
-            stack.save(null, updatedFluidTag);
-        }
+        HolderLookup.Provider lookupProvider = getLookupProvider(level);
+        stack.save(lookupProvider, updatedFluidTag);
         containerTag.put(TAG_FLUID, updatedFluidTag);
         return filled;
     }
@@ -215,6 +202,13 @@ public interface IFluidContainerItem extends IContainerItem {
         }
         stack.setAmount(drained);
         return stack;
+    }
+
+    private static HolderLookup.Provider getLookupProvider(Level level) {
+
+        return level != null
+                ? level.registryAccess()
+                : RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     }
 
 }

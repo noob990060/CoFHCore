@@ -1,6 +1,7 @@
 package cofh.lib.util.recipes;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 
 public class SerializableRecipeType<T extends SerializableRecipe> implements RecipeType<T> {

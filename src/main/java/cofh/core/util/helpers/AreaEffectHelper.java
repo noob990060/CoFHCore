@@ -421,6 +421,28 @@ public final class AreaEffectHelper {
         return state.getBlock() instanceof BucketPickup;
     }
 
+    private static Direction getGrowingPlantDirection(GrowingPlantBlock plant) {
+
+        try {
+            var field = GrowingPlantBlock.class.getDeclaredField("growthDirection");
+            field.setAccessible(true);
+            return (Direction) field.get(plant);
+        } catch (ReflectiveOperationException ex) {
+            return Direction.UP;
+        }
+    }
+
+    private static Block getGrowingPlantBodyBlock(GrowingPlantBlock plant) {
+
+        try {
+            var method = GrowingPlantBlock.class.getDeclaredMethod("getBodyBlock");
+            method.setAccessible(true);
+            return (Block) method.invoke(plant);
+        } catch (ReflectiveOperationException ex) {
+            return plant;
+        }
+    }
+
     public static boolean isMature(Level level, BlockPos pos) {
 
         return isMature(level, pos, level.getBlockState(pos));
@@ -439,8 +461,9 @@ public final class AreaEffectHelper {
             return false;
         }
         if (block instanceof GrowingPlantBlock plant) {
-            BlockState root = level.getBlockState(pos.relative(plant.growthDirection.getOpposite()));
-            return root.is(plant.getBodyBlock());
+            Direction growthDirection = getGrowingPlantDirection(plant);
+            BlockState root = level.getBlockState(pos.relative(growthDirection.getOpposite()));
+            return root.is(getGrowingPlantBodyBlock(plant));
         }
         if (block instanceof BambooStalkBlock || block instanceof CactusBlock || block instanceof SugarCaneBlock) {
             BlockState below = level.getBlockState(pos.relative(Direction.DOWN));

@@ -16,6 +16,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -349,19 +350,8 @@ public class Utils {
 
         if (!isPotionApplicableNoEvent(entity, effectInstanceIn)) {
             return false;
-        } else {
-            MobEffectInstance effectinstance = entity.getActiveEffectsMap().get(effectInstanceIn.getEffect());
-            if (effectinstance == null) {
-                entity.getActiveEffectsMap().put(effectInstanceIn.getEffect(), effectInstanceIn);
-                entity.onEffectAdded(effectInstanceIn, null);
-                return true;
-            } else if (effectinstance.update(effectInstanceIn)) {
-                entity.onEffectUpdated(effectinstance, true, null);
-                return true;
-            } else {
-                return false;
-            }
         }
+        return entity.addEffect(effectInstanceIn, null);
     }
 
     public static boolean isPotionApplicableNoEvent(LivingEntity entity, MobEffectInstance potioneffectIn) {
@@ -480,14 +470,16 @@ public class Utils {
 
     // region ENCHANT UTILS
     private static Registry<Enchantment> getEnchantmentRegistry() {
-        // Use a fallback approach - this will need to be called with registry access when available
-        // For now, we'll use a static reference that should be initialized during mod loading
-        if (enchantmentRegistry == null) {
-            // This is a temporary workaround - in practice, these methods should be called
-            // with proper registry access context
-            throw new IllegalStateException("Enchantment registry not initialized. Call with proper registry access.");
+        if (enchantmentRegistry != null) {
+            return enchantmentRegistry;
         }
-        return enchantmentRegistry;
+        // Fallback for early load/tags update paths where registry isn't injected yet.
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        Registry<Enchantment> registry = (Registry<Enchantment>) BuiltInRegistries.REGISTRY.get((ResourceKey) Registries.ENCHANTMENT);
+        if (registry != null) {
+            return registry;
+        }
+        throw new IllegalStateException("Enchantment registry not initialized. Call with proper registry access.");
     }
     
     public static net.minecraft.core.HolderLookup.RegistryLookup<Enchantment> getEnchantmentRegistry(Level level) {
@@ -505,7 +497,12 @@ public class Utils {
 
     public static Enchantment getEnchantment(String modId, String enchantId) {
 
-        Registry<Enchantment> registry = getEnchantmentRegistry();
+        Registry<Enchantment> registry;
+        try {
+            registry = getEnchantmentRegistry();
+        } catch (IllegalStateException e) {
+            return null;
+        }
         return registry.get(ResourceLocation.fromNamespaceAndPath(modId, enchantId));
     }
 
@@ -522,7 +519,12 @@ public class Utils {
         if (!EnchantmentCoFH.isEnabled(ench)) {
             return 0;
         }
-        Registry<Enchantment> registry = getEnchantmentRegistry();
+        Registry<Enchantment> registry;
+        try {
+            registry = getEnchantmentRegistry();
+        } catch (IllegalStateException e) {
+            return 0;
+        }
         Holder<Enchantment> enchHolder = registry.wrapAsHolder(ench);
         return stack.getEnchantmentLevel(enchHolder);
     }

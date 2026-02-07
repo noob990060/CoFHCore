@@ -28,9 +28,9 @@ version = "${mc_version}-${buildVersion}"
 println "Starting build of ${archivesBaseName}, Version: ${mod_version}"
 println "Using NeoForge: ${neo_version}, for Minecraft: ${mc_version}"
 
-minecraft {
-    accessTransformers.file file("src/main/resources/META-INF/accesstransformer.cfg")
-}
+//minecraft {
+//    accessTransformers.file file("src/main/resources/META-INF/accesstransformer.cfg")
+//}
 
 if (System.getenv('CURSEFORGE_KEY') || project.hasProperty('curseforgeKey')) {
     println "Enabling CurseForge config."

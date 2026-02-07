@@ -10,7 +10,9 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class PanaceaMobEffect extends MobEffectCoFH {
 
@@ -35,17 +37,20 @@ public class PanaceaMobEffect extends MobEffectCoFH {
     // region HELPERS
     public static void clearHarmfulEffects(LivingEntity entity) {
 
-        if (Utils.isClientWorld(entity.level)) {
+        if (Utils.isClientWorld(entity.level())) {
             return;
         }
         Iterator<MobEffectInstance> iterator = entity.getActiveEffectsMap().values().iterator();
+        List<MobEffectInstance> toRemove = new ArrayList<>();
 
         while (iterator.hasNext()) {
             MobEffectInstance effect = iterator.next();
             if (!effect.isAmbient() && effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL && !NeoForge.EVENT_BUS.post(new MobEffectEvent.Remove(entity, effect, null)).isCanceled()) {
-                entity.onEffectRemoved(effect);
-                iterator.remove();
+                toRemove.add(effect);
             }
+        }
+        for (MobEffectInstance effect : toRemove) {
+            entity.removeEffect(effect.getEffect());
         }
     }
     // endregion

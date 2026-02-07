@@ -129,6 +129,9 @@ public abstract class ElementBase {
 
     public final ElementBase setTexture(String texture, int texW, int texH) {
 
+        if (!texture.contains(":")) {
+            texture = "cofh_core:" + texture;
+        }
         this.texture = ResourceLocation.parse(texture);
         this.texW = texW;
         this.texH = texH;

@@ -56,7 +56,7 @@ public abstract class AbstractTNTMinecart extends AbstractMinecartCoFH implement
 
         if (this.fuse > 0) {
             --this.fuse;
-            this.level.addParticle(ParticleTypes.SMOKE, this.getX(), this.getY() + 0.5D, this.getZ(), 0.0D, 0.0D, 0.0D);
+            this.level().addParticle(ParticleTypes.SMOKE, this.getX(), this.getY() + 0.5D, this.getZ(), 0.0D, 0.0D, 0.0D);
         } else if (this.fuse == 0) {
             this.explodeCart(getDeltaMovement().horizontalDistanceSqr());
         }
@@ -87,7 +87,7 @@ public abstract class AbstractTNTMinecart extends AbstractMinecartCoFH implement
         if (!source.is(DamageTypeTags.IS_FIRE) && !source.is(DamageTypeTags.IS_EXPLOSION) && !(d0 >= (double) 0.01F)) {
             detonated = true;
             super.destroy(source);
-            if (!source.is(DamageTypeTags.IS_EXPLOSION) && this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+            if (!source.is(DamageTypeTags.IS_EXPLOSION) && this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
                 this.spawnAtLocation(getBlock());
             }
         } else {
@@ -165,10 +165,10 @@ public abstract class AbstractTNTMinecart extends AbstractMinecartCoFH implement
     public void ignite() {
 
         this.fuse = 80;
-        if (!this.level.isClientSide) {
-            this.level.broadcastEntityEvent(this, (byte) 10);
+        if (!this.level().isClientSide()) {
+            this.level().broadcastEntityEvent(this, (byte) 10);
             if (!this.isSilent()) {
-                this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
+                this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
             }
         }
     }
@@ -191,16 +191,16 @@ public abstract class AbstractTNTMinecart extends AbstractMinecartCoFH implement
         if (d0 > 5.0D) {
             d0 = 5.0D;
         }
-        radius += (int) level.random.nextDouble() * 1.5 * d0;
+        radius += (int) level().random.nextDouble() * 1.5 * d0;
         detonated = true;
         explode();
     }
 
     protected void explode() {
 
-        if (level.isClientSide) {
-            this.level.addParticle(ParticleTypes.EXPLOSION_EMITTER, this.getX(), this.getY(), this.getZ(), 1.0D, 0.0D, 0.0D);
-            this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 2.0F, (1.0F + (this.level.random.nextFloat() - this.level.random.nextFloat()) * 0.2F) * 0.7F, false);
+        if (level().isClientSide()) {
+            this.level().addParticle(ParticleTypes.EXPLOSION_EMITTER, this.getX(), this.getY(), this.getZ(), 1.0D, 0.0D, 0.0D);
+            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 2.0F, (1.0F + (this.level().random.nextFloat() - this.level().random.nextFloat()) * 0.2F) * 0.7F, false);
         } else {
             this.detonate(this.position());
             this.discard();

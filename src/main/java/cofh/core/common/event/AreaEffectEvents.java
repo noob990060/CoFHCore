@@ -41,7 +41,7 @@ public class AreaEffectEvents {
     @SubscribeEvent (priority = EventPriority.LOW)
     public static void handleBlockBreakEvent(BlockEvent.BreakEvent event) {
 
-        if (!(event.getPlayer() instanceof ServerPlayer player) || Utils.isClientWorld(player.level)) {
+        if (!(event.getPlayer() instanceof ServerPlayer player) || Utils.isClientWorld(player.level())) {
             return;
         }
         BlockPos origin = event.getPos();
@@ -88,14 +88,14 @@ public class AreaEffectEvents {
             }
             ImmutableList<BlockPos> areaBlocks = aeCap.getAreaEffectBlocks(pos, player, player.level());
 
-            float curHardness = event.getState().getDestroySpeed(player.level, pos);
+            float curHardness = event.getState().getDestroySpeed(player.level(), pos);
             if (curHardness <= 0 || areaBlocks.size() <= 1) {
                 return;
             }
             float areaMod = Mth.clamp(1.0F - 0.01F * areaBlocks.size(), 0.1F, 1.0F);
             event.setNewSpeed(event.getNewSpeed() * areaMod);
 
-            float maxHardness = getMaxHardness(player.level, areaBlocks, curHardness);
+            float maxHardness = getMaxHardness(player.level(), areaBlocks, curHardness);
             if (maxHardness > curHardness) {
                 event.setNewSpeed(event.getNewSpeed() * curHardness / maxHardness);
             }

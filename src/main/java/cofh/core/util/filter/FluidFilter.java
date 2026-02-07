@@ -36,7 +36,7 @@ public class FluidFilter extends BaseFluidFilter implements MenuProvider {
     @Override
     public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
 
-        return new FluidFilterMenu(i, player.level, inventory, player, holderType.ordinal(), id, pos);
+        return new FluidFilterMenu(i, player.level(), inventory, player, holderType.ordinal(), id, pos);
     }
 
 }

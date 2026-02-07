@@ -27,14 +27,12 @@ public interface ITranslucentRenderer {
         EntityRenderDispatcher dispatcher = mc.getEntityRenderDispatcher();
         ClientLevel level = mc.level;
         Vec3 renderPos = mc.gameRenderer.getMainCamera().getPosition();
-        MultiBufferSource.BufferSource buffer = levelRenderer.renderBuffers.bufferSource();
+        MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
 
-        Frustum clip = levelRenderer.capturedFrustum;
+        Frustum clip = levelRenderer.getFrustum();
         if (clip == null) {
             clip = new Frustum(stack.last().pose(), projection);
             clip.prepare(renderPos.x, renderPos.y, renderPos.z);
-        } else {
-            clip.prepare(levelRenderer.frustumPos.x, levelRenderer.frustumPos.y, levelRenderer.frustumPos.z);
         }
         for (Entity entity : level.entitiesForRendering()) {
             EntityRenderer<? super Entity> renderer = dispatcher.getRenderer(entity);
@@ -42,7 +40,7 @@ public interface ITranslucentRenderer {
                 double x = Mth.lerp(partialTicks, entity.xOld, entity.getX());
                 double y = Mth.lerp(partialTicks, entity.yOld, entity.getY());
                 double z = Mth.lerp(partialTicks, entity.zOld, entity.getZ());
-                float f = Mth.lerp(partialTicks, entity.yRotO, entity.yRot);
+                float f = entity.getViewYRot(partialTicks);
                 dispatcher.render(entity, x - renderPos.x, y - renderPos.y, z - renderPos.z, f, partialTicks, stack, buffer, dispatcher.getPackedLightCoords(entity, partialTicks));
             }
         }

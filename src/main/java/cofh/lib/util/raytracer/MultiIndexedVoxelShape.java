@@ -5,10 +5,12 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.DiscreteVoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.util.Set;
 
 /**
@@ -22,6 +24,17 @@ import java.util.Set;
  * Created by covers1624 on 5/12/20.
  */
 public class MultiIndexedVoxelShape extends VoxelShape {
+
+    private static final Field SHAPE_FIELD;
+
+    static {
+        try {
+            SHAPE_FIELD = VoxelShape.class.getDeclaredField("shape");
+            SHAPE_FIELD.setAccessible(true);
+        } catch (ReflectiveOperationException ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
 
     private final VoxelShape merged;
     private final ImmutableSet<IndexedVoxelShape> shapes;
@@ -46,7 +59,7 @@ public class MultiIndexedVoxelShape extends VoxelShape {
      */
     public MultiIndexedVoxelShape(VoxelShape merged, ImmutableSet<IndexedVoxelShape> shapes) {
 
-        super(merged.shape);
+        super(getShape(merged));
         this.merged = merged;
         this.shapes = shapes;
     }
@@ -79,6 +92,15 @@ public class MultiIndexedVoxelShape extends VoxelShape {
 
         Set<VoxelShape> genericsDie = (Set<VoxelShape>) shapes;
         return genericsDie.stream().reduce(Shapes.empty(), Shapes::or);
+    }
+
+    private static DiscreteVoxelShape getShape(VoxelShape shape) {
+
+        try {
+            return (DiscreteVoxelShape) SHAPE_FIELD.get(shape);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException("Failed to access voxel shape data.", ex);
+        }
     }
 
 }

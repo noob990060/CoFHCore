@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 
 public abstract class PrimedTntCoFH extends PrimedTnt implements IDetonatable {
 
@@ -18,6 +19,16 @@ public abstract class PrimedTntCoFH extends PrimedTnt implements IDetonatable {
     protected int radius = 9;
     public int effectAmplifier = 1;
     public int effectDuration = 300;
+    private static final Field OWNER_FIELD;
+
+    static {
+        try {
+            OWNER_FIELD = PrimedTnt.class.getDeclaredField("owner");
+            OWNER_FIELD.setAccessible(true);
+        } catch (ReflectiveOperationException ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
 
     public PrimedTntCoFH(EntityType<? extends PrimedTnt> type, Level worldIn) {
 
@@ -34,18 +45,27 @@ public abstract class PrimedTntCoFH extends PrimedTnt implements IDetonatable {
         this.xo = x;
         this.yo = y;
         this.zo = z;
-        this.owner = igniter;
+        setOwner(igniter);
     }
 
     @Override
     protected void explode() {
 
-        if (level.isClientSide) {
-            this.level.addParticle(ParticleTypes.EXPLOSION_EMITTER, this.getX(), this.getY(), this.getZ(), 1.0D, 0.0D, 0.0D);
-            this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 2.0F, (1.0F + (this.level.random.nextFloat() - this.level.random.nextFloat()) * 0.2F) * 0.7F, false);
+        if (level().isClientSide()) {
+            this.level().addParticle(ParticleTypes.EXPLOSION_EMITTER, this.getX(), this.getY(), this.getZ(), 1.0D, 0.0D, 0.0D);
+            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.BLOCKS, 2.0F, (1.0F + (this.level().random.nextFloat() - this.level().random.nextFloat()) * 0.2F) * 0.7F, false);
         } else {
             this.detonate(this.position());
             this.discard();
+        }
+    }
+
+    private void setOwner(@Nullable LivingEntity igniter) {
+
+        try {
+            OWNER_FIELD.set(this, igniter);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException("Failed to set TNT owner.", ex);
         }
     }
 

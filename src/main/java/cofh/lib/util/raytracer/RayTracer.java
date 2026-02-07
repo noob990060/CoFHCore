@@ -29,12 +29,12 @@ public class RayTracer {
 
     public static BlockHitResult retrace(Player player, ClipContext.Block blockMode, ClipContext.Fluid fluidMode) {
 
-        return player.level.clip(new ClipContext(getStartVec(player), getEndVec(player), blockMode, fluidMode, player));
+        return player.level().clip(new ClipContext(getStartVec(player), getEndVec(player), blockMode, fluidMode, player));
     }
 
     public static BlockHitResult retrace(Player player, double reach, ClipContext.Block blockMode, ClipContext.Fluid fluidMode) {
 
-        return player.level.clip(new ClipContext(getStartVec(player), getEndVec(player, reach), blockMode, fluidMode, player));
+        return player.level().clip(new ClipContext(getStartVec(player), getEndVec(player, reach), blockMode, fluidMode, player));
     }
 
     public static Vec3 getStartVec(Player player) {

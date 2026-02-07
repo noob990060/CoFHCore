@@ -11,6 +11,7 @@ import cofh.lib.util.helpers.MathHelper;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
+import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -33,6 +34,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import java.lang.reflect.Field;
 
 import static cofh.core.util.references.EnsorcIDs.ID_TRUESHOT;
 import static cofh.core.util.references.EnsorcIDs.ID_VOLLEY;
@@ -44,6 +46,19 @@ import static net.minecraft.world.item.enchantment.Enchantments.*;
 public final class ArcheryHelper {
 
     private static final Set<Item> VALID_BOWS = new HashSet<>();
+    private static final Field FIRED_FROM_WEAPON_FIELD;
+    private static final Field PIERCE_LEVEL_FIELD;
+
+    static {
+        try {
+            FIRED_FROM_WEAPON_FIELD = AbstractArrow.class.getDeclaredField("firedFromWeapon");
+            FIRED_FROM_WEAPON_FIELD.setAccessible(true);
+            PIERCE_LEVEL_FIELD = AbstractArrow.class.getDeclaredField("PIERCE_LEVEL");
+            PIERCE_LEVEL_FIELD.setAccessible(true);
+        } catch (ReflectiveOperationException ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
 
     public static boolean addValidBow(Item bow) {
 
@@ -126,13 +141,13 @@ public final class ArcheryHelper {
                         }
                         arrow.shootFromRotation(shooter, shooter.getXRot() - volleyPitch * shot, shooter.getYRot(), 0.0F, arrowVelocity * 3.0F * velocityMod, accuracyMod);// * (1 + shot * 2));
                         arrow.setBaseDamage(arrow.getBaseDamage() * damageMod);
-                        arrow.firedFromWeapon = bow;
+                        setFiredFromWeapon(arrow, bow);
 
                         if (arrowVelocity >= 1.0F) {
                             arrow.setCritArrow(true);
                         }
                         if (encTrueshot > 0) {
-                            arrow.getEntityData().set(AbstractArrow.PIERCE_LEVEL, (byte) encTrueshot);
+                            setPierceLevel(arrow, encTrueshot);
                         }
                         if (encPower > 0 && arrow.getBaseDamage() > 0) {
                             arrow.setBaseDamage(arrow.getBaseDamage() + (double) encPower * 0.5D + 0.5D);
@@ -279,6 +294,26 @@ public final class ArcheryHelper {
     public static Comparator<HitResult> compareHitDistance(Vec3 loc) {
 
         return Comparator.comparingDouble(hit -> hit.getLocation().distanceToSqr(loc));
+    }
+
+    public static void setFiredFromWeapon(AbstractArrow arrow, ItemStack weapon) {
+
+        try {
+            FIRED_FROM_WEAPON_FIELD.set(arrow, weapon.copy());
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException("Failed to set fired weapon on arrow.", ex);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void setPierceLevel(AbstractArrow arrow, int pierceLevel) {
+
+        try {
+            EntityDataAccessor<Byte> accessor = (EntityDataAccessor<Byte>) PIERCE_LEVEL_FIELD.get(null);
+            arrow.getEntityData().set(accessor, (byte) pierceLevel);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException("Failed to set pierce level on arrow.", ex);
+        }
     }
 
 }

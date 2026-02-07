@@ -3,6 +3,7 @@ package cofh.lib.common.fluid;
 import com.google.common.collect.Lists;
 import com.google.gson.*;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -29,6 +30,8 @@ import static cofh.lib.util.Constants.BUCKET_VOLUME;
 public class FluidIngredient implements Predicate<FluidStack> {
 
     public static final FluidIngredient EMPTY = new FluidIngredient(Stream.empty());
+    private static final net.minecraft.core.HolderLookup.Provider FALLBACK_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private final IFluidList[] values;
     private FluidStack[] fluidStacks;
     private int amount = BUCKET_VOLUME;
@@ -74,7 +77,7 @@ public class FluidIngredient implements Predicate<FluidStack> {
                         if (tag != null) {
                             stackTag.merge(tag);
                         }
-                        fluidStacks[i] = FluidStack.parseOptional(null, stackTag);
+                        fluidStacks[i] = FluidStack.parseOptional(FALLBACK_LOOKUP, stackTag);
                     } else {
                         fluidStacks[i] = stack.copyWithAmount(amount);
                     }
@@ -161,7 +164,7 @@ public class FluidIngredient implements Predicate<FluidStack> {
         return fromValues(Stream.generate(() -> {
             // Read FluidStack using parseOptional in NeoForge 1.21.1
             CompoundTag tag = buffer.readNbt();
-            return new SingleFluidList(FluidStack.parseOptional(null, tag));
+            return new SingleFluidList(FluidStack.parseOptional(FALLBACK_LOOKUP, tag));
         }).limit(i)).setAmount(amount);
     }
 

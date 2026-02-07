@@ -26,7 +26,7 @@ public class SubHitBlockHitResult extends BlockHitResult implements Comparable<S
 
     protected SubHitBlockHitResult(boolean isMissIn, Vec3 hitVec, Direction faceIn, BlockPos posIn, boolean isInside, Object data, double dist) {
 
-        super(isMissIn, hitVec, faceIn, posIn, isInside);
+        super(hitVec, faceIn, posIn, isInside);
         if (data instanceof Integer d) {
             subHit = d;
         } else {
@@ -39,7 +39,7 @@ public class SubHitBlockHitResult extends BlockHitResult implements Comparable<S
     @Override
     public SubHitBlockHitResult withDirection(Direction newFace) {
 
-        return new SubHitBlockHitResult(getType() == Type.MISS, getLocation(), getDirection(), getBlockPos(), isInside(), hitInfo, dist);
+        return new SubHitBlockHitResult(getLocation(), newFace, getBlockPos(), isInside(), hitInfo, dist);
     }
 
     @Override

@@ -128,7 +128,7 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
         if (isLoaded(stack)) {
             setLoaded(stack, !shootLoadedAmmo(level, player, hand, stack));
             return InteractionResultHolder.consume(stack);
-        } else if (!ArcheryHelper.findAmmo(player, stack).isEmpty() || player.abilities.instabuild) {
+        } else if (!ArcheryHelper.findAmmo(player, stack).isEmpty() || player.getAbilities().instabuild) {
             player.startUsingItem(hand);
             return InteractionResultHolder.consume(stack);
         }
@@ -182,7 +182,7 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
             ItemStack ammo = ArcheryHelper.findAmmo(player, crossbow);
             if (!ammo.isEmpty() && ammo.getItem() instanceof FireworkRocketItem) {
                 boolean success = loadAmmo(player, crossbow, ammo);
-                if (success && !player.abilities.instabuild) {
+                if (success && !player.getAbilities().instabuild) {
                     ammo.shrink(1);
                 }
                 return success;
@@ -192,7 +192,7 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
             if (ammoCap == null) {
                 ammoCap = new ArcheryAmmoItemWrapper(ammo);
             }
-            boolean infinite = player.abilities.instabuild
+            boolean infinite = player.getAbilities().instabuild
                     || ammoCap.isInfinite(crossbow, player)
                     || (ArcheryHelper.isArrow(ammo) && ((ArrowItem) ammo.getItem()).isInfinite(ammo, crossbow, player));
             if (!ammo.isEmpty() || infinite) {
@@ -203,7 +203,7 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
                 if (success && !infinite) {
                     ammoCap.onArrowLoosed(player);
                     if (ammo.isEmpty()) {
-                        player.inventory.removeItem(ammo);
+                        player.getInventory().removeItem(ammo);
                     }
                 }
                 return success;
@@ -296,7 +296,7 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
                         Projectile projectile;
                         if (ammo.getCapability(CoreCapabilities.ArcheryHandler.AMMO) != null || ammo.getItem() instanceof ArrowItem) {
                             AbstractArrow arrow = ArcheryHelper.createArrow(level, ammo, shooter, crossbow);
-                            projectile = adjustArrow(crossbow, arrow, shooter.abilities.instabuild || i != 0);
+                            projectile = adjustArrow(crossbow, arrow, shooter.getAbilities().instabuild || i != 0);
                             ++damage;
                         } else if (ammo.getItem() instanceof FireworkRocketItem) {
                             projectile = new FireworkRocketEntity(level, ammo, shooter, shooter.getX(), shooter.getEyeY() - (double) 0.15F, shooter.getZ(), true);
@@ -325,13 +325,13 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
 
         arrow.setCritArrow(true);
         arrow.setSoundEvent(SoundEvents.CROSSBOW_HIT);
-        arrow.firedFromWeapon = crossbow.copy();
+        ArcheryHelper.setFiredFromWeapon(arrow, crossbow);
         @SuppressWarnings("unchecked")
         Registry<Enchantment> registry = (Registry<Enchantment>) arrow.level().registryAccess().registryOrThrow(Registries.ENCHANTMENT);
         Enchantment piercing = registry.get(Enchantments.PIERCING.location());
         int pierce = Utils.getItemEnchantmentLevel(piercing, crossbow);
         if (pierce > 0) {
-            arrow.getEntityData().set(AbstractArrow.PIERCE_LEVEL, (byte) pierce);
+            ArcheryHelper.setPierceLevel(arrow, pierce);
         }
         if (creativePickup) {
             arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
@@ -354,7 +354,7 @@ public class CrossbowItemCoFH extends CrossbowItem implements ICoFHItem {
 
         crossbow.hurtAndBreak(damage, shooter, Utils.handToEquipSlot(hand));
         if (shooter instanceof ServerPlayer) {
-            if (!shooter.level.isClientSide()) {
+            if (!shooter.level().isClientSide()) {
                 CriteriaTriggers.SHOT_CROSSBOW.trigger((ServerPlayer) shooter, crossbow);
             }
             shooter.awardStat(Stats.ITEM_USED.get(crossbow.getItem()));

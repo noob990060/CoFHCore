@@ -86,6 +86,7 @@ public interface IGuiAccess {
         buffer.addVertex(mat, (float) x2, (float) y2, (float) blitOffset());
         buffer.addVertex(mat, (float) x2, (float) y1, (float) blitOffset());
         buffer.addVertex(mat, (float) x1, (float) y1, (float) blitOffset());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     default void drawColoredModalRect(PoseStack poseStack, int x1, int y1, int x2, int y2, int color) {
@@ -109,6 +110,7 @@ public interface IGuiAccess {
         buffer.addVertex(mat, (float) x2, (float) y2, (float) blitOffset());
         buffer.addVertex(mat, (float) x2, (float) y1, (float) blitOffset());
         buffer.addVertex(mat, (float) x1, (float) y1, (float) blitOffset());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     default void drawTexturedModalRect(GuiGraphics guiGraphics, int x, int y, int textureX, int textureY, int width,
@@ -135,7 +137,7 @@ public interface IGuiAccess {
                 .setUv((textureX + width) * f, textureY * f);
         buffer.addVertex(mat, (float) x, (float) y, (float) blitOffset())
                 .setUv(textureX * f, textureY * f);
-
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     default void drawTexturedModalRect(GuiGraphics guiGraphics, int x, int y, int u, int v, int width, int height,
@@ -156,6 +158,7 @@ public interface IGuiAccess {
         buffer.addVertex(mat, (float) (x + width), (float) (y + height), (float) blitOffset()).setUv((u + width) * texU, (v + height) * texV);
         buffer.addVertex(mat, (float) (x + width), (float) y, (float) blitOffset()).setUv((u + width) * texU, v * texV);
         buffer.addVertex(mat, (float) x, (float) y, (float) blitOffset()).setUv(u * texU, v * texV);
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
 }

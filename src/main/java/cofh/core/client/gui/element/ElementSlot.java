@@ -35,6 +35,9 @@ public class ElementSlot extends ElementBase {
             LOG.warn("Attempted to assign a NULL underlay texture.");
             return this;
         }
+        if (!texture.contains(":")) {
+            texture = "cofh_core:" + texture;
+        }
         this.underlayTexture = ResourceLocation.parse(texture);
         this.drawUnderlay = draw;
         return this;
@@ -50,6 +53,9 @@ public class ElementSlot extends ElementBase {
         if (texture == null || draw == null) {
             LOG.warn("Attempted to assign a NULL overlay texture.");
             return this;
+        }
+        if (!texture.contains(":")) {
+            texture = "cofh_core:" + texture;
         }
         this.overlayTexture = ResourceLocation.parse(texture);
         this.drawOverlay = draw;

@@ -25,6 +25,9 @@ public abstract class LivingEntityMixin {
     @Shadow
     public abstract ItemStack getUseItem();
 
+    @Shadow
+    protected abstract void removeEffectParticles();
+
     @Inject (
             method = "canBeAffected(Lnet/minecraft/world/effect/MobEffectInstance;)Z",
             at = @At ("HEAD"),
@@ -75,10 +78,10 @@ public abstract class LivingEntityMixin {
             if (source.is(IS_MAGIC) && living.hasEffect(MAGIC_RESISTANCE)) {
                 callback.setReturnValue(false);
             }
-            if (source == living.level.damageSources().freeze() && living.hasEffect(COLD_RESISTANCE)) {
+            if (source == living.level().damageSources().freeze() && living.hasEffect(COLD_RESISTANCE)) {
                 callback.setReturnValue(false);
             }
-            if (source == living.level.damageSources().lightningBolt() && living.hasEffect(LIGHTNING_RESISTANCE)) {
+            if (source == living.level().damageSources().lightningBolt() && living.hasEffect(LIGHTNING_RESISTANCE)) {
                 callback.setReturnValue(false);
             }
         }
@@ -93,7 +96,7 @@ public abstract class LivingEntityMixin {
 
         LivingEntity living = (LivingEntity) (Object) this;
         if (living.hasEffect(TRUE_INVISIBILITY)) {
-            living.removeEffectParticles();
+            removeEffectParticles();
             living.setInvisible(true);
             callback.cancel();
         }

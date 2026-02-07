@@ -17,7 +17,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -64,9 +67,9 @@ public class AreaEffectClientEvents {
 
         LevelRenderer levelRenderer = event.getLevelRenderer();
         PoseStack matrix = event.getPoseStack();
-        VertexConsumer vertexBuilder = levelRenderer.renderBuffers.bufferSource().getBuffer(RenderType.lines());
+        VertexConsumer vertexBuilder = event.getMultiBufferSource().getBuffer(RenderType.lines());
         Entity viewEntity = camera.getEntity();
-        Level world = player.level;
+        Level world = player.level();
 
         Vec3 vec3d = camera.getPosition();
         double d0 = vec3d.x();
@@ -76,8 +79,13 @@ public class AreaEffectClientEvents {
         matrix.pushPose();
         for (BlockPos pos : areaBlocks) {
             if (world.getWorldBorder().isWithinBounds(pos)) {
-                levelRenderer.renderHitOutline(matrix, vertexBuilder, viewEntity, d0, d1, d2, pos,
-                        world.getBlockState(pos));
+                VoxelShape shape = world.getBlockState(pos).getShape(world, pos, CollisionContext.of(viewEntity));
+                matrix.pushPose();
+                matrix.translate(pos.getX() - d0, pos.getY() - d1, pos.getZ() - d2);
+                for (AABB box : shape.toAabbs()) {
+                    LevelRenderer.renderLineBox(matrix, vertexBuilder, box, 0.0F, 0.0F, 0.0F, 0.4F);
+                }
+                matrix.popPose();
             }
         }
         matrix.popPose();
@@ -106,16 +114,14 @@ public class AreaEffectClientEvents {
         double d1 = camera.getPosition().y;
         double d2 = camera.getPosition().z;
 
-        int progress = (int) (gameMode.destroyProgress * 10.0F) - 1;
-        if (progress < 0 || progress > 10) {
+        int progress = gameMode.getDestroyStage();
+        if (progress < 0 || progress > 9) {
             return;
         }
 
-        progress = Math.min(progress, 9);
-
         BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
 
-        VertexConsumer consumer = levelRenderer.renderBuffers.crumblingBufferSource()
+        VertexConsumer consumer = Minecraft.getInstance().renderBuffers().crumblingBufferSource()
                 .getBuffer(ModelBakery.DESTROY_TYPES.get(progress));
 
         for (BlockPos pos : areaBlocks) {

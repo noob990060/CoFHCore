@@ -36,7 +36,7 @@ public class ItemFilter extends BaseItemFilter implements MenuProvider {
     @Override
     public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
 
-        return new ItemFilterMenu(i, player.level, inventory, player, holderType.ordinal(), id, pos);
+        return new ItemFilterMenu(i, player.level(), inventory, player, holderType.ordinal(), id, pos);
     }
 
 }

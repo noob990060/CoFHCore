@@ -27,7 +27,7 @@ public class ClaimXPPacket {
                 return;
             }
 
-            Level world = player.level;
+            Level world = player.level();
             if (!world.isLoaded(payload.pos())) {
                 return;
             }

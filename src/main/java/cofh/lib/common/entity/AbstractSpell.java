@@ -56,7 +56,7 @@ public abstract class AbstractSpell extends Entity implements TraceableEntity {
             onCast();
             this.firstTick = false;
         }
-        if (!level.isClientSide() && tickCount > getDuration()) {
+        if (!level().isClientSide() && tickCount > getDuration()) {
             onExpire();
             this.discard();
         } else {
@@ -89,7 +89,7 @@ public abstract class AbstractSpell extends Entity implements TraceableEntity {
         if (owner != null && !owner.isRemoved()) {
             return owner;
         }
-        if (ownerUUID != null && level instanceof ServerLevel serverLevel && serverLevel.getEntity(this.ownerUUID) instanceof LivingEntity living) {
+        if (ownerUUID != null && level() instanceof ServerLevel serverLevel && serverLevel.getEntity(this.ownerUUID) instanceof LivingEntity living) {
             this.owner = living;
             return this.owner;
         }

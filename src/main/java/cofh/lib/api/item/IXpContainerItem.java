@@ -70,7 +70,7 @@ public interface IXpContainerItem extends IContainerItem {
 
         if (toAdd > 0) {
             stack.setPopTime(5);
-            player.level.playSound(null, player.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.1F, (MathHelper.RANDOM.nextFloat() - MathHelper.RANDOM.nextFloat()) * 0.35F + 0.9F);
+            player.level().playSound(null, player.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.1F, (MathHelper.RANDOM.nextFloat() - MathHelper.RANDOM.nextFloat()) * 0.35F + 0.9F);
             item.modifyXp(stack, toAdd);
             orb.value -= toAdd;
             return true;

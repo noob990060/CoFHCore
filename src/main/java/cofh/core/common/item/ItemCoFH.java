@@ -75,7 +75,7 @@ public class ItemCoFH extends Item implements ICoFHItem {
     @Override
     public int getBurnTime(ItemStack itemStack, RecipeType<?> recipeType) {
 
-        return burnTime;
+        return burnTime > 0 ? burnTime : 0;
     }
 
     // TODO: Fix ToolAction usage for NeoForge 1.21.1

@@ -37,7 +37,7 @@ public abstract class Shockwave extends AbstractAoESpell {
     @Override
     public void activeTick() {
 
-        if (level.isClientSide()) {
+        if (level().isClientSide()) {
             BlockPos center = this.blockPosition();
             float speed = getSpeed();
             float radius = getRadius();
@@ -50,11 +50,11 @@ public abstract class Shockwave extends AbstractAoESpell {
                             if (rand.nextBoolean()) {
                                 for (int y = 1; y >= -1; --y) {
                                     cursor.set(center.getX() + offset.x, center.getY() + y, center.getZ() + offset.y);
-                                    BlockState state = level.getBlockState(cursor);
-                                    if (!state.isAir() && state.isRedstoneConductor(level, cursor) && state.isCollisionShapeFullBlock(level, cursor) && !state.hasBlockEntity()) {
+                                    BlockState state = level().getBlockState(cursor);
+                                    if (!state.isAir() && state.isRedstoneConductor(level(), cursor) && state.isCollisionShapeFullBlock(level(), cursor) && !state.hasBlockEntity()) {
                                         above.set(cursor.getX(), cursor.getY() + 1, cursor.getZ());
-                                        if (!level.getBlockState(above).isCollisionShapeFullBlock(level, above)) {
-                                            level.addDestroyBlockEffect(cursor, state);
+                                        if (!level().getBlockState(above).isCollisionShapeFullBlock(level(), above)) {
+                                            level().addDestroyBlockEffect(cursor, state);
                                             break;
                                         }
                                     }
@@ -105,7 +105,7 @@ public abstract class Shockwave extends AbstractAoESpell {
         float damage = getDamageMultiplier() * strength;
         Vec3 pos = this.position();
         Entity owner = getOwner();
-        for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, getBoundingBox(), EntitySelector.NO_CREATIVE_OR_SPECTATOR)) {
+        for (LivingEntity entity : level().getEntitiesOfClass(LivingEntity.class, getBoundingBox(), EntitySelector.NO_CREATIVE_OR_SPECTATOR)) {
             if (entity.equals(owner)) {
                 continue;
             }

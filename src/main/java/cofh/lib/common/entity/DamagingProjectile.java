@@ -43,9 +43,9 @@ public abstract class DamagingProjectile extends ProjectileCoFH {
         Entity owner = getOwner();
         ResourceKey<DamageType> type = getDamageType(result);
         if (owner == null) {
-            return level.damageSources().source(type, this);
+            return level().damageSources().source(type, this);
         }
-        return level.damageSources().source(type, this, owner);
+        return level().damageSources().source(type, this, owner);
     }
 
 }

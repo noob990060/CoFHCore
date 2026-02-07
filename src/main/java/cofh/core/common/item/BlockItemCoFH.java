@@ -102,7 +102,7 @@ public class BlockItemCoFH extends BlockItem implements ICoFHItem {
     @Override
     public int getBurnTime(ItemStack itemStack, RecipeType<?> recipeType) {
 
-        return burnTime;
+        return burnTime > 0 ? burnTime : 0;
     }
 
     //    @Override

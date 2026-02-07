@@ -115,7 +115,7 @@ public class ArmorEvents {
     private static void attemptDamagePlayerArmor(Entity entity, float amount) {
 
         if (entity instanceof Player player) {
-            if (100 * entity.level.random.nextFloat() < amount) {
+            if (100 * entity.level().random.nextFloat() < amount) {
                 for (EquipmentSlot slot : EquipmentSlot.values()) {
                     if (slot.name().contains("FEET") || slot.name().contains("LEGS") || slot.name().contains("CHEST") || slot.name().contains("HEAD")) {
                         ItemStack armor = player.getItemBySlot(slot);

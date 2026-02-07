@@ -38,19 +38,19 @@ public class VoxelShapeBlockHitResult extends SubHitBlockHitResult {
 
     protected VoxelShapeBlockHitResult(boolean isMissIn, Vec3 hit, Direction side, BlockPos pos, boolean isInside, IndexedVoxelShape shape, double dist) {
 
-        super(isMissIn, hit, side, pos, isInside, shape.getData(), dist);
+        super(hit, side, pos, isInside, shape.getData(), dist);
         this.shape = shape;
     }
 
     @Override
     public SubHitBlockHitResult withDirection(Direction newFace) {
 
-        return new VoxelShapeBlockHitResult(getType() == Type.MISS, getLocation(), newFace, getBlockPos(), isInside(), shape, dist);
+        return new VoxelShapeBlockHitResult(getLocation(), newFace, getBlockPos(), isInside(), shape, dist);
     }
 
     public SubHitBlockHitResult getAsDistanceResult() {
 
-        return new SubHitBlockHitResult(getType() == Type.MISS, getLocation(), getDirection(), getBlockPos(), isInside(), hitInfo, dist);
+        return new SubHitBlockHitResult(getLocation(), getDirection(), getBlockPos(), isInside(), hitInfo, dist);
     }
 
     @Override

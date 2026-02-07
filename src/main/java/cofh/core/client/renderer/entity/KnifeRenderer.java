@@ -28,8 +28,8 @@ public class KnifeRenderer extends EntityRenderer<ThrownKnife> {
     public void render(ThrownKnife entityIn, float entityYaw, float partialTicks, PoseStack poseStackIn, MultiBufferSource bufferIn, int packedLightIn) {
 
         poseStackIn.pushPose();
-        poseStackIn.mulPose(Axis.YP.rotationDegrees(Mth.lerp(partialTicks, entityIn.yRotO, entityIn.getYRot()) + 90));
-        if (entityIn.inGround) {
+        poseStackIn.mulPose(Axis.YP.rotationDegrees(entityIn.getViewYRot(partialTicks) + 90));
+        if (entityIn.isInGround()) {
             Vec3 pos = entityIn.position().subtract(Vec3.atCenterOf(entityIn.blockPosition()));
             double y = Math.abs(pos.y);
             if (Math.abs(pos.x) > y || Math.abs(pos.z) > y) {
@@ -41,7 +41,7 @@ public class KnifeRenderer extends EntityRenderer<ThrownKnife> {
             poseStackIn.mulPose(Axis.ZP.rotationDegrees((entityIn.tickCount + partialTicks) * 40));
         }
         poseStackIn.scale(1.25F, 1.25F, 1.25F);
-        itemRenderer.renderStatic(entityIn.getPickupItem(), ItemDisplayContext.GROUND, packedLightIn, OverlayTexture.NO_OVERLAY, poseStackIn, bufferIn, entityIn.level, 0);
+        itemRenderer.renderStatic(entityIn.getPickupItem(), ItemDisplayContext.GROUND, packedLightIn, OverlayTexture.NO_OVERLAY, poseStackIn, bufferIn, entityIn.level(), 0);
         poseStackIn.popPose();
         super.render(entityIn, entityYaw, partialTicks, poseStackIn, bufferIn, packedLightIn);
     }

@@ -5,12 +5,27 @@ import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import java.lang.reflect.Field;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import static cofh.lib.util.Constants.TRUE;
 
 public class SlotCoFH extends Slot {
+
+    private static final Field SLOT_X;
+    private static final Field SLOT_Y;
+
+    static {
+        try {
+            SLOT_X = Slot.class.getDeclaredField("x");
+            SLOT_X.setAccessible(true);
+            SLOT_Y = Slot.class.getDeclaredField("y");
+            SLOT_Y.setAccessible(true);
+        } catch (ReflectiveOperationException ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
 
     protected IntSupplier slotStackLimit;
     protected Supplier<Boolean> enabled = TRUE;
@@ -45,6 +60,16 @@ public class SlotCoFH extends Slot {
         return this;
     }
 
+    public void setPosition(int xPosition, int yPosition) {
+
+        try {
+            SLOT_X.setInt(this, xPosition);
+            SLOT_Y.setInt(this, yPosition);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException("Failed to update slot position.", ex);
+        }
+    }
+
     @Override
     public int getMaxStackSize() {
 
@@ -54,7 +79,7 @@ public class SlotCoFH extends Slot {
     @Override
     public boolean mayPlace(ItemStack stack) {
 
-        return container.canPlaceItem(slot, stack);
+        return container.canPlaceItem(getSlotIndex(), stack);
     }
 
     @Override

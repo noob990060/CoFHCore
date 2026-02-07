@@ -30,6 +30,20 @@ import java.util.stream.Stream;
 
 public class ProjectileCoFH extends Projectile {
 
+    private static final java.lang.reflect.Field LEFT_OWNER_FIELD;
+    private static final java.lang.reflect.Field HAS_BEEN_SHOT_FIELD;
+
+    static {
+        try {
+            LEFT_OWNER_FIELD = Projectile.class.getDeclaredField("leftOwner");
+            LEFT_OWNER_FIELD.setAccessible(true);
+            HAS_BEEN_SHOT_FIELD = Projectile.class.getDeclaredField("hasBeenShot");
+            HAS_BEEN_SHOT_FIELD.setAccessible(true);
+        } catch (ReflectiveOperationException ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
+
     protected float power;
 
     public ProjectileCoFH(EntityType<? extends ProjectileCoFH> type, Level level) {
@@ -44,10 +58,10 @@ public class ProjectileCoFH extends Projectile {
         setOwner(owner);
         setPos(position);
         setDeltaMovement(velocity);
-        projectileTick(level);
-        leftOwner = true;
+        projectileTick(level());
+        setLeftOwner(true);
         gameEvent(GameEvent.PROJECTILE_SHOOT, owner);
-        hasBeenShot = true;
+        setHasBeenShot(true);
         updateVelocity();
         updateRotation();
     }
@@ -81,7 +95,7 @@ public class ProjectileCoFH extends Projectile {
         fireTick();
         checkBelowWorld();
         setOldPosAndRot();
-        projectileTick(level);
+        projectileTick(level());
         checkInsideBlocks();
         updateVelocity();
         updateRotation();
@@ -184,26 +198,27 @@ public class ProjectileCoFH extends Projectile {
             this.fallDistance *= this.getFluidFallDistanceModifier(NeoForgeMod.LAVA_TYPE.value());
         }
 
-        if (this.level.isClientSide) {
+        if (this.level().isClientSide()) {
             this.clearFire();
         } else {
-            if (this.remainingFireTicks > 0) {
+            int remainingFireTicks = this.getRemainingFireTicks();
+            if (remainingFireTicks > 0) {
                 if (this.fireImmune()) {
                     this.clearFire();
                 } else {
-                    if (this.remainingFireTicks % 20 == 0 && !inLava) {
-                        this.hurt(level.damageSources().onFire(), 1.0F);
+                    if (remainingFireTicks % 20 == 0 && !inLava) {
+                        this.hurt(level().damageSources().onFire(), 1.0F);
                     }
 
-                    this.setRemainingFireTicks(this.remainingFireTicks - 1);
+                    this.setRemainingFireTicks(remainingFireTicks - 1);
                 }
 
                 if (this.getTicksFrozen() > 0) {
                     this.setTicksFrozen(0);
-                    this.level.levelEvent(null, 1009, this.blockPosition(), 1);
+                    this.level().levelEvent(null, 1009, this.blockPosition(), 1);
                 }
             }
-            this.setSharedFlagOnFire(this.remainingFireTicks > 0);
+            this.setSharedFlagOnFire(this.getRemainingFireTicks() > 0);
         }
     }
 
@@ -232,6 +247,24 @@ public class ProjectileCoFH extends Projectile {
 
         super.readAdditionalSaveData(tag);
         this.power = tag.getFloat(NBTTags.TAG_POWER);
+    }
+
+    private void setLeftOwner(boolean value) {
+
+        try {
+            LEFT_OWNER_FIELD.setBoolean(this, value);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException("Failed to set leftOwner on projectile.", ex);
+        }
+    }
+
+    private void setHasBeenShot(boolean value) {
+
+        try {
+            HAS_BEEN_SHOT_FIELD.setBoolean(this, value);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException("Failed to set hasBeenShot on projectile.", ex);
+        }
     }
 
 }

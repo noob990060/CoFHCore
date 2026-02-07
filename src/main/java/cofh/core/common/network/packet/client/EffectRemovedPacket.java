@@ -25,9 +25,8 @@ public class EffectRemovedPacket {
             Holder<MobEffect> effectHolder = BuiltInRegistries.MOB_EFFECT.getHolder(payload.effect()).orElse(null);
 
             if (ProxyUtils.getClientWorld().getEntity(id) instanceof LivingEntity entity && !entity.equals(ProxyUtils.getClientPlayer())) {
-                MobEffectInstance existing = effectHolder != null ? entity.removeEffectNoUpdate(effectHolder) : null;
-                if (existing != null) {
-                    entity.onEffectRemoved(existing);
+                if (effectHolder != null) {
+                    entity.removeEffect(effectHolder);
                 }
             }
         });

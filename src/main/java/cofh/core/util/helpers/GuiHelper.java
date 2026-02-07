@@ -11,6 +11,7 @@ import cofh.lib.common.energy.EnergyStorageCoFH;
 import cofh.lib.common.fluid.FluidStorageCoFH;
 import cofh.lib.common.inventory.ItemStorageCoFH;
 import cofh.lib.common.xp.XpStorage;
+import cofh.lib.util.constants.ModIds;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -22,6 +23,7 @@ import java.util.function.Supplier;
 
 import static cofh.core.common.network.packet.server.StorageClearPacket.StorageType.*;
 import static cofh.lib.util.Constants.*;
+import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 import static cofh.lib.util.helpers.StringHelper.*;
 import static net.minecraft.client.gui.screens.Screen.hasControlDown;
 import static net.minecraft.client.gui.screens.Screen.hasShiftDown;
@@ -363,70 +365,70 @@ public final class GuiHelper {
     public static final String BUTTON_18_HIGHLIGHT = PATH_ELEMENTS + "button_18_highlight.png";
     public static final String BUTTON_18_INACTIVE = PATH_ELEMENTS + "button_18_inactive.png";
 
-    public static final ResourceLocation ICON_ACCESS_PUBLIC = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_access_public.png");
-    public static final ResourceLocation ICON_ACCESS_PRIVATE = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_access_private.png");
-    public static final ResourceLocation ICON_ACCESS_FRIENDS = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_access_friends.png");
-    public static final ResourceLocation ICON_ACCESS_TEAM = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_access_team.png");
+    public static final ResourceLocation ICON_ACCESS_PUBLIC = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_access_public.png");
+    public static final ResourceLocation ICON_ACCESS_PRIVATE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_access_private.png");
+    public static final ResourceLocation ICON_ACCESS_FRIENDS = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_access_friends.png");
+    public static final ResourceLocation ICON_ACCESS_TEAM = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_access_team.png");
 
-    public static final ResourceLocation ICON_ACCEPT = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_accept.png");
-    public static final ResourceLocation ICON_ACCEPT_INACTIVE = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_accept_inactive.png");
-    public static final ResourceLocation ICON_AUGMENT = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_augment.png");
-    public static final ResourceLocation ICON_BUTTON = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_button.png");
-    public static final ResourceLocation ICON_BUTTON_HIGHLIGHT = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_button_highlight.png");
-    public static final ResourceLocation ICON_BUTTON_INACTIVE = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_button_inactive.png");
-    public static final ResourceLocation ICON_CANCEL = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_cancel.png");
-    public static final ResourceLocation ICON_CANCEL_INACTIVE = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_cancel_inactive.png");
-    public static final ResourceLocation ICON_CONFIG = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_config.png");
-    public static final ResourceLocation ICON_ENCHANTMENT = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_enchantment.png");
-    public static final ResourceLocation ICON_ENERGY = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_energy.png");
-    public static final ResourceLocation ICON_NOPE = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_nope.png");
-    public static final ResourceLocation ICON_INFORMATION = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_information.png");
-    public static final ResourceLocation ICON_STEAM = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_steam.png");
-    public static final ResourceLocation ICON_TUTORIAL = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_tutorial.png");
+    public static final ResourceLocation ICON_ACCEPT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_accept.png");
+    public static final ResourceLocation ICON_ACCEPT_INACTIVE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_accept_inactive.png");
+    public static final ResourceLocation ICON_AUGMENT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_augment.png");
+    public static final ResourceLocation ICON_BUTTON = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_button.png");
+    public static final ResourceLocation ICON_BUTTON_HIGHLIGHT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_button_highlight.png");
+    public static final ResourceLocation ICON_BUTTON_INACTIVE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_button_inactive.png");
+    public static final ResourceLocation ICON_CANCEL = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_cancel.png");
+    public static final ResourceLocation ICON_CANCEL_INACTIVE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_cancel_inactive.png");
+    public static final ResourceLocation ICON_CONFIG = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_config.png");
+    public static final ResourceLocation ICON_ENCHANTMENT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_enchantment.png");
+    public static final ResourceLocation ICON_ENERGY = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_energy.png");
+    public static final ResourceLocation ICON_NOPE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_nope.png");
+    public static final ResourceLocation ICON_INFORMATION = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_information.png");
+    public static final ResourceLocation ICON_STEAM = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_steam.png");
+    public static final ResourceLocation ICON_TUTORIAL = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_tutorial.png");
 
-    public static final ResourceLocation ICON_INPUT = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_input.png");
-    public static final ResourceLocation ICON_OUTPUT = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_output.png");
+    public static final ResourceLocation ICON_INPUT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_input.png");
+    public static final ResourceLocation ICON_OUTPUT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_output.png");
 
-    public static final ResourceLocation ICON_REDSTONE_OFF = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_redstone_off.png");
-    public static final ResourceLocation ICON_REDSTONE_ON = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_redstone_on.png");
+    public static final ResourceLocation ICON_REDSTONE_OFF = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_redstone_off.png");
+    public static final ResourceLocation ICON_REDSTONE_ON = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_redstone_on.png");
 
-    public static final ResourceLocation ICON_RS_TORCH_OFF = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_rs_torch_off.png");
-    public static final ResourceLocation ICON_RS_TORCH_ON = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_rs_torch_on.png");
+    public static final ResourceLocation ICON_RS_TORCH_OFF = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_rs_torch_off.png");
+    public static final ResourceLocation ICON_RS_TORCH_ON = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_rs_torch_on.png");
 
-    public static final ResourceLocation ICON_ARROW_DOWN = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_arrow_down.png");
-    public static final ResourceLocation ICON_ARROW_DOWN_INACTIVE = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_arrow_down_inactive.png");
+    public static final ResourceLocation ICON_ARROW_DOWN = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_arrow_down.png");
+    public static final ResourceLocation ICON_ARROW_DOWN_INACTIVE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_arrow_down_inactive.png");
 
-    public static final ResourceLocation ICON_ARROW_UP = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_arrow_up.png");
-    public static final ResourceLocation ICON_ARROW_UP_INACTIVE = ResourceLocation.fromNamespaceAndPath(PATH_ICONS, "icon_arrow_up_inactive.png");
+    public static final ResourceLocation ICON_ARROW_UP = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_arrow_up.png");
+    public static final ResourceLocation ICON_ARROW_UP_INACTIVE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/icons/icon_arrow_up_inactive.png");
 
-    public static final ResourceLocation INFO_INPUT = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "info_input.png");
-    public static final ResourceLocation INFO_OUTPUT = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "info_output.png");
+    public static final ResourceLocation INFO_INPUT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/info_input.png");
+    public static final ResourceLocation INFO_OUTPUT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/info_output.png");
 
-    public static final ResourceLocation NAV_BACK = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "nav_back.png");
-    public static final ResourceLocation NAV_FILTER = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "nav_filter.png");
+    public static final ResourceLocation NAV_BACK = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/nav_back.png");
+    public static final ResourceLocation NAV_FILTER = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/nav_filter.png");
 
-    public static final ResourceLocation TAB_BOTTOM = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "tab_bottom.png");
-    public static final ResourceLocation TAB_TOP = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "tab_top.png");
+    public static final ResourceLocation TAB_BOTTOM = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/tab_bottom.png");
+    public static final ResourceLocation TAB_TOP = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/tab_top.png");
 
-    public static final ResourceLocation PROG_ARROW_LEFT = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "progress_arrow_left.png");
-    public static final ResourceLocation PROG_ARROW_RIGHT = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "progress_arrow_right.png");
-    public static final ResourceLocation PROG_ARROW_FLUID_LEFT = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "progress_arrow_fluid_left.png");
-    public static final ResourceLocation PROG_ARROW_FLUID_RIGHT = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "progress_arrow_fluid_right.png");
-    public static final ResourceLocation PROG_DROP_LEFT = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "progress_fluid_left.png");
-    public static final ResourceLocation PROG_DROP_RIGHT = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "progress_fluid_right.png");
+    public static final ResourceLocation PROG_ARROW_LEFT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/progress_arrow_left.png");
+    public static final ResourceLocation PROG_ARROW_RIGHT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/progress_arrow_right.png");
+    public static final ResourceLocation PROG_ARROW_FLUID_LEFT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/progress_arrow_fluid_left.png");
+    public static final ResourceLocation PROG_ARROW_FLUID_RIGHT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/progress_arrow_fluid_right.png");
+    public static final ResourceLocation PROG_DROP_LEFT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/progress_fluid_left.png");
+    public static final ResourceLocation PROG_DROP_RIGHT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/progress_fluid_right.png");
 
-    public static final ResourceLocation SCALE_ALCHEMY = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_alchemy.png");
-    public static final ResourceLocation SCALE_BOOK = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_book.png");
-    public static final ResourceLocation SCALE_BUBBLE = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_bubble.png");
-    public static final ResourceLocation SCALE_COMPACT = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_compact.png");
-    public static final ResourceLocation SCALE_CRUSH = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_crush.png");
-    public static final ResourceLocation SCALE_FLAME = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_flame.png");
-    public static final ResourceLocation SCALE_FLAME_GREEN = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_flame_green.png");
-    public static final ResourceLocation SCALE_FLUX = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_flux.png");
-    public static final ResourceLocation SCALE_SAW = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_saw.png");
-    public static final ResourceLocation SCALE_SPIN = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_spin.png");
-    public static final ResourceLocation SCALE_SUN = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_sun.png");
-    public static final ResourceLocation SCALE_SNOWFLAKE = ResourceLocation.fromNamespaceAndPath(PATH_ELEMENTS, "scale_snowflake.png");
+    public static final ResourceLocation SCALE_ALCHEMY = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_alchemy.png");
+    public static final ResourceLocation SCALE_BOOK = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_book.png");
+    public static final ResourceLocation SCALE_BUBBLE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_bubble.png");
+    public static final ResourceLocation SCALE_COMPACT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_compact.png");
+    public static final ResourceLocation SCALE_CRUSH = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_crush.png");
+    public static final ResourceLocation SCALE_FLAME = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_flame.png");
+    public static final ResourceLocation SCALE_FLAME_GREEN = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_flame_green.png");
+    public static final ResourceLocation SCALE_FLUX = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_flux.png");
+    public static final ResourceLocation SCALE_SAW = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_saw.png");
+    public static final ResourceLocation SCALE_SPIN = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_spin.png");
+    public static final ResourceLocation SCALE_SUN = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_sun.png");
+    public static final ResourceLocation SCALE_SNOWFLAKE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "textures/gui/elements/scale_snowflake.png");
     // endregion
 
     // region PANELS

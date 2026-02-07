@@ -83,7 +83,7 @@ public class BoatCoFH extends Boat implements IOnPlaced {
     public void destroy(DamageSource source) {
 
         this.remove(Entity.RemovalReason.KILLED);
-        if (this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+        if (this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
             ItemStack stack = createItemStackTag(getPickResult());
             this.spawnAtLocation(stack);
         }

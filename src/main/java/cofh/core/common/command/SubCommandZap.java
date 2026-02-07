@@ -35,7 +35,7 @@ public class SubCommandZap {
         ServerPlayer caster = source.getEntity() instanceof ServerPlayer player ? player : null;
 
         for (Entity entity : targets) {
-            if (Utils.spawnLightningBolt(entity.level, entity.blockPosition(), caster)) {
+            if (Utils.spawnLightningBolt(entity.level(), entity.blockPosition(), caster)) {
                 ++zappedEntities;
             }
         }

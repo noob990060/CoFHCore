@@ -55,7 +55,7 @@ public class ElectricField extends AbstractFieldSpell {
     @Override
     public void activeTick() {
 
-        if (!level.isClientSide()) {
+        if (!level().isClientSide()) {
             int max = 16;
             if (tickCount < duration + 10 && (lastArc >= max || random.nextInt(max - lastArc) == 0)) {
                 lastArc = 0;
@@ -77,7 +77,7 @@ public class ElectricField extends AbstractFieldSpell {
             filter = filter.and(entity -> !entity.isPassengerOfSameVehicle(owner));
         }
         float radius = getRadius();
-        List<Entity> entities = AreaUtils.getEntitiesInSphere(level, center, radius, this, filter);
+        List<Entity> entities = AreaUtils.getEntitiesInSphere(level(), center, radius, this, filter);
 
         Vec3 end;
         if (rand.nextInt(5) < entities.size()) {
@@ -87,9 +87,9 @@ public class ElectricField extends AbstractFieldSpell {
         }
         Vec3 pos = getEyePosition();
 
-        BlockHitResult raytrace = level.clip(new ClipContext(pos, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+        BlockHitResult raytrace = level().clip(new ClipContext(pos, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
         end = raytrace.getLocation();
-        ((ServerLevel) level).sendParticles(new BiColorParticleOptions(CoreParticles.STRAIGHT_ARC.get(), 0.2F, 4, 0, 0xFFFFFFFF, 0xFFFC52A4), pos.x, pos.y, pos.z, 0, end.x, end.y, end.z, 1.0F);
+        ((ServerLevel) level()).sendParticles(new BiColorParticleOptions(CoreParticles.STRAIGHT_ARC.get(), 0.2F, 4, 0, 0xFFFFFFFF, 0xFFFC52A4), pos.x, pos.y, pos.z, 0, end.x, end.y, end.z, 1.0F);
 
         float padding = 0.1F;
         DamageSource source = Utils.source(damageSources(), getDamageType(), this, owner == null ? this : owner, pos);

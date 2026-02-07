@@ -98,13 +98,13 @@ public class ThrownKnife extends AbstractArrow {
                     this.setNoPhysics(true);
                     Vec3 diff = owner.getEyePosition(1.0F).subtract(this.position());
                     this.setPosRaw(this.getX(), this.getY() + diff.y * 0.015D * loyalty, this.getZ());
-                    if (this.level.isClientSide) {
+                    if (this.level().isClientSide()) {
                         this.yOld = this.getY();
                     }
 
                     this.setDeltaMovement(this.getDeltaMovement().scale(0.95D).add(diff.normalize().scale(0.05F * loyalty)));
                 } else {
-                    if (!this.level.isClientSide && this.pickup == AbstractArrow.Pickup.ALLOWED) {
+                    if (!this.level().isClientSide() && this.pickup == AbstractArrow.Pickup.ALLOWED) {
                         this.spawnAtLocation(this.getPickupItem(), 0.1F);
                     }
                     this.discard();
@@ -224,7 +224,12 @@ public class ThrownKnife extends AbstractArrow {
 
     protected DamageSource damageSource() {
 
-        return this.level.damageSources().source(KNIFE_DAMAGE, this, getOwner());
+        return this.level().damageSources().source(KNIFE_DAMAGE, this, getOwner());
+    }
+
+    public boolean isInGround() {
+
+        return this.inGround;
     }
 
     protected static final ResourceKey<DamageType> KNIFE_DAMAGE = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, "knife"));

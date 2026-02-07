@@ -264,7 +264,7 @@ public class AreaUtils {
         if (target instanceof EnderMan || target instanceof Endermite) {
             LivingEntity living = (LivingEntity) target;
             living.addEffect(new MobEffectInstance(ENDERFERENCE.getDelegate(), duration, power));
-            living.hurt(living.level.damageSources().indirectMagic(source instanceof LivingEntity ? source : null, null), 4.0F);
+            living.hurt(living.level().damageSources().indirectMagic(source instanceof LivingEntity ? source : null, null), 4.0F);
         }
     };
 
@@ -523,7 +523,7 @@ public class AreaUtils {
                 BlockState blockstate1 = levelIn.getBlockState(mutable);
                 if (blockstate1.isAir()) {
                     if (isValidFirePosition(levelIn, mutable, chance)) {
-                        levelIn.setBlockAndUpdate(mutable, ((FireBlock) FIRE).getStateForPlacement(levelIn, mutable));
+                        levelIn.setBlockAndUpdate(mutable, BaseFireBlock.getState(levelIn, mutable));
                     }
                 }
             }
@@ -576,7 +576,7 @@ public class AreaUtils {
                 mutable.set(blockpos.getX(), blockpos.getY() + 1, blockpos.getZ());
                 BlockState blockstate1 = levelIn.getBlockState(mutable);
                 if (blockstate1.isAir()) {
-                    if (levelIn.getBiome(mutable).value().getTemperature(blockpos) < 0.8F && isValidSnowPosition(levelIn, mutable)) {
+                    if (levelIn.getBiome(mutable).value().getBaseTemperature() < 0.8F && isValidSnowPosition(levelIn, mutable)) {
                         levelIn.setBlockAndUpdate(mutable, state);
                     }
                 }

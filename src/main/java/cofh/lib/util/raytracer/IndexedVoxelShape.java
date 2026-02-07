@@ -5,9 +5,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.DiscreteVoxelShape;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 
 /**
  * A VoxelShape implementation, produces a {@link VoxelShapeBlockHitResult} when ray traced.
@@ -20,12 +22,23 @@ import javax.annotation.Nullable;
  */
 public class IndexedVoxelShape extends VoxelShape {
 
+    private static final Field SHAPE_FIELD;
+
+    static {
+        try {
+            SHAPE_FIELD = VoxelShape.class.getDeclaredField("shape");
+            SHAPE_FIELD.setAccessible(true);
+        } catch (ReflectiveOperationException ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
+
     private final VoxelShape parent;
     private final Object data;
 
     public IndexedVoxelShape(VoxelShape parent, Object data) {
 
-        super(parent.shape);
+        super(getShape(parent));
         this.parent = parent;
         this.data = data;
     }
@@ -49,6 +62,15 @@ public class IndexedVoxelShape extends VoxelShape {
     public Object getData() {
 
         return data;
+    }
+
+    private static DiscreteVoxelShape getShape(VoxelShape shape) {
+
+        try {
+            return (DiscreteVoxelShape) SHAPE_FIELD.get(shape);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException("Failed to access voxel shape data.", ex);
+        }
     }
 
 }

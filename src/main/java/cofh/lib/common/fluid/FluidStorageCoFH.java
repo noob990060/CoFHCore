@@ -3,7 +3,10 @@ package cofh.lib.common.fluid;
 import cofh.lib.api.IResourceStorage;
 import cofh.lib.api.fluid.IFluidStackHolder;
 import cofh.lib.util.helpers.MathHelper;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.IFluidTank;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -14,6 +17,7 @@ import java.util.function.Supplier;
 
 import static cofh.lib.util.Constants.*;
 import static cofh.lib.util.constants.NBTTags.TAG_CAPACITY;
+import static cofh.lib.util.constants.NBTTags.TAG_TANK;
 import static cofh.lib.util.helpers.StringHelper.localize;
 
 /**
@@ -22,6 +26,9 @@ import static cofh.lib.util.helpers.StringHelper.localize;
  * @author King Lemming
  */
 public class FluidStorageCoFH implements IFluidHandler, IFluidStackHolder, IResourceStorage {
+
+    private static final net.minecraft.core.HolderLookup.Provider FALLBACK_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
 
     protected static Predicate<FluidStack> DEFAULT_VALIDATOR = e -> true;
 
@@ -115,14 +122,25 @@ public class FluidStorageCoFH implements IFluidHandler, IFluidStackHolder, IReso
     // region NBT
     public FluidStorageCoFH read(CompoundTag nbt) {
 
-        FluidStack fluid = FluidStack.parseOptional(null, nbt);
-        setFluidStack(fluid);
+        if (nbt == null || !nbt.contains("id") || !nbt.contains("amount")) {
+            setFluidStack(emptyFluid.get());
+            return this;
+        }
+        setFluidStack(FluidStack.parseOptional(FALLBACK_LOOKUP, nbt));
         return this;
     }
 
     public CompoundTag write(CompoundTag nbt) {
 
-        fluid.save(null, nbt);
+        byte tankIndex = nbt.contains(TAG_TANK) ? nbt.getByte(TAG_TANK) : 0;
+        Tag saved = fluid.saveOptional(FALLBACK_LOOKUP);
+        for (String key : new java.util.ArrayList<>(nbt.getAllKeys())) {
+            nbt.remove(key);
+        }
+        nbt.putByte(TAG_TANK, tankIndex);
+        if (saved instanceof CompoundTag savedTag) {
+            nbt.merge(savedTag);
+        }
         nbt.putInt(TAG_CAPACITY, baseCapacity);
         return nbt;
     }

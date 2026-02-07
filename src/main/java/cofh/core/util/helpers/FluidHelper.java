@@ -345,7 +345,7 @@ public final class FluidHelper {
             return false;
         }
         if (drainBottleToHandler(stack, handler, player, hand)) {
-            player.level.playSound(null, player.getX(), player.getY() + 0.5, player.getZ(), SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+            player.level().playSound(null, player.getX(), player.getY() + 0.5, player.getZ(), SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
             return true;
         }
         IItemHandler playerInv = new InvWrapper(player.getInventory());
@@ -372,7 +372,7 @@ public final class FluidHelper {
             return false;
         }
         if (fillBottleFromHandler(stack, handler, player, hand)) {
-            player.level.playSound(null, player.getX(), player.getY() + 0.5, player.getZ(), SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
+            player.level().playSound(null, player.getX(), player.getY() + 0.5, player.getZ(), SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
             return true;
         }
         if (stack.getCount() == 1) {

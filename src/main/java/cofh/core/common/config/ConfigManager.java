@@ -179,6 +179,9 @@ public class ConfigManager {
     @SubscribeEvent
     public void configRefresh(ModConfigEvent event) {
 
+        if (!(event instanceof ModConfigEvent.Loading || event instanceof ModConfigEvent.Reloading)) {
+            return;
+        }
         switch (event.getConfig().getType()) {
             case COMMON -> refreshCommonConfig();
             case CLIENT -> refreshClientConfig();
