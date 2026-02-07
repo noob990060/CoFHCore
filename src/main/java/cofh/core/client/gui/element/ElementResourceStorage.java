@@ -166,33 +166,19 @@ public abstract class ElementResourceStorage extends ElementBase {
 
     protected void drawStorage(PoseStack poseStack) {
 
-        // DEBUG: Add element type and position identification for storage drawing
-        String elementType = this.getClass().getSimpleName();
-        System.out.println("DEBUG: " + elementType + " drawStorage called at pos(" + posX() + "," + posY() + "). Texture: " + texture + ", DrawStorage: " + drawStorage.get());
-        
         if (drawStorage.get() && texture != null) {
-            System.out.println("DEBUG: Drawing storage texture: " + texture);
             RenderHelper.setPosTexShader();
             RenderHelper.setShaderTexture0(texture);
             drawTexturedModalRect(poseStack, posX(), posY(), 0, 0, width, height);
-        } else {
-            System.out.println("DEBUG: NOT drawing storage for " + elementType + ". DrawStorage: " + drawStorage.get() + ", Texture: " + texture);
         }
     }
 
     protected void drawUnderlayTexture(PoseStack poseStack) {
 
-        // DEBUG: Add element type and position identification for underlay drawing
-        String elementType = this.getClass().getSimpleName();
-        System.out.println("DEBUG: " + elementType + " drawUnderlay called at pos(" + posX() + "," + posY() + "). UnderlayTexture: " + underlayTexture + ", DrawUnderlay: " + drawUnderlay.get());
-        
         if (drawUnderlay.get() && underlayTexture != null) {
-            System.out.println("DEBUG: Drawing underlay texture: " + underlayTexture);
             RenderHelper.setPosTexShader();
             RenderHelper.setShaderTexture0(underlayTexture);
             drawTexturedModalRect(poseStack, posX(), posY(), 0, 0, width, height);
-        } else {
-            System.out.println("DEBUG: NOT drawing underlay for " + elementType + ". DrawUnderlay: " + drawUnderlay.get() + ", UnderlayTexture: " + underlayTexture);
         }
     }
 
@@ -200,17 +186,10 @@ public abstract class ElementResourceStorage extends ElementBase {
 
     protected void drawOverlayTexture(PoseStack poseStack) {
 
-        // DEBUG: Add element type and position identification
-        String elementType = this.getClass().getSimpleName();
-        System.out.println("DEBUG: " + elementType + " drawOverlay called at pos(" + posX() + "," + posY() + "). DrawOverlay: " + drawOverlay.get() + ", OverlayTexture: " + overlayTexture);
-        
         if (drawOverlay.get() && overlayTexture != null) {
-            System.out.println("DEBUG: Drawing overlay texture: " + overlayTexture);
             RenderHelper.setPosTexShader();
             RenderHelper.setShaderTexture0(overlayTexture);
             drawTexturedModalRect(poseStack, posX(), posY(), 0, 0, width, height);
-        } else {
-            System.out.println("DEBUG: NOT drawing overlay for " + elementType + ". DrawOverlay: " + drawOverlay.get() + ", OverlayTexture: " + overlayTexture);
         }
     }
 

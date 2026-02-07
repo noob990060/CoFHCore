@@ -68,18 +68,8 @@ public final class GuiHelper {
 
     public static ElementFluidStorage createLargeOutputFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, IReconfigurable reconfig) {
 
-        // DEBUG: Log output fluid storage creation
-        System.out.println("DEBUG: Creating LARGE OUTPUT fluid storage");
-        System.out.println("DEBUG: Base texture: " + PATH_ELEMENTS + "storage_fluid_large.png");
-        System.out.println("DEBUG: Output underlay texture: " + PATH_ELEMENTS + "output_underlay_fluid_large.png");
-        System.out.println("DEBUG: Overlay texture: " + PATH_ELEMENTS + "overlay_fluid_large.png");
-        System.out.println("DEBUG: hasOutputSide result: " + reconfig.hasOutputSide());
-        
         // FIX: Use the method that supports both underlay AND overlay textures
-        ElementFluidStorage result = (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 62, PATH_ELEMENTS + "storage_fluid_large.png", PATH_ELEMENTS + "output_underlay_fluid_large.png", reconfig::hasOutputSide, PATH_ELEMENTS + "overlay_fluid_large.png", 32, 64);
-        
-        System.out.println("DEBUG: Large output fluid storage created successfully");
-        return result;
+        return (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 62, PATH_ELEMENTS + "storage_fluid_large.png", PATH_ELEMENTS + "output_underlay_fluid_large.png", reconfig::hasOutputSide, PATH_ELEMENTS + "overlay_fluid_large.png", 32, 64);
     }
 
     public static ElementFluidStorage createMediumFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage) {
@@ -95,18 +85,8 @@ public final class GuiHelper {
 
     public static ElementFluidStorage createMediumOutputFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, IReconfigurable reconfig) {
 
-        // DEBUG: Log output fluid storage creation
-        System.out.println("DEBUG: Creating MEDIUM OUTPUT fluid storage");
-        System.out.println("DEBUG: Base texture: " + PATH_ELEMENTS + "storage_fluid_medium.png");
-        System.out.println("DEBUG: Output underlay texture: " + PATH_ELEMENTS + "output_underlay_fluid_medium.png");
-        System.out.println("DEBUG: Overlay texture: " + PATH_ELEMENTS + "overlay_fluid_medium.png");
-        System.out.println("DEBUG: hasOutputSide result: " + reconfig.hasOutputSide());
-        
         // FIX: Use the method that supports both underlay AND overlay textures
-        ElementFluidStorage result = (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 42, PATH_ELEMENTS + "storage_fluid_medium.png", PATH_ELEMENTS + "output_underlay_fluid_medium.png", reconfig::hasOutputSide, PATH_ELEMENTS + "overlay_fluid_medium.png", 32, 64);
-        
-        System.out.println("DEBUG: Medium output fluid storage created successfully");
-        return result;
+        return (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 42, PATH_ELEMENTS + "storage_fluid_medium.png", PATH_ELEMENTS + "output_underlay_fluid_medium.png", reconfig::hasOutputSide, PATH_ELEMENTS + "overlay_fluid_medium.png", 32, 64);
     }
 
     public static ElementFluidStorage createSmallFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage) {
@@ -122,18 +102,8 @@ public final class GuiHelper {
 
     public static ElementFluidStorage createSmallOutputFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, IReconfigurable reconfig) {
 
-        // DEBUG: Log output fluid storage creation
-        System.out.println("DEBUG: Creating SMALL OUTPUT fluid storage");
-        System.out.println("DEBUG: Base texture: " + PATH_ELEMENTS + "storage_fluid_small.png");
-        System.out.println("DEBUG: Output underlay texture: " + PATH_ELEMENTS + "output_underlay_fluid_small.png");
-        System.out.println("DEBUG: Overlay texture: " + PATH_ELEMENTS + "overlay_fluid_small.png");
-        System.out.println("DEBUG: hasOutputSide result: " + reconfig.hasOutputSide());
-        
         // FIX: Use the method that supports both underlay AND overlay textures
-        ElementFluidStorage result = (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 34, PATH_ELEMENTS + "storage_fluid_small.png", PATH_ELEMENTS + "output_underlay_fluid_small.png", reconfig::hasOutputSide, PATH_ELEMENTS + "overlay_fluid_small.png", 32, 64);
-        
-        System.out.println("DEBUG: Small output fluid storage created successfully");
-        return result;
+        return (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 34, PATH_ELEMENTS + "storage_fluid_small.png", PATH_ELEMENTS + "output_underlay_fluid_small.png", reconfig::hasOutputSide, PATH_ELEMENTS + "overlay_fluid_small.png", 32, 64);
     }
 
     public static ElementFluidStorage createDefaultFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, int width, int height, String texture, String overlayTexture, int texW, int texH) {
