@@ -390,19 +390,13 @@ public final class FluidHelper {
             return false;
         }
         boolean bottleResult = drainBottleToHandler(stack, handler, player, hand);
-        System.out.println("DEBUG: drainBottleToHandler result: " + bottleResult);
         if (bottleResult) {
             player.level().playSound(null, player.getX(), player.getY() + 0.5, player.getZ(), SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
             return true;
         }
         IItemHandler playerInv = new InvWrapper(player.getInventory());
-        System.out.println("DEBUG: Trying FluidUtil.tryEmptyContainerAndStow");
         FluidActionResult result = FluidUtil.tryEmptyContainerAndStow(stack, handler, playerInv, Integer.MAX_VALUE, player, true);
-        System.out.println("DEBUG: FluidActionResult: " + result);
-        System.out.println("DEBUG: FluidActionResult.isSuccess(): " + result.isSuccess());
-        System.out.println("DEBUG: FluidActionResult.getResult(): " + result.getResult());
         if (result.isSuccess()) {
-            System.out.println("DEBUG: Setting item in hand to: " + result.getResult());
             player.setItemInHand(hand, result.getResult());
             return true;
         }
