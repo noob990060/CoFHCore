@@ -131,6 +131,11 @@ public class BlockEntityCoFH extends BlockEntity implements ITileCallback, IPack
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
 
+        // Prevent crash when provider is null
+        if (provider == null) {
+            return new CompoundTag();
+        }
+
         return saveWithoutMetadata(provider);
     }
     // endregion

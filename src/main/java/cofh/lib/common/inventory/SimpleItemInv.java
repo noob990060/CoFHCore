@@ -2,6 +2,7 @@ package cofh.lib.common.inventory;
 
 import cofh.lib.api.IStorageCallback;
 import cofh.lib.api.StorageGroup;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.ItemStack;
@@ -117,6 +118,22 @@ public class SimpleItemInv extends SimpleItemHandler {
         return this;
     }
 
+    public SimpleItemInv read(CompoundTag nbt, HolderLookup.Provider provider) {
+
+        for (ItemStorageCoFH slot : slots) {
+            slot.setItemStack(ItemStack.EMPTY);
+        }
+        ListTag list = nbt.getList(tag, TAG_COMPOUND);
+        for (int i = 0; i < list.size(); ++i) {
+            CompoundTag slotTag = list.getCompound(i);
+            int slot = slotTag.getByte(TAG_SLOT);
+            if (slot >= 0 && slot < slots.size()) {
+                slots.get(slot).read(slotTag, provider);
+            }
+        }
+        return this;
+    }
+
     public CompoundTag write(CompoundTag nbt) {
 
         if (slots.size() <= 0) {
@@ -128,6 +145,28 @@ public class SimpleItemInv extends SimpleItemHandler {
                 CompoundTag slotTag = new CompoundTag();
                 slotTag.putByte(TAG_SLOT, (byte) i);
                 slots.get(i).write(slotTag);
+                list.add(slotTag);
+            }
+        }
+        if (!list.isEmpty()) {
+            nbt.put(tag, list);
+        } else {
+            nbt.remove(tag);
+        }
+        return nbt;
+    }
+
+    public CompoundTag write(CompoundTag nbt, HolderLookup.Provider provider) {
+
+        if (slots.size() <= 0) {
+            return nbt;
+        }
+        ListTag list = new ListTag();
+        for (int i = 0; i < slots.size(); ++i) {
+            if (!slots.get(i).isEmpty()) {
+                CompoundTag slotTag = new CompoundTag();
+                slotTag.putByte(TAG_SLOT, (byte) i);
+                slots.get(i).write(slotTag, provider);
                 list.add(slotTag);
             }
         }

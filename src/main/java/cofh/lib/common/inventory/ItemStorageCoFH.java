@@ -3,8 +3,10 @@ package cofh.lib.common.inventory;
 import cofh.core.util.helpers.ItemHelper;
 import cofh.lib.api.IResourceStorage;
 import cofh.lib.api.inventory.IItemStackHolder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nonnull;
@@ -129,16 +131,50 @@ public class ItemStorageCoFH implements IItemHandler, IItemStackHolder, IResourc
         return this;
     }
 
+    public ItemStorageCoFH read(CompoundTag nbt, HolderLookup.Provider provider) {
+
+        item = loadItemStack(nbt, provider);
+        return this;
+    }
+
     public CompoundTag write(CompoundTag nbt) {
 
         saveItemStack(item, nbt);
+        return nbt;
+    }
+
+    public CompoundTag write(CompoundTag nbt, HolderLookup.Provider provider) {
+
+        saveItemStack(item, nbt, provider);
         return nbt;
     }
     // endregion
 
     public static ItemStack loadItemStack(CompoundTag nbt) {
 
-        ItemStack retStack = ItemStack.parseOptional(null, nbt);
+        // Check if the NBT tag is empty or only contains slot information
+        if (nbt.isEmpty() || (nbt.size() == 1 && nbt.contains("Slot"))) {
+            return ItemStack.EMPTY;
+        }
+        
+        ItemStack retStack = ItemStack.parseOptional(net.minecraft.core.RegistryAccess.EMPTY, nbt);
+        if (nbt.contains("IntCount")) {
+            int storedCount = nbt.getInt("IntCount");
+            if (retStack.getCount() < storedCount) {
+                retStack.setCount(storedCount);
+            }
+        }
+        return retStack;
+    }
+
+    public static ItemStack loadItemStack(CompoundTag nbt, HolderLookup.Provider provider) {
+
+        // Check if the NBT tag is empty or only contains slot information
+        if (nbt.isEmpty() || (nbt.size() == 1 && nbt.contains("Slot"))) {
+            return ItemStack.EMPTY;
+        }
+        
+        ItemStack retStack = ItemStack.parseOptional(provider, nbt);
         if (nbt.contains("IntCount")) {
             int storedCount = nbt.getInt("IntCount");
             if (retStack.getCount() < storedCount) {
@@ -151,6 +187,14 @@ public class ItemStorageCoFH implements IItemHandler, IItemStackHolder, IResourc
     protected final void saveItemStack(ItemStack stack, CompoundTag nbt) {
 
         stack.save(null, nbt);
+        if (stack.getCount() > Byte.MAX_VALUE) {
+            nbt.putInt("IntCount", stack.getCount());
+        }
+    }
+
+    protected final void saveItemStack(ItemStack stack, CompoundTag nbt, HolderLookup.Provider provider) {
+
+        stack.save(provider, nbt);
         if (stack.getCount() > Byte.MAX_VALUE) {
             nbt.putInt("IntCount", stack.getCount());
         }
