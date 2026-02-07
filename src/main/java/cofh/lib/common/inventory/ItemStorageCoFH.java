@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -186,15 +187,16 @@ public class ItemStorageCoFH implements IItemHandler, IItemStackHolder, IResourc
 
     protected final void saveItemStack(ItemStack stack, CompoundTag nbt) {
 
-        stack.save(null, nbt);
-        if (stack.getCount() > Byte.MAX_VALUE) {
-            nbt.putInt("IntCount", stack.getCount());
-        }
+        saveItemStack(stack, nbt, null);
     }
 
-    protected final void saveItemStack(ItemStack stack, CompoundTag nbt, HolderLookup.Provider provider) {
+    protected final void saveItemStack(ItemStack stack, CompoundTag nbt, @Nullable HolderLookup.Provider provider) {
 
-        stack.save(provider, nbt);
+        if (provider == null) {
+            stack.save(net.minecraft.core.RegistryAccess.EMPTY, nbt);
+        } else {
+            stack.save(provider, nbt);
+        }
         if (stack.getCount() > Byte.MAX_VALUE) {
             nbt.putInt("IntCount", stack.getCount());
         }

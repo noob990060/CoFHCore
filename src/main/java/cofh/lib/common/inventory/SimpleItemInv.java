@@ -71,6 +71,7 @@ public class SimpleItemInv extends SimpleItemHandler {
     public void set(int slot, ItemStack stack) {
 
         slots.get(slot).setItemStack(stack);
+        onInventoryChange(slot);
     }
 
     public ItemStack get(int slot) {
@@ -243,6 +244,11 @@ public class SimpleItemInv extends SimpleItemHandler {
 
     public CompoundTag writeSlotsToNBTUnordered(CompoundTag nbt, String saveTag, int startIndex, int endIndex) {
 
+        return writeSlotsToNBTUnordered(nbt, saveTag, startIndex, endIndex, null);
+    }
+
+    public CompoundTag writeSlotsToNBTUnordered(CompoundTag nbt, String saveTag, int startIndex, int endIndex, @Nullable HolderLookup.Provider provider) {
+
         if (startIndex < 0 || startIndex >= endIndex || startIndex >= slots.size()) {
             return nbt;
         }
@@ -250,7 +256,7 @@ public class SimpleItemInv extends SimpleItemHandler {
         for (int i = startIndex; i < Math.min(endIndex, slots.size()); ++i) {
             if (!slots.get(i).isEmpty()) {
                 CompoundTag slotTag = new CompoundTag();
-                slots.get(i).write(slotTag);
+                slots.get(i).write(slotTag, provider);
                 list.add(slotTag);
             }
         }

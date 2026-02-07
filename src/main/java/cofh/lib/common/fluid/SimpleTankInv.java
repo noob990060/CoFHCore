@@ -60,6 +60,7 @@ public class SimpleTankInv extends SimpleFluidHandler {
     public void set(int tank, FluidStack stack) {
 
         tanks.get(tank).setFluidStack(stack);
+        onTankChange(tank);
     }
 
     public FluidStack get(int tank) {

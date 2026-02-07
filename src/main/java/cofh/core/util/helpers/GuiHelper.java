@@ -62,12 +62,12 @@ public final class GuiHelper {
 
     public static ElementFluidStorage createLargeInputFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, IReconfigurable reconfig) {
 
-        return createDefaultFluidStorage(gui, posX, posY, storage, 18, 62, PATH_ELEMENTS + "storage_fluid_large.png", PATH_ELEMENTS + "input_underlay_fluid_large.png", reconfig::hasInputSide, PATH_ELEMENTS + "overlay_fluid_large.png", 32, 64);
+        return (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 62, PATH_ELEMENTS + "storage_fluid_large.png", PATH_ELEMENTS + "overlay_fluid_large.png", 32, 64).setOverlayTexture(PATH_ELEMENTS + "input_underlay_fluid_large.png", reconfig::hasInputSide);
     }
 
     public static ElementFluidStorage createLargeOutputFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, IReconfigurable reconfig) {
 
-        return createDefaultFluidStorage(gui, posX, posY, storage, 18, 62, PATH_ELEMENTS + "storage_fluid_large.png", PATH_ELEMENTS + "output_underlay_fluid_large.png", reconfig::hasOutputSide, PATH_ELEMENTS + "overlay_fluid_large.png", 32, 64);
+        return (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 62, PATH_ELEMENTS + "storage_fluid_large.png", PATH_ELEMENTS + "overlay_fluid_large.png", 32, 64).setOverlayTexture(PATH_ELEMENTS + "output_underlay_fluid_large.png", reconfig::hasOutputSide);
     }
 
     public static ElementFluidStorage createMediumFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage) {
@@ -77,12 +77,12 @@ public final class GuiHelper {
 
     public static ElementFluidStorage createMediumInputFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, IReconfigurable reconfig) {
 
-        return createDefaultFluidStorage(gui, posX, posY, storage, 18, 42, PATH_ELEMENTS + "storage_fluid_medium.png", PATH_ELEMENTS + "input_underlay_fluid_medium.png", reconfig::hasInputSide, PATH_ELEMENTS + "overlay_fluid_medium.png", 32, 64);
+        return (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 42, PATH_ELEMENTS + "storage_fluid_medium.png", PATH_ELEMENTS + "overlay_fluid_medium.png", 32, 64).setOverlayTexture(PATH_ELEMENTS + "input_underlay_fluid_medium.png", reconfig::hasInputSide);
     }
 
     public static ElementFluidStorage createMediumOutputFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, IReconfigurable reconfig) {
 
-        return createDefaultFluidStorage(gui, posX, posY, storage, 18, 42, PATH_ELEMENTS + "storage_fluid_medium.png", PATH_ELEMENTS + "output_underlay_fluid_medium.png", reconfig::hasOutputSide, PATH_ELEMENTS + "overlay_fluid_medium.png", 32, 64);
+        return (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 42, PATH_ELEMENTS + "storage_fluid_medium.png", PATH_ELEMENTS + "overlay_fluid_medium.png", 32, 64).setOverlayTexture(PATH_ELEMENTS + "output_underlay_fluid_medium.png", reconfig::hasOutputSide);
     }
 
     public static ElementFluidStorage createSmallFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage) {
@@ -92,12 +92,12 @@ public final class GuiHelper {
 
     public static ElementFluidStorage createSmallInputFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, IReconfigurable reconfig) {
 
-        return createDefaultFluidStorage(gui, posX, posY, storage, 18, 34, PATH_ELEMENTS + "storage_fluid_small.png", PATH_ELEMENTS + "input_underlay_fluid_small.png", reconfig::hasInputSide, PATH_ELEMENTS + "overlay_fluid_small.png", 32, 64);
+        return (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 34, PATH_ELEMENTS + "storage_fluid_small.png", PATH_ELEMENTS + "overlay_fluid_small.png", 32, 64).setOverlayTexture(PATH_ELEMENTS + "input_underlay_fluid_small.png", reconfig::hasInputSide);
     }
 
     public static ElementFluidStorage createSmallOutputFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, IReconfigurable reconfig) {
 
-        return createDefaultFluidStorage(gui, posX, posY, storage, 18, 34, PATH_ELEMENTS + "storage_fluid_small.png", PATH_ELEMENTS + "output_underlay_fluid_small.png", reconfig::hasOutputSide, PATH_ELEMENTS + "overlay_fluid_small.png", 32, 64);
+        return (ElementFluidStorage) createDefaultFluidStorage(gui, posX, posY, storage, 18, 34, PATH_ELEMENTS + "storage_fluid_small.png", PATH_ELEMENTS + "overlay_fluid_small.png", 32, 64).setOverlayTexture(PATH_ELEMENTS + "output_underlay_fluid_small.png", reconfig::hasOutputSide);
     }
 
     public static ElementFluidStorage createDefaultFluidStorage(IGuiAccess gui, int posX, int posY, FluidStorageCoFH storage, int width, int height, String texture, String overlayTexture, int texW, int texH) {

@@ -125,14 +125,11 @@ public class EntityBlockCoFH extends Block implements EntityBlock, IDismantleabl
                 }
             }
             // Try fluid interaction first
-            boolean fluidInteracted = onBlockActivatedDelegate(worldIn, pos, state, player, hand, hit);
-            System.out.println("DEBUG: Fluid interaction result: " + fluidInteracted + " for item: " + stack);
-            if (fluidInteracted) {
+            if (onBlockActivatedDelegate(worldIn, pos, state, player, hand, hit)) {
                 return ItemInteractionResult.SUCCESS;
             }
             // If fluid interaction failed, try opening GUI
             if (cofhTile.canOpenGui()) {
-                System.out.println("DEBUG: Opening GUI instead");
                 player.openMenu((MenuProvider) tile, tile.getBlockPos());
                 return ItemInteractionResult.SUCCESS;
             }

@@ -91,23 +91,10 @@ public class BlockEntityCoFH extends BlockEntity implements ITileCallback, IPack
     // region HELPERS
     public boolean onActivatedDelegate(Level world, BlockPos pos, BlockState state, Player player, InteractionHand hand, BlockHitResult result) {
 
-        System.out.println("DEBUG: onActivatedDelegate called");
         IFluidHandler handler = world.getCapability(Capabilities.FluidHandler.BLOCK, pos, state, this, result.getDirection());
-        System.out.println("DEBUG: Fluid handler: " + (handler != null ? "found" : "null"));
         if (handler != null) {
-            // Debug fluid handler state
-            System.out.println("DEBUG: Fluid handler tanks: " + handler.getTanks());
-            for (int i = 0; i < handler.getTanks(); i++) {
-                FluidStack fluid = handler.getFluidInTank(i);
-                System.out.println("DEBUG: Tank " + i + ": " + fluid + " / " + handler.getTankCapacity(i));
-            }
-            System.out.println("DEBUG: Handler can fill 1000mb lava: " + (handler.fill(new FluidStack(net.minecraft.world.level.material.Fluids.LAVA, 1000), FluidAction.SIMULATE) > 0));
-            
             ItemStack itemInHand = player.getItemInHand(hand);
-            System.out.println("DEBUG: Item in hand: " + itemInHand);
-            boolean interactResult = FluidHelper.interactWithHandler(itemInHand, handler, player, hand);
-            System.out.println("DEBUG: FluidHelper.interactWithHandler result: " + interactResult);
-            return interactResult;
+            return FluidHelper.interactWithHandler(itemInHand, handler, player, hand);
         }
         return false;
     }

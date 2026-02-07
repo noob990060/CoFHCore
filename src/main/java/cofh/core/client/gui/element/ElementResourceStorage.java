@@ -116,7 +116,12 @@ public abstract class ElementResourceStorage extends ElementBase {
         drawStorage(poseStack);
         drawUnderlayTexture(poseStack);
         drawResource(poseStack);
-        drawOverlayTexture(poseStack);
+    }
+
+    @Override
+    public void drawForeground(GuiGraphics pGuiGraphics, int mouseX, int mouseY) {
+
+        drawOverlayTexture(pGuiGraphics.pose());
     }
 
     @Override
