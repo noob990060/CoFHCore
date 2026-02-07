@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -24,7 +25,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
 
 import javax.annotation.Nullable;
 
@@ -88,9 +91,23 @@ public class BlockEntityCoFH extends BlockEntity implements ITileCallback, IPack
     // region HELPERS
     public boolean onActivatedDelegate(Level world, BlockPos pos, BlockState state, Player player, InteractionHand hand, BlockHitResult result) {
 
+        System.out.println("DEBUG: onActivatedDelegate called");
         IFluidHandler handler = world.getCapability(Capabilities.FluidHandler.BLOCK, pos, state, this, result.getDirection());
+        System.out.println("DEBUG: Fluid handler: " + (handler != null ? "found" : "null"));
         if (handler != null) {
-            return FluidHelper.interactWithHandler(player.getItemInHand(hand), handler, player, hand);
+            // Debug fluid handler state
+            System.out.println("DEBUG: Fluid handler tanks: " + handler.getTanks());
+            for (int i = 0; i < handler.getTanks(); i++) {
+                FluidStack fluid = handler.getFluidInTank(i);
+                System.out.println("DEBUG: Tank " + i + ": " + fluid + " / " + handler.getTankCapacity(i));
+            }
+            System.out.println("DEBUG: Handler can fill 1000mb lava: " + (handler.fill(new FluidStack(net.minecraft.world.level.material.Fluids.LAVA, 1000), FluidAction.SIMULATE) > 0));
+            
+            ItemStack itemInHand = player.getItemInHand(hand);
+            System.out.println("DEBUG: Item in hand: " + itemInHand);
+            boolean interactResult = FluidHelper.interactWithHandler(itemInHand, handler, player, hand);
+            System.out.println("DEBUG: FluidHelper.interactWithHandler result: " + interactResult);
+            return interactResult;
         }
         return false;
     }

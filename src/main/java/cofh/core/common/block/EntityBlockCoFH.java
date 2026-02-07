@@ -13,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -95,6 +96,48 @@ public class EntityBlockCoFH extends Block implements EntityBlock, IDismantleabl
             }
         }
         return InteractionResult.PASS;
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+
+        if (Utils.isClientWorld(worldIn)) {
+            return ItemInteractionResult.SUCCESS;
+        }
+        BlockEntity tile = worldIn.getBlockEntity(pos);
+        if (tile instanceof BlockEntityCoFH cofhTile && !tile.isRemoved()) {
+            if (!cofhTile.canPlayerChange(player) && SecurityHelper.hasSecurity(tile)) {
+                ProxyUtils.setOverlayMessage(player, Component.translatable("info.cofh.secure_warning", SecurityHelper.getOwnerName(tile)));
+                return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            }
+            if (Utils.isWrench(stack)) {
+                if (player.isSecondaryUseActive()) {
+                    if (canDismantle(worldIn, pos, state, player)) {
+                        dismantleBlock(worldIn, pos, state, hit, player, returnDismantleDrops());
+                        return ItemInteractionResult.SUCCESS;
+                    }
+                } else {
+                    BlockState rotState = rotate(state, worldIn, pos, Rotation.CLOCKWISE_90);
+                    if (rotState != state) {
+                        worldIn.setBlockAndUpdate(pos, rotState);
+                        return ItemInteractionResult.SUCCESS;
+                    }
+                }
+            }
+            // Try fluid interaction first
+            boolean fluidInteracted = onBlockActivatedDelegate(worldIn, pos, state, player, hand, hit);
+            System.out.println("DEBUG: Fluid interaction result: " + fluidInteracted + " for item: " + stack);
+            if (fluidInteracted) {
+                return ItemInteractionResult.SUCCESS;
+            }
+            // If fluid interaction failed, try opening GUI
+            if (cofhTile.canOpenGui()) {
+                System.out.println("DEBUG: Opening GUI instead");
+                player.openMenu((MenuProvider) tile, tile.getBlockPos());
+                return ItemInteractionResult.SUCCESS;
+            }
+        }
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     protected boolean onBlockActivatedDelegate(Level world, BlockPos pos, BlockState state, Player player, InteractionHand hand, BlockHitResult result) {

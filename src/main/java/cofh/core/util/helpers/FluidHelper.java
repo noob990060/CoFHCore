@@ -336,30 +336,6 @@ public final class FluidHelper {
      * @param stack   The stack to drain from.
      * @param handler The IFluidHandler to fill.
      * @param player  The player using the item.
-     * @param hand    The hand the player is holding the item in.
-     * @return If the interaction was successful.
-     */
-    public static boolean drainItemToHandler(ItemStack stack, IFluidHandler handler, Player player, InteractionHand hand) {
-
-        if (stack.isEmpty() || handler == null || player == null) {
-            return false;
-        }
-        if (drainBottleToHandler(stack, handler, player, hand)) {
-            player.level().playSound(null, player.getX(), player.getY() + 0.5, player.getZ(), SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-            return true;
-        }
-        IItemHandler playerInv = new InvWrapper(player.getInventory());
-        FluidActionResult result = FluidUtil.tryEmptyContainerAndStow(stack, handler, playerInv, Integer.MAX_VALUE, player, true);
-        if (result.isSuccess()) {
-            player.setItemInHand(hand, result.getResult());
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Attempts to fill the item from an IFluidHandler.
-     *
      * @param stack   The stack to fill.
      * @param handler The IFluidHandler to drain from.
      * @param player  The player using the item.
@@ -393,6 +369,40 @@ public final class FluidHelper {
         IItemHandler playerInv = new InvWrapper(player.getInventory());
         FluidActionResult result = FluidUtil.tryFillContainerAndStow(stack, handler, playerInv, Integer.MAX_VALUE, player, true);
         if (result.isSuccess()) {
+            player.setItemInHand(hand, result.getResult());
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Attempts to drain the item to an IFluidHandler.
+     *
+     * @param stack   The stack to drain from.
+     * @param handler The IFluidHandler to fill.
+     * @param player  The player using the item.
+     * @param hand    The hand the player is holding the item in.
+     * @return If the interaction was successful.
+     */
+    public static boolean drainItemToHandler(ItemStack stack, IFluidHandler handler, Player player, InteractionHand hand) {
+
+        if (stack.isEmpty() || handler == null || player == null) {
+            return false;
+        }
+        boolean bottleResult = drainBottleToHandler(stack, handler, player, hand);
+        System.out.println("DEBUG: drainBottleToHandler result: " + bottleResult);
+        if (bottleResult) {
+            player.level().playSound(null, player.getX(), player.getY() + 0.5, player.getZ(), SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+            return true;
+        }
+        IItemHandler playerInv = new InvWrapper(player.getInventory());
+        System.out.println("DEBUG: Trying FluidUtil.tryEmptyContainerAndStow");
+        FluidActionResult result = FluidUtil.tryEmptyContainerAndStow(stack, handler, playerInv, Integer.MAX_VALUE, player, true);
+        System.out.println("DEBUG: FluidActionResult: " + result);
+        System.out.println("DEBUG: FluidActionResult.isSuccess(): " + result.isSuccess());
+        System.out.println("DEBUG: FluidActionResult.getResult(): " + result.getResult());
+        if (result.isSuccess()) {
+            System.out.println("DEBUG: Setting item in hand to: " + result.getResult());
             player.setItemInHand(hand, result.getResult());
             return true;
         }
