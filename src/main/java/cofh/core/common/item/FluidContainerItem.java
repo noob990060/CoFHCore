@@ -145,9 +145,9 @@ public class FluidContainerItem extends ItemCoFH implements IFluidContainerItem,
         //            return 0xD78D5B;
         //        }
         if (colorIndex == 1) {
-            return getFluidAmount(item) > 0 ? FluidHelper.color(getFluid(item)) : 0xFFFFFF;
+            return getFluidAmount(item) > 0 ? FluidHelper.color(getFluid(item)) : -1;
         }
-        return 0xFFFFFF;
+        return -1;
     }
     // endregion
 }

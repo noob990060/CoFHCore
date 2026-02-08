@@ -12,10 +12,10 @@ public interface IColorableItem {
             // Use the new DyedItemColor component (used by leather armor, etc.)
             DyedItemColor dyedColor = item.get(DataComponents.DYED_COLOR);
             if (dyedColor != null) {
-                return dyedColor.rgb();
+                return net.minecraft.util.FastColor.ARGB32.opaque(dyedColor.rgb());
             }
         }
-        return 0xFFFFFF;
+        return -1;
     }
 
 }
