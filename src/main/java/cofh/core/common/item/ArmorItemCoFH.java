@@ -68,7 +68,7 @@ public class ArmorItemCoFH extends ArmorItem implements ICoFHItem {
         return modId == null || modId.isEmpty() ? super.getCreatorModId(itemStack) : modId;
     }
     // endregion
-
+    @SuppressWarnings("unchecked")
     @Nullable
     public <A extends HumanoidModel<?>> A getArmorModel(LivingEntity entityLiving, ItemStack itemStack, EquipmentSlot armorSlot, A _default) {
 
