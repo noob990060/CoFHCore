@@ -20,17 +20,18 @@ import java.util.Collections;
 import static cofh.core.util.helpers.GuiHelper.*;
 import static cofh.lib.util.Constants.PATH_ELEMENTS;
 import static cofh.lib.util.Constants.PATH_GUI;
+import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 import static cofh.lib.util.helpers.SoundHelper.playClickSound;
 
 public class ItemFilterScreen extends ContainerScreenCoFH<ItemFilterMenu> {
 
-    public static final ResourceLocation TEXTURE = ResourceLocation.parse(PATH_GUI + "generic.png");
-    public static final ResourceLocation SLOT_OVERLAY = ResourceLocation.parse(PATH_ELEMENTS + "locked_overlay_slot.png");
+    public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, PATH_GUI + "generic.png");
+    public static final ResourceLocation SLOT_OVERLAY = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, PATH_ELEMENTS + "locked_overlay_slot.png");
 
-    public static final ResourceLocation TEX_DENY_LIST = ResourceLocation.parse(PATH_GUI + "filters/filter_deny_list.png");
-    public static final ResourceLocation TEX_ALLOW_LIST = ResourceLocation.parse(PATH_GUI + "filters/filter_allow_list.png");
-    public static final ResourceLocation TEX_IGNORE_NBT = ResourceLocation.parse(PATH_GUI + "filters/filter_ignore_nbt.png");
-    public static final ResourceLocation TEX_USE_NBT = ResourceLocation.parse(PATH_GUI + "filters/filter_use_nbt.png");
+    public static final ResourceLocation TEX_DENY_LIST = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, PATH_GUI + "filters/filter_deny_list.png");
+    public static final ResourceLocation TEX_ALLOW_LIST = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, PATH_GUI + "filters/filter_allow_list.png");
+    public static final ResourceLocation TEX_IGNORE_NBT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, PATH_GUI + "filters/filter_ignore_nbt.png");
+    public static final ResourceLocation TEX_USE_NBT = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, PATH_GUI + "filters/filter_use_nbt.png");
 
     public ItemFilterScreen(ItemFilterMenu container, Inventory inv, Component titleIn) {
 

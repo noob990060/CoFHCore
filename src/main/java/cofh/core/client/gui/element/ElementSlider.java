@@ -8,12 +8,13 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
 import static cofh.lib.util.Constants.PATH_ELEMENTS;
+import static cofh.lib.util.constants.ModIds.ID_COFH_CORE;
 
 public abstract class ElementSlider extends ElementBase {
 
-    public static final ResourceLocation HOVER = ResourceLocation.parse(PATH_ELEMENTS + "button_hover.png");
-    public static final ResourceLocation ENABLED = ResourceLocation.parse(PATH_ELEMENTS + "button_enabled.png");
-    public static final ResourceLocation DISABLED = ResourceLocation.parse(PATH_ELEMENTS + "button_disabled.png");
+    public static final ResourceLocation HOVER = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, PATH_ELEMENTS + "button_hover.png");
+    public static final ResourceLocation ENABLED = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, PATH_ELEMENTS + "button_enabled.png");
+    public static final ResourceLocation DISABLED = ResourceLocation.fromNamespaceAndPath(ID_COFH_CORE, PATH_ELEMENTS + "button_disabled.png");
 
     protected int value;
     protected int valueMin;
