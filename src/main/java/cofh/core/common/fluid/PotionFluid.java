@@ -1,6 +1,7 @@
 package cofh.core.common.fluid;
 
 import cofh.lib.common.fluid.FluidCoFH;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -21,8 +22,10 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -74,14 +77,20 @@ public class PotionFluid extends FluidCoFH {
                 @Override
                 public Component getDescription(FluidStack stack) {
 
-                    // TODO: Update to use new potion API when available
+                    PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
+                    if (contents != null && contents.potion().isPresent()) {
+                        return Component.translatable(Potion.getName(contents.potion(), Items.POTION.getDescriptionId() + ".effect."));
+                    }
                     return super.getDescription(stack);
                 }
 
                 @Override
                 public Rarity getRarity(FluidStack stack) {
 
-                    // TODO: Update to use new potion API when available
+                    PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
+                    if (contents != null && contents.hasEffects()) {
+                        return Rarity.UNCOMMON;
+                    }
                     return Rarity.COMMON;
                 }
 
@@ -120,7 +129,10 @@ public class PotionFluid extends FluidCoFH {
 
     public static int getPotionColor(FluidStack stack) {
 
-        // TODO: Implement using new PotionContents system when fluid components are available
+        PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
+        if (contents != null) {
+            return contents.getColor();
+        }
         return DEFAULT_COLOR;
     }
 
@@ -129,7 +141,7 @@ public class PotionFluid extends FluidCoFH {
         if (type == null) {
             return FluidStack.EMPTY;
         }
-        if (type == Potions.WATER && !hasCustom) {
+        if (type == Potions.WATER.value() && !hasCustom) {
             return new FluidStack(Fluids.WATER, amount);
         }
         return addPotionToFluidStack(new FluidStack(INSTANCE.stillFluid.get(), amount), type);
@@ -147,31 +159,41 @@ public class PotionFluid extends FluidCoFH {
         if (resourceLoc == null) {
             return FluidStack.EMPTY;
         }
-        // TODO: Update to use new fluid tag API when available
+        Holder<Potion> holder = BuiltInRegistries.POTION.wrapAsHolder(type);
+        stack.set(DataComponents.POTION_CONTENTS, new PotionContents(holder));
         return stack;
     }
 
     public static FluidStack setCustomEffects(FluidStack stack, Collection<MobEffectInstance> effects) {
 
-        // TODO: Update to use new fluid tag API when available
+        PotionContents existing = stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+        PotionContents updated = new PotionContents(existing.potion(), existing.customColor(), new ArrayList<>(effects));
+        stack.set(DataComponents.POTION_CONTENTS, updated);
         return stack;
     }
 
     public static Collection<MobEffectInstance> getCustomEffects(FluidStack stack) {
 
-        // TODO: Update to use new fluid tag API when available
+        PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
+        if (contents != null) {
+            return contents.customEffects();
+        }
         return Collections.emptyList();
     }
 
     public static FluidStack setCustomColor(FluidStack stack, int color) {
 
-        // TODO: Update to use new fluid tag API when available
+        PotionContents existing = stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+        PotionContents updated = new PotionContents(existing.potion(), Optional.of(color), existing.customEffects());
+        stack.set(DataComponents.POTION_CONTENTS, updated);
         return stack;
     }
 
     public static ItemStack setCustomColor(ItemStack stack, int color) {
 
-        // TODO: Update to use new item tag API when available
+        PotionContents existing = stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+        PotionContents updated = new PotionContents(existing.potion(), Optional.of(color), existing.customEffects());
+        stack.set(DataComponents.POTION_CONTENTS, updated);
         return stack;
     }
 
@@ -180,8 +202,9 @@ public class PotionFluid extends FluidCoFH {
         if (stack.getItem() == Items.POTION) {
             PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
             if (contents != null && contents.potion().isPresent() && contents.potion().get() != Potions.WATER) {
-                // TODO: Convert PotionContents to fluid when fluid components are available
-                return new FluidStack(INSTANCE.stillFluid.get(), amount);
+                FluidStack fluid = new FluidStack(INSTANCE.stillFluid.get(), amount);
+                fluid.set(DataComponents.POTION_CONTENTS, contents);
+                return fluid;
             }
         }
         return FluidStack.EMPTY;
@@ -190,7 +213,10 @@ public class PotionFluid extends FluidCoFH {
     public static ItemStack getItemFromPotionFluid(FluidStack fluid) {
 
         ItemStack stack = new ItemStack(Items.POTION);
-        // TODO: Convert fluid to PotionContents when fluid components are available
+        PotionContents contents = fluid.get(DataComponents.POTION_CONTENTS);
+        if (contents != null) {
+            stack.set(DataComponents.POTION_CONTENTS, contents);
+        }
         return stack;
     }
     // endregion

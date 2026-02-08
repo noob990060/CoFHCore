@@ -6,7 +6,6 @@ import cofh.lib.init.tags.FluidTagsCoFH;
 import cofh.lib.util.helpers.BlockHelper;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -67,9 +66,7 @@ public final class FluidHelper {
 
     public static int fluidHashcode(FluidStack stack) {
 
-        net.minecraft.world.item.component.CustomData customData = stack.getComponents().get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
-        CompoundTag tag = customData != null ? customData.copyTag() : null;
-        return tag != null ? stack.getFluid().hashCode() + 31 * tag.hashCode() : stack.getFluid().hashCode();
+        return FluidStack.hashFluidAndComponents(stack);
     }
 
     // region COMPARISON
@@ -427,7 +424,14 @@ public final class FluidHelper {
 
     public static Potion getPotionFromFluid(FluidStack fluid) {
 
-        return fluid.getFluid() == net.minecraft.world.level.material.Fluids.WATER ? Potions.WATER.value() : getPotionFromFluidTag(getPotionTagFromFluidStack(fluid));
+        if (fluid.getFluid() == net.minecraft.world.level.material.Fluids.WATER) {
+            return Potions.WATER.value();
+        }
+        net.minecraft.world.item.alchemy.PotionContents contents = fluid.get(net.minecraft.core.component.DataComponents.POTION_CONTENTS);
+        if (contents != null && contents.potion().isPresent()) {
+            return contents.potion().get().value();
+        }
+        return Potions.WATER.value();
     }
 
     @Nullable
@@ -459,10 +463,8 @@ public final class FluidHelper {
             return;
         }
         net.minecraft.world.item.alchemy.PotionContents contents = stack.getComponents().get(net.minecraft.core.component.DataComponents.POTION_CONTENTS);
-        if (contents != null && contents.potion().isPresent()) {
-            Holder<Potion> potion = contents.potion().get();
-            List<MobEffectInstance> effects = contents.customEffects();
-            net.minecraft.world.item.alchemy.PotionContents.addPotionTooltip(effects, lores::add, durationFactor, 20.F);
+        if (contents != null) {
+            contents.addPotionTooltip(lores::add, durationFactor, 20.F);
         }
     }
 
