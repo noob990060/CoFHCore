@@ -121,9 +121,10 @@ public interface IFluidContainerItem extends IContainerItem {
             if (action.execute()) {
                 CompoundTag fluidTag = new CompoundTag();
                 HolderLookup.Provider lookupProvider = getLookupProvider(level);
-                resource.save(lookupProvider, fluidTag);
-                fluidTag.putInt(TAG_AMOUNT, capacity);
-                containerTag.put(TAG_FLUID, fluidTag);
+                net.minecraft.nbt.Tag result = resource.save(lookupProvider, fluidTag);
+                CompoundTag savedTag = result instanceof CompoundTag ct ? ct : fluidTag;
+                savedTag.putInt(TAG_AMOUNT, capacity);
+                containerTag.put(TAG_FLUID, savedTag);
             }
             return resource.getAmount();
         }
@@ -143,14 +144,15 @@ public interface IFluidContainerItem extends IContainerItem {
         if (!containerTag.contains(TAG_FLUID)) {
             CompoundTag newFluidTag = new CompoundTag();
             HolderLookup.Provider lookupProvider = getLookupProvider(level);
-            resource.save(lookupProvider, newFluidTag);
+            net.minecraft.nbt.Tag result = resource.save(lookupProvider, newFluidTag);
+            CompoundTag savedTag = result instanceof CompoundTag ct ? ct : newFluidTag;
             if (capacity < resource.getAmount()) {
-                newFluidTag.putInt(TAG_AMOUNT, capacity);
-                containerTag.put(TAG_FLUID, newFluidTag);
+                savedTag.putInt(TAG_AMOUNT, capacity);
+                containerTag.put(TAG_FLUID, savedTag);
                 return capacity;
             }
-            newFluidTag.putInt(TAG_AMOUNT, resource.getAmount());
-            containerTag.put(TAG_FLUID, newFluidTag);
+            savedTag.putInt(TAG_AMOUNT, resource.getAmount());
+            containerTag.put(TAG_FLUID, savedTag);
             return resource.getAmount();
         }
         CompoundTag fluidTag = containerTag.getCompound(TAG_FLUID);
@@ -167,8 +169,8 @@ public interface IFluidContainerItem extends IContainerItem {
         }
         CompoundTag updatedFluidTag = new CompoundTag();
         HolderLookup.Provider lookupProvider = getLookupProvider(level);
-        stack.save(lookupProvider, updatedFluidTag);
-        containerTag.put(TAG_FLUID, updatedFluidTag);
+        net.minecraft.nbt.Tag result = stack.save(lookupProvider, updatedFluidTag);
+        containerTag.put(TAG_FLUID, result instanceof CompoundTag ct ? ct : updatedFluidTag);
         return filled;
     }
 

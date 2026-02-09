@@ -192,10 +192,20 @@ public class ItemStorageCoFH implements IItemHandler, IItemStackHolder, IResourc
 
     protected final void saveItemStack(ItemStack stack, CompoundTag nbt, @Nullable HolderLookup.Provider provider) {
 
+        // In MC 1.21.1, ItemStack.save() uses codec encoding via NbtOps which
+        // creates a shallowCopy() in mergeToMap, returning a NEW CompoundTag.
+        // We must copy the result back into the original nbt parameter.
+        net.minecraft.nbt.Tag result;
         if (provider == null) {
-            stack.save(net.minecraft.core.RegistryAccess.EMPTY, nbt);
+            result = stack.save(net.minecraft.core.RegistryAccess.EMPTY, nbt);
         } else {
-            stack.save(provider, nbt);
+            result = stack.save(provider, nbt);
+        }
+        if (result instanceof CompoundTag resultTag && resultTag != nbt) {
+            // Copy all entries from the returned tag into the original nbt
+            for (String key : resultTag.getAllKeys()) {
+                nbt.put(key, resultTag.get(key));
+            }
         }
         if (stack.getCount() > Byte.MAX_VALUE) {
             nbt.putInt("IntCount", stack.getCount());
